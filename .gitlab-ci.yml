@@ -1,0 +1,16 @@
+stages:
+  - deploy
+
+deploy_to_heroku:
+  stage: deploy
+  script:
+    - echo "Deploying to Heroku..."
+    - curl https://cli-assets.heroku.com/install.sh | sh
+    - heroku container:login
+    - heroku git:remote -a genadam-2669f82f8579
+    - git push heroku main
+  only:
+    - main
+  environment:
+    name: production
+
