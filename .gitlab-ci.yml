@@ -4,8 +4,10 @@ stages:
 deploy_to_heroku:
   stage: deploy
   before_script:
-    # Update system and install Heroku CLI
-    - apt-get update && apt-get install -y curl gnupg apt-transport-https software-properties-common
+    # Install Docker
+    - apt-get update && apt-get install -y docker.io
+    # Install Heroku CLI
+    - apt-get install -y curl gnupg apt-transport-https software-properties-common
     - curl https://cli-assets.heroku.com/install.sh | sh
     # Authenticate Heroku CLI using API Key
     - echo "$HEROKU_API_KEY" | docker login --username=_ --password-stdin registry.heroku.com
