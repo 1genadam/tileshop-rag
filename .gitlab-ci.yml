@@ -1,13 +1,12 @@
+image: heroku/heroku:20
+
 stages:
   - deploy
 
 deploy_to_heroku:
   stage: deploy
   before_script:
-    # Update system and install Heroku CLI
-    - apt-get update && apt-get install -y curl gnupg apt-transport-https software-properties-common
-    - curl https://cli-assets.heroku.com/install.sh | sh
-    # Authenticate Heroku CLI using API Key
+    # Authenticate Docker with Heroku
     - echo "$HEROKU_API_KEY" | docker login --username=_ --password-stdin registry.heroku.com
     # Set Heroku remote
     - heroku git:remote -a genadam
