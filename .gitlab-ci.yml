@@ -1,11 +1,7 @@
-stages:
-  - deploy
-
 deploy_to_heroku:
   stage: deploy
   before_script:
     - curl https://cli-assets.heroku.com/install.sh | sh
-    - echo "$HEROKU_API_KEY" | docker login --username=_ --password-stdin registry.heroku.com
     - heroku git:remote -a genadam-2669f82f8579
   script:
     - echo "Deploying to Heroku..."
