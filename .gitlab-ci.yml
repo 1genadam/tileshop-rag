@@ -1,10 +1,18 @@
+stages:
+  - deploy
+
 deploy_to_heroku:
   stage: deploy
   before_script:
+    # Update system and install Heroku CLI
+    - apt-get update && apt-get install -y curl gnupg apt-transport-https software-properties-common
     - curl https://cli-assets.heroku.com/install.sh | sh
-    - heroku git:remote -a genadam-2669f82f8579
+    # Authenticate Heroku CLI using API Key
+    - echo "$HEROKU_API_KEY" | docker login --username=_ --password-stdin registry.heroku.com
+    # Set Heroku remote
+    - heroku git:remote -a genadam
   script:
-    - echo "Deploying to Heroku..."
+    # Push code to Heroku
     - git push heroku main
   only:
     - main
