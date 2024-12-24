@@ -4,16 +4,18 @@ stages:
 deploy_to_heroku:
   stage: deploy
   before_script:
-    # Install Heroku CLI
+    # Update and install curl
     - apt-get update && apt-get install -y curl
+    # Install Heroku CLI
     - curl https://cli-assets.heroku.com/install.sh | sh
-    # Set Heroku remote
+    # Set Heroku remote repository
     - heroku git:remote -a genadam
-  script:
-    # Set Heroku API key for authentication
+    # Configure authentication using HEROKU_API_KEY
     - echo "machine api.heroku.com login _ password $HEROKU_API_KEY" > ~/.netrc
     - echo "machine git.heroku.com login _ password $HEROKU_API_KEY" >> ~/.netrc
-    # Push code to Heroku
+    - chmod 600 ~/.netrc
+  script:
+    # Push the code to Heroku
     - git push https://git.heroku.com/genadam.git main
   only:
     - main
