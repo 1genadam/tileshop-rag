@@ -1,0 +1,13 @@
+setup:
+  addons:
+    - plan: heroku-postgresql
+build:
+  docker:
+    web: Dockerfile
+    orchestrator: orchestration/Dockerfile
+    scripture: services/scripture_data_service/Dockerfile
+    translation: services/translation_service/Dockerfile
+    avatar: services/avatar_interaction_service/Dockerfile
+    debate: services/debate_knowledge_service/Dockerfile
+    analytics: services/user_analytics_service/Dockerfile
+    historical: services/historical_context_service/Dockerfile
