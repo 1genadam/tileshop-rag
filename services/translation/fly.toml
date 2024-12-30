@@ -1,0 +1,24 @@
+app = "genadam-translation"
+[build]
+  dockerfile = "Dockerfile"
+[env]
+  PORT = "8085"
+[http_service]
+  internal_port = 8085
+  force_https = true
+  auto_stop_machines = true
+  auto_start_machines = true
+  min_machines_running = 1
+[[vm]]
+  cpu_kind = "shared"
+  cpus = 1
+  memory_mb = 256
+[[services]]
+  protocol = "tcp"
+  internal_port = 8085
+  [[services.ports]]
+    port = 80
+    handlers = ["http"]
+  [[services.ports]]
+    port = 443
+    handlers = ["tls", "http"]
