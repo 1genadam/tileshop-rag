@@ -1,0 +1,2 @@
+[console_scripts]
+anchor-monitor = anchor_guardian.integrations.avatar_monitor:main

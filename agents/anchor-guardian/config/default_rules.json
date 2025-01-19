@@ -1,0 +1,38 @@
+{
+    "anchored_blocks": {
+        "chat_handler_constructor": {
+            "file": "static/js/chat/chat_handler.js",
+            "id": "constructor",
+            "required_elements": [
+                "this.messageContainer",
+                "this.chatInput",
+                "this.sendButton"
+            ]
+        },
+        "chat_handler_send": {
+            "file": "static/js/chat/chat_handler.js",
+            "id": "sendMessage",
+            "required_elements": [
+                "this.setLoading",
+                "this.displayMessage",
+                "fetch('/chat/message'"
+            ]
+        }
+    },
+    "dependencies": {
+        "static/js/chat/chat_handler.js": [
+            "routes/chat_routes.py",
+            "templates/chat.html",
+            "templates/includes/chat_input.html"
+        ],
+        "routes/chat_routes.py": [
+            "static/js/chat/chat_handler.js",
+            "app/models.py"
+        ]
+    },
+    "validation_rules": {
+        "strict_mode": true,
+        "allow_partial_updates": false,
+        "require_approval_on_conflict": true
+    }
+}
