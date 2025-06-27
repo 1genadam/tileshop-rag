@@ -1,0 +1,288 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>AI Product Chat - Tileshop Admin</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/icon?family=Material+Icons" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/socket.io/4.7.2/socket.io.js"></script>
+    <script src="/static/chat.js"></script>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            background: #f8f9fa;
+            color: #333;
+            line-height: 1.6;
+        }
+        
+        .header {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 1rem 2rem;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+            position: sticky;
+            top: 0;
+            z-index: 100;
+        }
+        
+        .header-content {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            max-width: 1400px;
+            margin: 0 auto;
+        }
+        
+        .header h1 {
+            font-size: 1.5rem;
+            font-weight: 600;
+        }
+        
+        .nav-links {
+            display: flex;
+            gap: 2rem;
+            list-style: none;
+        }
+        
+        .nav-links a {
+            color: white;
+            text-decoration: none;
+            padding: 0.5rem 1rem;
+            border-radius: 6px;
+            transition: background 0.3s;
+        }
+        
+        .nav-links a:hover,
+        .nav-links a.active {
+            background: rgba(255,255,255,0.2);
+        }
+        
+        .chat-container {
+            display: flex;
+            flex-direction: column;
+            height: calc(100vh - 64px);
+        }
+        .chat-messages {
+            flex-grow: 1;
+            overflow-y: auto;
+            padding: 1rem;
+        }
+        .message-bubble {
+            padding: 0.75rem 1rem;
+            border-radius: 0.75rem;
+            margin-bottom: 0.5rem;
+            max-width: 75%;
+            word-wrap: break-word;
+        }
+        .message-bubble.user {
+            background-color: #3b82f6;
+            color: white;
+            align-self: flex-end;
+            border-bottom-right-radius: 0.25rem;
+        }
+        .message-bubble.assistant {
+            background-color: #e5e7eb;
+            color: #1f2937;
+            align-self: flex-start;
+            border-bottom-left-radius: 0.25rem;
+        }
+        .message-bubble.system {
+            background-color: #fef9c3;
+            color: #713f12;
+            align-self: center;
+            font-size: 0.875rem;
+            text-align: center;
+            width: auto;
+            max-width: 90%;
+        }
+        .message-timestamp {
+            font-size: 0.75rem;
+            color: #6b7280;
+            margin-top: 0.25rem;
+        }
+        .user .message-timestamp {
+            text-align: right;
+        }
+        .typing-indicator span {
+            height: 8px;
+            width: 8px;
+            background-color: #9ca3af;
+            border-radius: 50%;
+            display: inline-block;
+            margin: 0 2px;
+            animation: bounce 1.4s infinite both;
+        }
+        .typing-indicator span:nth-child(2) {
+            animation-delay: 0.2s;
+        }
+        .typing-indicator span:nth-child(3) {
+            animation-delay: 0.4s;
+        }
+        @keyframes bounce {
+            0%, 80%, 100% {
+                transform: scale(0);
+            }
+            40% {
+                transform: scale(1);
+            }
+        }
+        .product-card {
+            border: 1px solid #e5e7eb;
+            border-radius: 0.5rem;
+            overflow: hidden;
+            transition: box-shadow 0.3s ease;
+        }
+        .product-card:hover {
+            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
+        }
+        .product-card img {
+            transition: transform 0.3s ease;
+        }
+        .product-card:hover img {
+            transform: scale(1.05);
+        }
+        .suggestion-chip {
+            cursor: pointer;
+            transition: background-color 0.3s ease;
+        }
+    </style>
+</head>
+<body>
+    <header class="header">
+        <div class="header-content">
+            <h1><i class="fas fa-tachometer-alt"></i> Tileshop Admin</h1>
+            <nav>
+                <ul class="nav-links">
+                    <li><a href="/">
+                        <i class="fas fa-chart-line"></i> Dashboard
+                    </a></li>
+                    <li><a href="/chat" class="active">
+                        <i class="fas fa-comments"></i> RAG Chat
+                    </a></li>
+                </ul>
+            </nav>
+        </div>
+    </header>
+
+    <main class="container mx-auto p-4">
+        <div class="grid grid-cols-1 md:grid-cols-4 gap-6 mb-6">
+            <div class="bg-white p-6 rounded-lg shadow-sm" id="rag-status-card">
+                <h2 class="text-lg font-semibold text-gray-700 mb-3 flex items-center">
+                    <span class="material-icons mr-2 text-blue-500">settings_input_antenna</span> RAG Status
+                </h2>
+                <div class="flex items-center mb-3">
+                    <span class="material-icons text-green-500 mr-2" id="rag-status-icon">check_circle</span>
+                    <span class="text-gray-600" id="rag-status-text">Ready</span>
+                </div>
+                <button class="w-full bg-blue-500 hover:bg-blue-600 text-white font-medium py-2 px-4 rounded-md flex items-center justify-center transition duration-150 ease-in-out" id="sync-data-button" onclick="syncData()">
+                    <span class="material-icons mr-2">sync</span> Sync Data
+                </button>
+                <p class="text-xs text-gray-500 mt-2 text-center" id="sync-status-message"></p>
+            </div>
+
+            <div class="bg-white p-6 rounded-lg shadow-sm" id="chat-stats-card">
+                <h2 class="text-lg font-semibold text-gray-700 mb-3 flex items-center">
+                    <span class="material-icons mr-2 text-blue-500">leaderboard</span> Chat Stats
+                </h2>
+                <p class="text-gray-600">Messages: <span id="message-count">0</span></p>
+                <p class="text-gray-600">Database: <span class="text-green-500 font-medium" id="database-status">Connected</span></p>
+                <p class="text-xs text-gray-500 mt-2">Last updated: <span id="last-sync-time">N/A</span></p>
+            </div>
+
+            <div class="bg-white p-6 rounded-lg shadow-sm" id="actions-card">
+                <h2 class="text-lg font-semibold text-gray-700 mb-3 flex items-center">
+                    <span class="material-icons mr-2 text-blue-500">construction</span> Actions
+                </h2>
+                <div class="space-y-3">
+                    <button class="w-full bg-red-500 hover:bg-red-600 text-white font-medium py-2 px-4 rounded-md flex items-center justify-center transition duration-150 ease-in-out" id="clear-chat-button">
+                        <span class="material-icons mr-2">delete_sweep</span> Clear Chat
+                    </button>
+                    <button class="w-full bg-green-500 hover:bg-green-600 text-white font-medium py-2 px-4 rounded-md flex items-center justify-center transition duration-150 ease-in-out" id="export-results-button">
+                        <span class="material-icons mr-2">download</span> Export Results
+                    </button>
+                    <button class="w-full bg-indigo-500 hover:bg-indigo-600 text-white font-medium py-2 px-4 rounded-md flex items-center justify-center transition duration-150 ease-in-out" id="refresh-data-button">
+                        <span class="material-icons mr-2">refresh</span> Refresh Data
+                    </button>
+                </div>
+            </div>
+
+            <div class="bg-white p-6 rounded-lg shadow-sm" id="suggestions-card">
+                <h2 class="text-lg font-semibold text-gray-700 mb-3 flex items-center">
+                    <span class="material-icons mr-2 text-blue-500">lightbulb</span> Suggestions
+                </h2>
+                <div class="space-y-2" id="suggestions-container">
+                    <button class="suggestion-chip w-full text-left bg-gray-100 hover:bg-gray-200 text-gray-700 text-sm py-2 px-3 rounded-md">Show me ceramic subway tiles under $100</button>
+                    <button class="suggestion-chip w-full text-left bg-gray-100 hover:bg-gray-200 text-gray-700 text-sm py-2 px-3 rounded-md">What travertine tiles do you have?</button>
+                    <button class="suggestion-chip w-full text-left bg-gray-100 hover:bg-gray-200 text-gray-700 text-sm py-2 px-3 rounded-md">Show me bathroom wall tiles</button>
+                    <button class="suggestion-chip w-full text-left bg-gray-100 hover:bg-gray-200 text-gray-700 text-sm py-2 px-3 rounded-md">What are the most expensive tiles?</button>
+                </div>
+            </div>
+        </div>
+
+        <div class="bg-white rounded-lg shadow-sm chat-container">
+            <div class="p-4 border-b border-gray-200">
+                <h2 class="text-xl font-semibold text-gray-800 flex items-center">
+                    <span class="material-icons mr-2 text-blue-600">support_agent</span> AI Product Assistant
+                </h2>
+            </div>
+
+            <div class="chat-messages flex flex-col space-y-4 p-6" id="chat-messages">
+                <div class="flex justify-start">
+                    <div class="message-bubble assistant">
+                        <p>Hello! How can I help you find the perfect tiles today?</p>
+                        <p class="message-timestamp" id="welcome-timestamp"></p>
+                    </div>
+                </div>
+                <div class="flex justify-start hidden" id="typing-indicator-container">
+                    <div class="message-bubble assistant">
+                        <div class="typing-indicator">
+                            <span></span><span></span><span></span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="p-6 border-t border-gray-200 bg-gray-50 grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4 hidden" id="product-results-grid">
+                <!-- Product cards will be dynamically inserted here -->
+            </div>
+
+            <div class="p-4 border-t border-gray-200 bg-gray-50">
+                <div class="flex items-center space-x-3">
+                    <div class="relative flex-grow">
+                        <span class="material-icons absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400">search</span>
+                        <input class="w-full border border-gray-300 rounded-lg py-3 pl-10 pr-4 focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none transition duration-150 ease-in-out" id="chat-input" maxlength="200" placeholder="Ask about tiles, prices, specifications..." type="text">
+                        <span class="absolute right-3 top-1/2 transform -translate-y-1/2 text-xs text-gray-400" id="char-count">0/200</span>
+                    </div>
+                    <button class="bg-blue-500 hover:bg-blue-600 text-white font-medium py-3 px-6 rounded-lg flex items-center transition duration-150 ease-in-out" id="send-button" onclick="sendMessage()">
+                        <span class="material-icons mr-2">send</span> Send
+                    </button>
+                </div>
+
+                <div class="hidden mt-2 text-center text-gray-500" id="loading-state">
+                    <p>Loading results...</p>
+                </div>
+                <div class="hidden mt-2 text-center text-red-500" id="error-state">
+                    <p>An error occurred. Please try again.</p>
+                </div>
+                <div class="hidden mt-2 text-center text-gray-500" id="empty-state">
+                    <p>No products found matching your query.</p>
+                </div>
+            </div>
+        </div>
+
+        <footer class="text-center py-4 mt-8 text-sm text-gray-500 border-t border-gray-200">
+            <p>Product Count: <span id="product-count">33+</span> | Last Sync: <span id="footer-last-sync-time">N/A</span> | <span id="footer-sync-status">Sync Status: Ready</span></p>
+            <p>© 2024 Tileshop Admin. All rights reserved.</p>
+        </footer>
+    </main>
+</body>
+</html>

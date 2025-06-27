@@ -1,0 +1,1 @@
+web: poetry run gunicorn --bind 0.0.0.0:$PORT --workers 2 --threads 2 --timeout 120 --worker-class gthread --worker-tmp-dir /dev/shm --preload --max-requests 1000 --max-requests-jitter 50 --access-logfile - --error-logfile - admin_dashboard:app

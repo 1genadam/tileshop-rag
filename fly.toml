@@ -1,0 +1,45 @@
+app = "tileshop-scraper"
+
+[build]
+  dockerfile = "Dockerfile"
+
+[env]
+  PORT = "8080"
+  FLASK_ENV = "production"
+  DEBUG = "false"
+
+[[vm]]
+  memory = "2gb"
+  cpu_kind = "shared"
+  cpus = 1
+  swap_size_mb = 512
+
+[http_service]
+  internal_port = 8080
+  force_https = true
+  auto_stop_machines = false
+  auto_start_machines = true
+  min_machines_running = 1
+  processes = ["app"]
+
+  [[http_service.checks]]
+    interval = "30s"
+    timeout = "10s"
+    grace_period = "30s"
+    method = "GET"
+    path = "/api/system/health"
+    protocol = "http"
+
+[[mounts]]
+  source = "tileshop_data"
+  destination = "/app/data"
+
+[[mounts]]
+  source = "tileshop_instance"
+  destination = "/app/instance"
+
+[deploy]
+  strategy = "immediate"
+
+[processes]
+  app = "poetry run gunicorn --bind 0.0.0.0:8080 --workers 2 --threads 2 --timeout 120 --worker-class gthread --worker-tmp-dir /dev/shm --preload --max-requests 1000 --max-requests-jitter 50 --access-logfile - --error-logfile - admin_dashboard:app"
