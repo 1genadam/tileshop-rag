@@ -154,6 +154,29 @@
             cursor: pointer;
             transition: background-color 0.3s ease;
         }
+        
+        /* Enhanced image styling in chat */
+        .message-bubble img {
+            border-radius: 8px;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+            margin: 8px 0;
+            transition: transform 0.3s ease;
+        }
+        
+        .message-bubble img:hover {
+            transform: scale(1.05);
+            cursor: pointer;
+        }
+        
+        .message-bubble a {
+            color: #3b82f6;
+            text-decoration: underline;
+            word-break: break-all;
+        }
+        
+        .message-bubble a:hover {
+            color: #1d4ed8;
+        }
     </style>
 </head>
 <body>

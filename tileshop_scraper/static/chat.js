@@ -135,6 +135,36 @@ function refreshData() {
 }
 
 // Add message to chat
+// Enhanced markdown parsing function
+function parseMarkdownToHTML(text) {
+    console.log('Input text for parsing:', text);
+    
+    // First, convert markdown images ![alt](url) to HTML with proper escaping
+    text = text.replace(/!\[([^\]]*)\]\(([^)]+)\)/g, function(match, alt, url) {
+        console.log('Found markdown image:', match, 'alt:', alt, 'url:', url);
+        return `<img src="${url}" alt="${alt}" class="max-w-xs rounded-lg shadow-md my-2" style="max-height: 200px; object-fit: cover;" loading="lazy">`;
+    });
+    
+    // Convert **bold** text
+    text = text.replace(/\*\*([^*]+)\*\*/g, '<strong>$1</strong>');
+    
+    // Convert URLs to clickable links (but skip URLs that are already in img src attributes)
+    text = text.replace(/(https?:\/\/[^\s<"]+)/g, function(match, url) {
+        // Check if this URL is already part of an img src attribute
+        const imgSrcPattern = new RegExp(`src=["']${url.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')}["']`);
+        if (imgSrcPattern.test(text)) {
+            return url; // Don't convert to link if it's already an img src
+        }
+        return `<a href="${url}" target="_blank" class="text-blue-600 hover:text-blue-800 underline">${url}</a>`;
+    });
+    
+    // Convert line breaks to <br>
+    text = text.replace(/\n/g, '<br>');
+    
+    console.log('Parsed output:', text);
+    return text;
+}
+
 function addMessage(text, type) {
     console.log('addMessage called with:', text, type);
     const container = document.getElementById('chat-messages');
@@ -151,14 +181,16 @@ function addMessage(text, type) {
         div.className += ' justify-end';
         div.innerHTML = `
             <div class="message-bubble user">
-                <p>${text}</p>
+                <div>${text}</div>
                 <small class="text-blue-100 text-xs">${new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}</small>
             </div>
         `;
     } else {
+        // Parse markdown for assistant messages
+        const parsedText = parseMarkdownToHTML(text);
         div.innerHTML = `
             <div class="message-bubble assistant">
-                <p>${text}</p>
+                <div>${parsedText}</div>
                 <small class="text-gray-500 text-xs">${type === 'error' ? 'Error' : 'Assistant'} - ${new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}</small>
             </div>
         `;

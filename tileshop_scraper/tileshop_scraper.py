@@ -28,6 +28,7 @@ DB_CONFIG = {
 SAMPLE_URLS = [
     "https://www.tileshop.com/products/claros-silver-tumbled-travertine-subway-tile-3-x-6-in-657541",
     "https://www.tileshop.com/products/signature-oatmeal-frame-gloss-ceramic-subway-wall-tile-4-x-8-in-484963",
+    "https://www.tileshop.com/products/snow-porcelain-corner-shelf-683549",  # Per-piece product for testing
 ]
 
 def get_db_connection():
@@ -155,6 +156,7 @@ def extract_product_data(crawl_results, base_url):
         'title': None,
         'price_per_box': None,
         'price_per_sqft': None,
+        'price_per_piece': None,
         'coverage': None,
         'finish': None,
         'color': None,
@@ -286,6 +288,46 @@ def extract_product_data(crawl_results, base_url):
             data['price_per_sqft'] = float(price_sqft_match.group(1).replace(',', ''))
             print(f"Found price per sq ft in HTML: ${data['price_per_sqft']}")
             break
+    
+    # NEW: Detect per-piece pricing
+    # Check for /each pattern in HTML
+    has_per_each = bool(re.search(r'/each', main_html, re.IGNORECASE))
+    
+    # Identify per-piece product types
+    per_piece_keywords = [
+        'corner shelf', 'shelf', 'trim', 'edge', 'transition', 'quarter round',
+        'bullnose', 'pencil', 'liner', 'chair rail', 'border', 'listello',
+        'accent', 'medallion', 'insert', 'dot', 'deco', 'rope', 'crown',
+        'base', 'molding', 'strip', 'piece', 'individual'
+    ]
+    
+    product_title = (data.get('title') or '').lower()
+    is_per_piece_product = any(keyword in product_title for keyword in per_piece_keywords)
+    
+    # If we have /each pattern OR it's a per-piece product type, handle pricing accordingly
+    if has_per_each or is_per_piece_product:
+        print(f"🔹 Detected per-piece product (has_per_each: {has_per_each}, is_per_piece_type: {is_per_piece_product})")
+        
+        # Extract per-piece pricing patterns
+        per_piece_patterns = [
+            r'\$([0-9,]+\.?\d*)/each',
+            r'\$([0-9,]+\.?\d*)\s*/\s*each',
+            r'([0-9,]+\.?\d*)\s*/\s*each',
+            r'\$([0-9,]+\.?\d*)\s*per\s*piece',
+            r'([0-9,]+\.?\d*)\s*per\s*piece',
+        ]
+        
+        for pattern in per_piece_patterns:
+            price_piece_match = re.search(pattern, main_html, re.IGNORECASE)
+            if price_piece_match:
+                data['price_per_piece'] = float(price_piece_match.group(1).replace(',', ''))
+                print(f"Found price per piece in HTML: ${data['price_per_piece']}")
+                break
+        
+        # If we found /each but no explicit per-piece pattern, use price_per_box as price_per_piece
+        if not data.get('price_per_piece') and data.get('price_per_box') and has_per_each:
+            data['price_per_piece'] = data['price_per_box']
+            print(f"Using price_per_box as price_per_piece: ${data['price_per_piece']}")
     
     # Extract coverage - IMPROVED
     coverage_patterns = [
@@ -523,7 +565,7 @@ def save_to_database(product_data, crawl_results):
     # Create simplified SQL with basic data only
     insert_sql = f"""
     INSERT INTO product_data (
-        url, sku, title, price_per_box, price_per_sqft, coverage,
+        url, sku, title, price_per_box, price_per_sqft, price_per_piece, coverage,
         finish, color, size_shape, description, specifications,
         resources, images, collection_links, brand, primary_image, image_variants, scraped_at
     ) VALUES (
@@ -532,6 +574,7 @@ def save_to_database(product_data, crawl_results):
         {escape_sql(product_data['title'])},
         {product_data['price_per_box'] or 'NULL'},
         {product_data['price_per_sqft'] or 'NULL'},
+        {product_data['price_per_piece'] or 'NULL'},
         {escape_sql(product_data['coverage'])},
         {escape_sql(product_data['finish'])},
         {escape_sql(product_data['color'])},
@@ -551,6 +594,7 @@ def save_to_database(product_data, crawl_results):
         title = EXCLUDED.title,
         price_per_box = EXCLUDED.price_per_box,
         price_per_sqft = EXCLUDED.price_per_sqft,
+        price_per_piece = EXCLUDED.price_per_piece,
         coverage = EXCLUDED.coverage,
         finish = EXCLUDED.finish,
         color = EXCLUDED.color,

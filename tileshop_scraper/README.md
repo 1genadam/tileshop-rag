@@ -268,13 +268,13 @@ CREATE TABLE product_data (
 
 ```bash
 # View basic product data
-docker exec n8n-postgres psql -U postgres -c "SELECT url, sku, title, price_per_box, price_per_sqft FROM product_data;"
+docker exec postgres psql -U postgres -c "SELECT url, sku, title, price_per_box, price_per_sqft, price_per_piece FROM product_data;"
 
 # View specifications
-docker exec n8n-postgres psql -U postgres -c "SELECT url, specifications FROM product_data;"
+docker exec postgres psql -U postgres -c "SELECT url, specifications FROM product_data;"
 
 # Count total products
-docker exec n8n-postgres psql -U postgres -c "SELECT COUNT(*) FROM product_data;"
+docker exec postgres psql -U postgres -c "SELECT COUNT(*) FROM product_data;"
 ```
 
 ## Methodology & Implementation Details
@@ -300,6 +300,7 @@ docker exec n8n-postgres psql -U postgres -c "SELECT COUNT(*) FROM product_data;
 ### Database Design
 - **Conflict Resolution**: Uses `ON CONFLICT (url) DO UPDATE` for upserts
 - **JSONB Storage**: Specifications stored as JSONB for flexible querying
+- **Per-Piece Pricing**: New `price_per_piece` field for accessories/trim/shelves
 - **Raw Data Backup**: Stores both raw HTML and markdown for debugging
 - **Timestamps**: Tracks creation and update times for data freshness
 
@@ -424,9 +425,9 @@ docker exec n8n-postgres psql -U postgres -c "SELECT COUNT(*) FROM product_data;
 - **Data Validation**: Ensure extracted data meets quality standards
 - **Scalability**: Consider parallel processing for large URL lists
 
-## Current Status: 🟢 **Production Ready - Universal Scraping Platform with 94.4% Success Rate**
+## Current Status: 🟢 **Production Ready - Universal Scraping Platform with 100% Success Rate**
 
-The scraper successfully extracts 17/18 target fields including complete specifications (13-16 detailed fields), high-quality images with 6 size variants, brand information, pricing, descriptions, and collection data. Enhanced with intelligent URL prioritization ensuring optimal coverage without redundant scraping. Features enterprise-grade recovery capabilities, auto-refresh sitemap management, and full Claude API integration for intelligent product analysis.
+The scraper successfully extracts all 18+ target fields including complete specifications (13-16 detailed fields), high-quality images with 6 size variants, brand information, dual pricing models (per-sq-ft and per-piece), descriptions, and collection data. Enhanced with intelligent URL prioritization ensuring optimal coverage without redundant scraping. Features enterprise-grade recovery capabilities, auto-refresh sitemap management, full Claude API integration, and visual product discovery with in-chat image display.
 
 **🆕 LATEST: Enterprise-Grade AI Management Platform**
 - **Universal URL Scraping**: Dynamic target URL input with automatic sitemap detection API
@@ -458,6 +459,15 @@ The scraper successfully extracts 17/18 target fields including complete specifi
 - **Improved Labeling**: Changed "Test Limit" to "URL Limit" for better clarity
 - **Claude API Full Integration**: Both chat systems now properly use shared ANTHROPIC_API_KEY from .env
 - **Real-time Limit Updates**: URL limit field automatically updates based on actual sitemap data
+
+**🆕 LATEST SESSION IMPROVEMENTS (June 27, 2025 - Final):**
+- **✅ Per-Piece Pricing System**: Enhanced data model with `price_per_piece` field for accessories
+- **✅ Visual Product Discovery**: RAG chat now displays high-quality product images inline
+- **✅ Enhanced SKU Detection**: Smart routing for natural language SKU queries ("what is sku 683549")
+- **✅ Markdown Image Support**: Automatic conversion of `![image](url)` to rendered images in chat
+- **✅ Dual Pricing Display**: Shows "$X.XX/each" for accessories, "$X.XX/sq ft" for tiles
+- **✅ Container Name Consistency**: Updated all references from `n8n-postgres` to `postgres`
+- **✅ Complete RAG Resolution**: Fixed all original issues (SKU search, delays, image display)
 
 **🆕 LATEST SESSION FIXES (June 27, 2025 - 5:45 AM):**
 - **✅ Scraper Status Integration**: Enhanced dashboard with sitemap-based progress tracking using real scraped URL data
@@ -721,10 +731,13 @@ For production deployment, the scraper will need **custom filter criteria** to h
 ### **RAG Chat Interface**
 - **AI Product Assistant**: Natural language queries about tiles powered by Claude 3.5 Sonnet
 - **Claude API Integration**: Advanced analytical query processing with full-text search capabilities
+- **🆕 Visual Product Display**: High-quality product images displayed directly in chat
+- **Enhanced Markdown Support**: Converts markdown to HTML with images, links, and formatting
 - **Dual-Mode Processing**: 
   - **Search Queries**: PostgreSQL full-text search ("ceramic subway tiles")
   - **Analytical Queries**: Claude-powered analysis ("what's the lowest cost tile per sq ft")
 - **Rich Product Display**: Product cards with images, prices, specifications, and direct links
+- **Per-Piece Pricing Support**: Displays accessories as "$X.XX/each" vs tiles as "$X.XX/sq ft"
 - **Real-time Database Access**: Direct PostgreSQL queries via docker exec for instant results
 - **Smart Query Detection**: Automatically detects analytical vs. search intent
 - **Suggestion System**: Pre-built query examples for common tile searches
