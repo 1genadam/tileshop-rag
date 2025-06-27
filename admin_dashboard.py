@@ -33,6 +33,8 @@ logger = logging.getLogger(__name__)
 
 # Initialize Flask app
 app = Flask(__name__)
+# Support for subdirectory deployment
+app.config['APPLICATION_ROOT'] = '/tileshop-rag'
 app.config['SECRET_KEY'] = 'tileshop-admin-secret-key'
 socketio = SocketIO(app, cors_allowed_origins="*")
 

@@ -61,9 +61,12 @@ def deploy_to_fly():
     run_command(deploy_command, "Deploying to Fly.io")
     
     print("\n✅ Deployment completed successfully!")
-    print("🌐 Your Tileshop RAG system should be available at: https://tileshop-rag.fly.dev")
-    print("📊 Dashboard: https://tileshop-rag.fly.dev")
-    print("💬 RAG Chat: https://tileshop-rag.fly.dev/chat")
+    print("🌐 Fly.io URL: https://tileshop-rag.fly.dev")
+    print("📊 Production URLs (after proxy setup):")
+    print("   Dashboard: https://robertmsher.com/tileshop-rag/")
+    print("   RAG Chat: https://robertmsher.com/tileshop-rag/chat")
+    print("\n🔧 Next step: Configure reverse proxy on robertmsher.com")
+    print("   Proxy: /tileshop-rag/* → https://tileshop-rag.fly.dev/*")
     
     # Show status
     print("\n📈 Checking deployment status...")
