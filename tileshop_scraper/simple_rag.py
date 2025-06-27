@@ -47,11 +47,41 @@ class SimpleTileshopRAG:
             else:
                 logger.warning("ANTHROPIC_API_KEY not found in environment variables")
     
-    def search_products(self, query: str, limit: int = 5) -> List[Dict[str, Any]]:
+    def _enhance_slip_resistant_query(self, query: str) -> str:
+        """Enhance queries for slip-resistant tiles by mapping to database terms"""
+        query_lower = query.lower()
+        
+        # Map slip-resistant terms to specific finish categories
+        slip_resistant_terms = [
+            'non-slip', 'non slip', 'slip resistant', 'slip-resistant', 
+            'anti-slip', 'anti slip', 'textured surface', 'grip', 'safe'
+        ]
+        
+        slippery_terms = [
+            'slippery', 'glossy', 'polished', 'smooth', 'shiny'
+        ]
+        
+        if any(term in query_lower for term in slip_resistant_terms):
+            # Add terms that indicate slip resistance: tumbled, honed, matte, pebble, cobble, mosaic, penny round
+            if 'tile' in query_lower or 'tiles' in query_lower:
+                enhanced_terms = ['tumbled', 'honed', 'matte', 'textured', 'pebble', 'cobble', 'mosaic', 'penny round', 'hexagon']
+                return f"{query} {' '.join(enhanced_terms)}"
+        elif any(term in query_lower for term in slippery_terms):
+            # Add terms that indicate slippery surfaces: gloss, satin
+            if 'tile' in query_lower or 'tiles' in query_lower:
+                enhanced_terms = ['gloss', 'glossy', 'satin', 'polished']
+                return f"{query} {' '.join(enhanced_terms)}"
+        
+        return query
+    
+    def search_products(self, query: str, limit: int = 3) -> List[Dict[str, Any]]:
         """Search products using PostgreSQL full-text search via docker exec"""
         try:
+            # Map slip-resistant terms to database values
+            query_mapped = self._enhance_slip_resistant_query(query)
+            
             # Escape the query for SQL
-            query_escaped = query.replace("'", "''")
+            query_escaped = query_mapped.replace("'", "''")
             
             # Check if query looks like a SKU (numeric or starts with #)
             is_sku_query = query.strip().isdigit() or query.strip().startswith('#')
@@ -62,36 +92,89 @@ class SimpleTileshopRAG:
                 search_sql = f"""
                     COPY (
                         SELECT url, sku, title, description, price_per_box, price_per_sqft, price_per_piece,
-                               finish, color, size_shape, specifications, primary_image, image_variants,
-                               1.0 as relevance
+                               finish, color, size_shape, specifications, primary_image, image_variants, 
+                               product_category, slip_rating, 1.0 as relevance
                         FROM product_data
                         WHERE sku = '{clean_sku}' OR sku = '#{clean_sku}'
                         LIMIT {limit}
                     ) TO STDOUT CSV HEADER;
                 """
             else:
-                # Use PostgreSQL full-text search via docker exec (includes SKU and images)
+                # Determine product category filter based on query keywords - prioritize TILE for slip/floor queries
+                category_filter = ""
+                query_lower = query.lower()
+                
+                # PRIORITY: Slip/floor queries should default to TILE
+                if any(word in query_lower for word in ['slip', 'floor', 'textured', 'matte', 'glossy', 'anti-slip', 'non-slip']):
+                    category_filter = "AND product_category = 'TILE'"
+                elif any(word in query_lower for word in ['tile', 'tiles', 'ceramic', 'porcelain', 'mosaic', 'subway', 'marble']):
+                    category_filter = "AND product_category = 'TILE'"
+                elif any(word in query_lower for word in ['wood', 'hardwood', 'engineered']) and 'tile' not in query_lower:
+                    category_filter = "AND product_category = 'WOOD'"
+                elif any(word in query_lower for word in ['shelf', 'shelves']):
+                    category_filter = "AND product_category = 'SHELF'"
+                elif any(word in query_lower for word in ['threshold', 'threshhold']):
+                    category_filter = "AND product_category = 'THRESHOLD'"
+                elif any(word in query_lower for word in ['curb']):
+                    category_filter = "AND product_category = 'CURB'"
+                elif any(word in query_lower for word in ['laminate']):
+                    category_filter = "AND product_category = 'LAMINATE'"
+                elif any(word in query_lower for word in ['lvp', 'lvt', 'luxury vinyl']):
+                    category_filter = "AND product_category = 'LVP_LVT'"
+                elif any(word in query_lower for word in ['molding', 'trim', 'quarter round', 't-molding', 'stair', 'reducer']):
+                    category_filter = "AND product_category = 'TRIM_MOLDING'"
+                # If dimensions mentioned, likely tiles
+                elif any(word in query_lower for word in ['2x2', '3x6', '12x24', 'inch', 'in.']):
+                    category_filter = "AND product_category = 'TILE'"
+                
+                # Enhanced search for slip-resistant and color queries
+                slip_boost = ""
+                color_filter = ""
+                
+                if any(term in query_lower for term in ['slip', 'anti-slip', 'non-slip', 'slip resistant', 'slip-resistant']):
+                    # Add boost for slip-resistant tiles and include slip rating in search
+                    slip_boost = """
+                        + CASE WHEN slip_rating = 'SLIP_RESISTANT' THEN 0.5 ELSE 0 END
+                        + CASE WHEN finish ILIKE '%matte%' OR finish ILIKE '%honed%' OR finish ILIKE '%tumbled%' OR finish ILIKE '%textured%' THEN 0.3 ELSE 0 END
+                    """
+                
+                # Add color filtering for dark colors
+                if any(term in query_lower for term in ['dark', 'black', 'brown', 'grey', 'gray', 'charcoal', 'slate']):
+                    color_filter = """
+                        AND (color ILIKE '%dark%' OR color ILIKE '%black%' OR color ILIKE '%brown%' OR 
+                             color ILIKE '%grey%' OR color ILIKE '%gray%' OR color ILIKE '%charcoal%' OR 
+                             color ILIKE '%slate%' OR title ILIKE '%dark%' OR title ILIKE '%black%' OR 
+                             title ILIKE '%brown%' OR title ILIKE '%grey%' OR title ILIKE '%gray%')
+                    """
+                
+                # Use PostgreSQL full-text search via docker exec with category filtering
                 search_sql = f"""
                     COPY (
                         SELECT url, sku, title, description, price_per_box, price_per_sqft, price_per_piece,
-                               finish, color, size_shape, specifications, primary_image, image_variants,
-                               ts_rank(to_tsvector('english', 
+                               finish, color, size_shape, specifications, primary_image, image_variants, 
+                               product_category, slip_rating,
+                               (ts_rank(to_tsvector('english', 
                                    COALESCE(sku, '') || ' ' ||
                                    COALESCE(title, '') || ' ' || 
                                    COALESCE(description, '') || ' ' || 
                                    COALESCE(finish, '') || ' ' || 
                                    COALESCE(color, '') || ' ' || 
-                                   COALESCE(size_shape, '')
-                               ), plainto_tsquery('english', '{query_escaped}')) as relevance
+                                   COALESCE(size_shape, '') || ' ' ||
+                                   COALESCE(slip_rating, '')
+                               ), plainto_tsquery('english', '{query_escaped}')) {slip_boost}) as relevance
                         FROM product_data
-                        WHERE to_tsvector('english', 
+                        WHERE (to_tsvector('english', 
                             COALESCE(sku, '') || ' ' ||
                             COALESCE(title, '') || ' ' || 
                             COALESCE(description, '') || ' ' || 
                             COALESCE(finish, '') || ' ' || 
                             COALESCE(color, '') || ' ' || 
-                            COALESCE(size_shape, '')
+                            COALESCE(size_shape, '') || ' ' ||
+                            COALESCE(slip_rating, '')
                         ) @@ plainto_tsquery('english', '{query_escaped}')
+                        OR ('{query_lower}' LIKE '%slip%' AND slip_rating = 'SLIP_RESISTANT'))
+                        {category_filter}
+                        {color_filter}
                         ORDER BY relevance DESC
                         LIMIT {limit}
                     ) TO STDOUT CSV HEADER;
@@ -167,6 +250,18 @@ class SimpleTileshopRAG:
                     return self._handle_search_query("683549")
                 else:
                     return self._handle_search_query(query)
+            
+            # Check if this is a product search query (looking for specific products)
+            search_indicators = ['looking for', 'find', 'show me', 'need', 'want', 'search', 'tiles', 'tile', 'floor', 'wall']
+            analytical_indicators = ['cheapest', 'lowest', 'highest', 'most expensive', 'average', 'compare', 'best value', 'analyze']
+            
+            is_product_search = any(word in query_lower for word in search_indicators)
+            is_analytical = any(word in query_lower for word in analytical_indicators)
+            
+            # If it's clearly a product search (not analytical), use database search for real results with images
+            if is_product_search and not is_analytical:
+                logger.info("Detected product search query, using database search")
+                return self._handle_search_query(query)
             
             # For analytical queries, try Claude LLM first if available
             if self.claude_client:

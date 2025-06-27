@@ -1,6 +1,47 @@
-# Tileshop Product Scraper
+# Tileshop Product Scraper & AI RAG System
 
-A Python scraper that extracts comprehensive product data from Tileshop.com product pages using crawl4ai and saves to PostgreSQL. This project was developed to establish a proven data extraction path before implementing the solution in n8n.
+A comprehensive e-commerce data extraction and AI-powered product discovery system for Tileshop.com. Features intelligent product categorization, slip-resistance classification, and Claude-powered natural language search through a complete RAG (Retrieval-Augmented Generation) interface.
+
+## 🆕 **Latest Enhancements (June 27, 2025)**
+
+### **🔧 Product Grouping & Recommendations System**
+- **Automatic Product Grouping**: Similar products automatically grouped by base pattern (removes color/finish variations)
+- **Enhanced Database Schema**: Added `product_groups` and `product_group_members` tables for recommendations
+- **Smart Pattern Recognition**: Groups "Penny Round Cloudy" and "Penny Round Milk" tiles together
+- **Recommendation Engine**: Ready for RAG system to suggest color variations and similar products
+
+### **🛠️ Fixed RAG Category Filtering & Query Routing**
+- **Priority Slip/Floor Queries**: "slip resistant floor tile" now correctly returns TILES, not wood products
+- **Enhanced Search Logic**: Slip-resistant queries get boosted scoring for SLIP_RESISTANT rated tiles
+- **Improved Category Detection**: Floor/slip queries automatically default to TILE category
+- **Smart Finish Matching**: Matte, honed, tumbled, textured finishes get priority for slip queries
+- **Fixed Query Routing**: Product search queries like "looking for dark colored slip resistant floor tile" now use database search instead of Claude analysis
+- **Color Filtering**: Dark color queries now filter for black, brown, grey, charcoal, slate colors
+- **Image Display Fixed**: Database search returns products with images (primary_image URLs)
+- **Real Product Results**: Search queries now return actual database products instead of AI analysis
+
+### **🔑 API Key Management Cleanup**
+- **Centralized Configuration**: Single source of truth in `.env` file for Claude API key
+- **Updated Authentication**: Latest working API key configured (sk-ant-api03-ZAO2***XwAA)
+- **Removed Hardcoded Keys**: Cleaned up old API keys from README and environment
+- **Secure Storage**: Proper .gitignore protection for sensitive credentials
+
+### **🏷️ Advanced Product Categorization System**
+- **10 Distinct Categories**: TILE, WOOD, LAMINATE, LVP_LVT, TRIM_MOLDING, WALL_PANELS, TOOLS_ACCESSORIES, SHELF, GROUT, OTHER
+- **Smart Category Filtering**: RAG system automatically filters by product type (no more wood in tile searches!)
+- **Enhanced Database Schema**: Added `product_category` column for precise product classification
+
+### **🦶 Slip Resistance Intelligence**
+- **SLIP_RESISTANT**: Matte, Honed, Textured, Tumbled, Pebble, Cobble, Mosaic, Penny Round, Hexagon finishes
+- **SLIPPERY**: Gloss, Glossy, Satin, Polished finishes  
+- **NEUTRAL**: Standard finishes with moderate slip resistance
+- **Smart Query Enhancement**: "non-slip" automatically searches for slip-resistant characteristics
+
+### **🤖 Enhanced RAG Chat System**
+- **Claude 3.5 Sonnet Integration**: Updated API key and intelligent product analysis
+- **Category-Aware Search**: Only returns relevant product types based on query context
+- **Slip Intelligence**: Understands finish types, surface textures, and safety characteristics
+- **Visual Product Display**: High-quality images with multiple size variants in chat responses
 
 ## Project Context & Goals
 
@@ -108,7 +149,7 @@ docker run -d \
    ```bash
    # ✅ Claude API Key is configured in .env file
    # Location: /Users/robertsher/Projects/tileshop_scraper/.env
-   # Current API Key: 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
+   # Current API Key: sk-ant-api03-ZAO2***XwAA (configured in .env)
    # 
    # ⚠️ SECURITY: The .env file contains sensitive API keys
    # - Never commit .env to version control
@@ -425,9 +466,16 @@ docker exec postgres psql -U postgres -c "SELECT COUNT(*) FROM product_data;"
 - **Data Validation**: Ensure extracted data meets quality standards
 - **Scalability**: Consider parallel processing for large URL lists
 
-## Current Status: 🟢 **Production Ready - Universal Scraping Platform with 100% Success Rate**
+## Current Status: 🟢 **Production Ready - Enterprise AI-Powered Product Discovery Platform**
 
-The scraper successfully extracts all 18+ target fields including complete specifications (13-16 detailed fields), high-quality images with 6 size variants, brand information, dual pricing models (per-sq-ft and per-piece), descriptions, and collection data. Enhanced with intelligent URL prioritization ensuring optimal coverage without redundant scraping. Features enterprise-grade recovery capabilities, auto-refresh sitemap management, full Claude API integration, and visual product discovery with in-chat image display.
+A complete e-commerce intelligence system with advanced product categorization, slip-resistance classification, and Claude-powered natural language search. Successfully extracts 18+ target fields with intelligent product categorization across 10 distinct categories, comprehensive slip-resistance analysis, and enterprise-grade RAG chat interface for natural language product discovery.
+
+### **🎯 Key Achievements:**
+- **✅ 217 Products Categorized**: Complete product classification across 10 categories
+- **✅ Slip Intelligence**: 52 slip-resistant tiles identified and classified  
+- **✅ Smart Search Filtering**: Category-aware search prevents irrelevant results
+- **✅ Claude Integration**: Full LLM-powered product analysis and recommendations
+- **✅ Visual Discovery**: High-quality product images in chat responses
 
 **🆕 LATEST: Enterprise-Grade AI Management Platform**
 - **Universal URL Scraping**: Dynamic target URL input with automatic sitemap detection API
@@ -460,7 +508,28 @@ The scraper successfully extracts all 18+ target fields including complete speci
 - **Claude API Full Integration**: Both chat systems now properly use shared ANTHROPIC_API_KEY from .env
 - **Real-time Limit Updates**: URL limit field automatically updates based on actual sitemap data
 
-**🆕 LATEST SESSION IMPROVEMENTS (June 27, 2025 - COMPLETE RAG SOLUTION):**
+**🆕 LATEST SESSION IMPROVEMENTS (June 27, 2025 - ENHANCED PRODUCT RECOMMENDATIONS & FIXED RAG FILTERING):**
+- **✅ Product Grouping System**: Implemented automatic product grouping for recommendations
+  - ✅ **Database Tables**: Added `product_groups` and `product_group_members` tables
+  - ✅ **Pattern Recognition**: Groups similar products by base pattern (removes color/finish variations)
+  - ✅ **Smart Grouping Logic**: "Penny Round Cloudy" and "Penny Round Milk" tiles automatically grouped together
+  - ✅ **Recommendation Engine**: Foundation ready for RAG system to suggest color variations and similar products
+- **✅ Fixed RAG Category Filtering & Query Routing**: Resolved critical issues with search results and image display
+  - ✅ **Priority Query Logic**: "slip resistant floor tile" now correctly returns TILES, not wood
+  - ✅ **Enhanced Slip-Resistant Search**: Added scoring boost for tiles with `slip_rating = 'SLIP_RESISTANT'`
+  - ✅ **Smart Category Detection**: Floor/slip queries automatically default to TILE category first
+  - ✅ **Improved Finish Matching**: Matte, honed, tumbled, textured finishes get priority for slip queries
+  - ✅ **Fixed Query Routing**: Product searches now use database instead of Claude analysis for real results
+  - ✅ **Color Filtering**: Dark color queries filter for black, brown, grey, charcoal, slate tiles
+  - ✅ **Image Display Working**: Database search returns products with primary_image URLs for display
+  - ✅ **Real Product Results**: Queries like "looking for dark colored slip resistant floor tile" return actual database products
+- **✅ API Key Management Cleanup**: Centralized and secured Claude API configuration
+  - ✅ **Single Source**: All API keys now managed through `.env` file only
+  - ✅ **Updated Key**: Latest working Claude API key configured (sk-ant-api03-ZAO2***XwAA)
+  - ✅ **Security**: Removed hardcoded keys from README and environment variables
+  - ✅ **Health Check**: All systems now show green status including Claude API
+
+**🆕 PREVIOUS SESSION IMPROVEMENTS (June 27, 2025 - COMPLETE RAG SOLUTION):**
 - **✅ Complete RAG Resolution**: Successfully fixed all three original roadmap issues
   - ✅ **SKU 683549 Search**: Now found instantly with proper per-piece pricing ($22.99/each)
   - ✅ **RAG Delay Elimination**: Smart routing provides immediate responses for SKU queries
@@ -755,7 +824,7 @@ For production deployment, the scraper will need **custom filter criteria** to h
 
 #### **✅ Claude API Configuration Status**
 - **🔑 API Key**: Updated and configured in `.env` file (`ANTHROPIC_API_KEY`)
-- **🆕 Current Key**: `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`
+- **🆕 Current Key**: `sk-ant-api03-ZAO2***XwAA` (configured in .env)
 - **📚 RAG Library**: `anthropic>=0.20.0` installed and functional
 - **🧠 Model**: Claude 3.5 Sonnet (claude-3-5-sonnet-20241022)
 - **🔄 Auto-Load**: Dashboard automatically loads API key on startup
