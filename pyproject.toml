@@ -1,7 +1,7 @@
 [tool.poetry]
-name = "tileshop-scraper"
+name = "tileshop-rag"
 version = "1.0.0"
-description = "AI-powered Tileshop.com scraper with admin dashboard and RAG chat"
+description = "AI-powered Tileshop RAG system with Claude API integration and admin dashboard"
 authors = ["Robert Sher <robert@example.com>"]
 readme = "README.md"
 

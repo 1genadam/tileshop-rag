@@ -52,7 +52,7 @@ def deploy_to_fly():
     
     # Build and push Docker image
     print("\n📦 Building Docker image for linux/amd64...")
-    build_command = "docker buildx build --platform linux/amd64 -t registry.fly.io/tileshop-scraper:latest . --push"
+    build_command = "docker buildx build --platform linux/amd64 -t registry.fly.io/tileshop-rag:latest . --push"
     run_command(build_command, "Building and pushing Docker image")
     
     # Deploy to Fly.io
@@ -61,9 +61,9 @@ def deploy_to_fly():
     run_command(deploy_command, "Deploying to Fly.io")
     
     print("\n✅ Deployment completed successfully!")
-    print("🌐 Your Tileshop scraper should be available at: https://tileshop-scraper.fly.dev")
-    print("📊 Dashboard: https://tileshop-scraper.fly.dev")
-    print("💬 RAG Chat: https://tileshop-scraper.fly.dev/chat")
+    print("🌐 Your Tileshop RAG system should be available at: https://tileshop-rag.fly.dev")
+    print("📊 Dashboard: https://tileshop-rag.fly.dev")
+    print("💬 RAG Chat: https://tileshop-rag.fly.dev/chat")
     
     # Show status
     print("\n📈 Checking deployment status...")

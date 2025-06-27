@@ -64,6 +64,23 @@ def chat():
     """RAG chat interface"""
     return render_template('chat.html')
 
+@app.route('/api/system/health')
+def health_check():
+    """Health check endpoint for production monitoring"""
+    try:
+        return jsonify({
+            'status': 'healthy',
+            'timestamp': datetime.now().isoformat(),
+            'service': 'tileshop-rag',
+            'version': '1.0.0'
+        })
+    except Exception as e:
+        return jsonify({
+            'status': 'unhealthy',
+            'error': str(e),
+            'timestamp': datetime.now().isoformat()
+        }), 500
+
 
 # API Routes - Docker Management
 @app.route('/api/docker/status')

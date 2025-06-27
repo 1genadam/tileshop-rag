@@ -1,4 +1,4 @@
-app = "tileshop-scraper"
+app = "tileshop-rag"
 
 [build]
   dockerfile = "Dockerfile"
