@@ -460,14 +460,25 @@ The scraper successfully extracts all 18+ target fields including complete speci
 - **Claude API Full Integration**: Both chat systems now properly use shared ANTHROPIC_API_KEY from .env
 - **Real-time Limit Updates**: URL limit field automatically updates based on actual sitemap data
 
-**🆕 LATEST SESSION IMPROVEMENTS (June 27, 2025 - Final):**
+**🆕 LATEST SESSION IMPROVEMENTS (June 27, 2025 - COMPLETE RAG SOLUTION):**
+- **✅ Complete RAG Resolution**: Successfully fixed all three original roadmap issues
+  - ✅ **SKU 683549 Search**: Now found instantly with proper per-piece pricing ($22.99/each)
+  - ✅ **RAG Delay Elimination**: Smart routing provides immediate responses for SKU queries
+  - ✅ **Image Display Working**: High-quality product images display directly in chat interface
 - **✅ Per-Piece Pricing System**: Enhanced data model with `price_per_piece` field for accessories
-- **✅ Visual Product Discovery**: RAG chat now displays high-quality product images inline
-- **✅ Enhanced SKU Detection**: Smart routing for natural language SKU queries ("what is sku 683549")
-- **✅ Markdown Image Support**: Automatic conversion of `![image](url)` to rendered images in chat
-- **✅ Dual Pricing Display**: Shows "$X.XX/each" for accessories, "$X.XX/sq ft" for tiles
+  - Corner shelves, trim pieces, and accessories now priced correctly as "per-each"
+  - Tiles maintain traditional "per-sq-ft" pricing model
+  - Automatic detection of `/each` patterns in product HTML
+- **✅ Visual Product Discovery**: RAG chat displays Scene7 CDN images with multiple size variants
+  - Markdown `![image](url)` converts to rendered HTML images
+  - Enhanced styling with hover effects and responsive sizing
+  - Console logging for debugging image parsing issues
+- **✅ Enhanced SKU Detection**: Comprehensive natural language query routing
+  - Direct SKU patterns: `683549`, `#683549`, `sku 683549`
+  - Contextual image requests: "show me images for this sku"
+  - Natural language: "what is sku 683549"
 - **✅ Container Name Consistency**: Updated all references from `n8n-postgres` to `postgres`
-- **✅ Complete RAG Resolution**: Fixed all original issues (SKU search, delays, image display)
+- **✅ GitHub Integration**: Repository published to https://github.com/1genadam/tileshop-rag
 
 **🆕 LATEST SESSION FIXES (June 27, 2025 - 5:45 AM):**
 - **✅ Scraper Status Integration**: Enhanced dashboard with sitemap-based progress tracking using real scraped URL data
@@ -937,6 +948,93 @@ The project now uses proper environment variable management to protect sensitive
 - `recovery_*.json` - Scraper recovery files
 - `sitemap.xml` - Downloaded sitemaps
 
+## 📤 GitHub Repository & Contributing
+
+### **Repository Information**
+- **GitHub**: https://github.com/1genadam/tileshop-rag
+- **Main Branch**: `main`
+- **License**: Private repository
+
+### **Easy GitHub Commit Instructions**
+
+#### **Step 1: Check Status**
+```bash
+# View current changes
+git status
+
+# See what files have been modified
+git diff --name-only
+```
+
+#### **Step 2: Stage Changes**
+```bash
+# Add all changes
+git add .
+
+# Or add specific files
+git add tileshop_scraper.py simple_rag.py static/chat.js
+```
+
+#### **Step 3: Commit with Descriptive Message**
+```bash
+# Create commit with detailed message
+git commit -m "Brief description of changes
+
+- Detailed bullet point 1
+- Detailed bullet point 2  
+- Detailed bullet point 3
+
+🤖 Generated with [Claude Code](https://claude.ai/code)
+
+Co-Authored-By: Claude <noreply@anthropic.com>"
+```
+
+#### **Step 4: Push to GitHub**
+```bash
+# Push to the tileshop-rag repository
+git push tileshop-rag main
+
+# Alternative: Push to origin if set up
+git push origin main
+```
+
+#### **Example Complete Workflow**
+```bash
+# 1. Check what changed
+git status
+
+# 2. Add all changes
+git add .
+
+# 3. Commit with message
+git commit -m "Enhanced RAG system with image display
+
+- Added markdown image parsing to chat interface
+- Fixed SKU detection for contextual queries  
+- Updated container references to use 'postgres'
+- Improved per-piece pricing display
+
+🤖 Generated with [Claude Code](https://claude.ai/code)
+
+Co-Authored-By: Claude <noreply@anthropic.com>"
+
+# 4. Push to GitHub
+git push tileshop-rag main
+```
+
+#### **Git Remote Configuration**
+If you need to set up the remote:
+```bash
+# Check current remotes
+git remote -v
+
+# Add tileshop-rag remote (if not exists)
+git remote add tileshop-rag git@github.com:1genadam/tileshop-rag.git
+
+# Set as default upstream
+git branch --set-upstream-to=tileshop-rag/main main
+```
+
 ## Troubleshooting
 
 ### Common Issues
@@ -944,6 +1042,7 @@ The project now uses proper environment variable management to protect sensitive
 2. **Database connection errors**: Use 127.0.0.1 instead of localhost for IPv4
 3. **Virtual environment issues**: Use full path to activate script
 4. **Package installation problems**: Clean global packages and reinstall in venv
+5. **Git push failures**: Use correct remote (`tileshop-rag`) instead of origin
 
 ### Debug Commands
 ```bash
@@ -962,4 +1061,8 @@ curl http://localhost:8080/api/database/status
 
 # View scraper logs
 python tileshop_scraper.py 2>&1 | tee scraper.log
+
+# Check git configuration
+git remote -v
+git branch -vv
 ```
