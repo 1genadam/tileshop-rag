@@ -2,7 +2,7 @@
 
 A comprehensive e-commerce intelligence platform and AI-powered product discovery system for Tileshop.com. Features intelligent product categorization, slip-resistance classification, and Claude-powered natural language search through a complete knowledge acquisition and retrieval interface.
 
-## 🆕 **Latest Enhancements (June 29, 2025 - 2:20 AM)**
+## 🆕 **Latest Enhancements (June 29, 2025 - 3:50 PM)**
 
 ### **🔧 Enhanced Microservices Health Check System**
 - **Comprehensive Service Health Checks**: All 8 services now use real health validation instead of showing "Not Found"
@@ -16,15 +16,56 @@ A comprehensive e-commerce intelligence platform and AI-powered product discover
 - **Enhanced Status Messages**: Meaningful status descriptions replace generic "Container not found" errors
 - **All 8 Services Running**: Complete microservices directory shows proper status for all infrastructure components
 
-### **⚙️ Proper Dashboard Reboot Protocol**
-- **Background Process Management**: Dashboard now launches in background with proper process tracking
-- **Clear Cache Requirements**: Browser cache must be cleared after dashboard updates for UI changes
-- **Service Count Accuracy**: Toggle now correctly shows "8 total services" instead of container-only count
-- **Environment Verification**: Dashboard startup confirms autogen_env usage and logs status
-- **Health Check Integration**: All services participate in "Start All Services" functionality
-- **Real-time Status Updates**: Conceptual and external services update status properly via WebSocket
+### **⚙️ Automated Dashboard Management**
+- **One-Command Reboot**: `./reboot_dashboard.sh` script for streamlined dashboard management
+- **Process Verification**: Automatic process stopping, starting, and status verification
+- **Environment Enforcement**: Ensures autogen_env usage with clear reporting
+- **Error Handling**: Built-in error detection and recovery mechanisms
+- **Clear Cache Reminders**: Automatic instructions for UI update requirements
+- **Log Monitoring**: Real-time startup verification and troubleshooting guidance
 
-## 📋 **Session Changes Summary (June 29, 2025 - 2:20 AM)**
+### **🔗 Database GUI Integration**
+- **PostgreSQL Access**: pgAdmin interface at http://localhost:5050 (when available)
+- **Supabase Studio**: Vector database management at http://localhost:54323 (when available)
+- **Service URLs**: Crawler API at http://localhost:11235, Gateway at http://localhost:8000
+- **Real-time Status**: Dashboard shows service URLs and accessibility in descriptions
+
+### **📋 Development Roadmap**
+- **Comprehensive Planning**: 18-month development roadmap prioritized by business impact
+- **Phase-Based Implementation**: Three phases targeting conversion optimization, store experience, and advanced intelligence
+- **Business Metrics**: Clear ROI projections and success criteria aligned with strategic goals
+- **Technical Specifications**: Detailed implementation plans with resource requirements
+- **Strategic Documentation**: Full analysis available in `/reports` directory
+
+## 🚀 **Quick Start**
+
+### **Dashboard Management**
+```bash
+# Start/restart dashboard with one command
+./reboot_dashboard.sh
+
+# Access dashboard
+open http://127.0.0.1:8080
+
+# Monitor logs
+tail -f dashboard.log
+```
+
+### **Available Services**
+- **Dashboard**: http://127.0.0.1:8080 - Main management interface
+- **RAG Chat**: http://127.0.0.1:8080/chat - Product search and assistance
+- **PostgreSQL**: http://localhost:5050 - pgAdmin (if available)
+- **Supabase**: http://localhost:54323 - Vector database studio (if available)
+- **Crawler API**: http://localhost:11235 - Crawl4AI service
+- **API Gateway**: http://localhost:8000 - Service routing
+
+### **Key Features**
+- **8-Service Architecture**: Complete microservices ecosystem with health monitoring
+- **Real-time Status**: Live service health checks and connectivity testing
+- **Automated Management**: One-command reboot with environment verification
+- **RAG Intelligence**: Claude-powered product search and recommendations
+
+## 📋 **Recent Session Improvements (June 29, 2025)**
 
 ### **🎯 Major Improvements Implemented**
 
