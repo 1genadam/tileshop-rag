@@ -118,11 +118,20 @@ async function syncData() {
     const btn = document.getElementById('sync-data-button');
     const syncMessage = document.getElementById('sync-status-message');
     const lastSyncEl = document.getElementById('last-sync-time');
+    const recordsCountEl = document.getElementById('records-count');
     if (!btn) return;
+    
+    // Capture current record count before sync
+    const currentCount = recordsCountEl ? recordsCountEl.textContent : '0';
     
     const originalText = btn.innerHTML;
     btn.innerHTML = '<span class="material-icons mr-2">sync</span> Syncing...';
     btn.disabled = true;
+    
+    // Show current count in sync message
+    if (syncMessage) {
+        syncMessage.textContent = `Syncing... Current records: ${currentCount}`;
+    }
     
     try {
         const response = await fetch('/api/rag/sync', { method: 'POST' });
@@ -136,6 +145,9 @@ async function syncData() {
             
             // Get updated record count
             await loadRAGStatus();
+            
+            // Get the new record count after sync
+            const newCount = recordsCountEl ? recordsCountEl.textContent : '0';
             
             // Update sync timestamp display
             const now = new Date();
@@ -151,7 +163,7 @@ async function syncData() {
             }
             
             if (syncMessage) {
-                syncMessage.textContent = `Sync completed at ${timeStr}`;
+                syncMessage.textContent = `Sync completed: ${currentCount} → ${newCount} records`;
             }
             
             setTimeout(() => {
@@ -162,7 +174,7 @@ async function syncData() {
         } else {
             btn.innerHTML = '<span class="material-icons mr-2">error</span> Failed';
             if (syncMessage) {
-                syncMessage.textContent = 'Sync failed: ' + (data.error || 'Unknown error');
+                syncMessage.textContent = `Sync failed: ${data.error || 'Unknown error'} (${currentCount} records unchanged)`;
             }
             setTimeout(() => {
                 btn.innerHTML = originalText;
@@ -174,7 +186,7 @@ async function syncData() {
         console.error('Sync error:', error);
         btn.innerHTML = '<span class="material-icons mr-2">error</span> Failed';
         if (syncMessage) {
-            syncMessage.textContent = 'Connection error';
+            syncMessage.textContent = `Connection error (${currentCount} records unchanged)`;
         }
         setTimeout(() => {
             btn.innerHTML = originalText;
