@@ -2,6 +2,25 @@
 
 A comprehensive e-commerce intelligence platform and AI-powered product discovery system for Tileshop.com. Features intelligent product categorization, slip-resistance classification, and Claude-powered natural language search through a complete knowledge acquisition and retrieval interface.
 
+## 📑 **Table of Contents**
+
+- [🆕 Latest Enhancements](#-latest-enhancements-june-29-2025---350-pm)
+- [🚀 Quick Start](#-quick-start)
+- [📋 Recent Session Improvements](#-recent-session-improvements-june-29-2025)
+- [📊 Project Context & Goals](#project-context--goals)
+- [🛠️ Local Environment Setup](#local-environment-setup)
+- [⚡ Technical Issues Resolved](#technical-issues-resolved)
+- [🔧 Features](#features)
+- [📋 Database Schema](#database-schema)
+- [🧪 Testing & Validation](#checking-results)
+- [📁 Project Files & Structure](#project-files--executables)
+- [🖥️ Admin Dashboard](#-admin-dashboard-features)
+- [🔄 Dashboard Management](#-proper-dashboard-reboot-protocol)
+- [🚀 Production Deployment](#-production-deployment)
+- [🔧 Troubleshooting](#troubleshooting)
+
+---
+
 ## 🆕 **Latest Enhancements (June 29, 2025 - 3:50 PM)**
 
 ### **🔧 Enhanced Microservices Health Check System**
