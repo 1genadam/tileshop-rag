@@ -2130,62 +2130,63 @@
     {
       "url": "https://www.tileshop.com/products/hickory-scuol-guarda-laminate-76-x-5445-in-684052",
       "lastmod": null,
-      "scraped_at": null,
-      "scrape_status": "pending"
+      "scraped_at": "2025-06-29T17:39:57.214977",
+      "scrape_status": "completed"
     },
     {
       "url": "https://www.tileshop.com/products/oak-freysted-atacama-laminate-96-x-5445-in-684053",
       "lastmod": null,
-      "scraped_at": null,
-      "scrape_status": "pending"
+      "scraped_at": "2025-06-29T17:40:10.639928",
+      "scrape_status": "completed"
     },
     {
       "url": "https://www.tileshop.com/products/leighton-dark-matte-porcelain-wall-and-floor-tile-12-x-24-in-683836",
       "lastmod": null,
-      "scraped_at": null,
-      "scrape_status": "pending"
+      "scraped_at": "2025-06-29T17:40:24.066580",
+      "scrape_status": "completed"
     },
     {
       "url": "https://www.tileshop.com/products/murano-white-glossy-ceramic-wall-tile-3-x-12-in-484928",
       "lastmod": null,
-      "scraped_at": null,
-      "scrape_status": "pending"
+      "scraped_at": "2025-06-29T17:40:37.507326",
+      "scrape_status": "completed"
     },
     {
       "url": "https://www.tileshop.com/products/murano-talco-glossy-ceramic-wall-tile-3-x-12-in-484927",
       "lastmod": null,
-      "scraped_at": null,
-      "scrape_status": "pending"
+      "scraped_at": "2025-06-29T17:40:50.941225",
+      "scrape_status": "completed"
     },
     {
       "url": "https://www.tileshop.com/products/murano-forest-glossy-ceramic-wall-tile-3-x-12-in-484926",
       "lastmod": null,
-      "scraped_at": null,
-      "scrape_status": "pending"
+      "scraped_at": "2025-06-29T17:41:20.063099",
+      "scrape_status": "failed",
+      "error": "Crawl timeout"
     },
     {
       "url": "https://www.tileshop.com/products/murano-deep-blue-glossy-ceramic-wall-tile-3-x-12-in-484925",
       "lastmod": null,
-      "scraped_at": null,
-      "scrape_status": "pending"
+      "scraped_at": "2025-06-29T17:41:30.523954",
+      "scrape_status": "completed"
     },
     {
       "url": "https://www.tileshop.com/products/arbour-midlands-hickory-blonde-roast-luxury-vinyl-flush-stair-nose-84-in-683935",
       "lastmod": null,
-      "scraped_at": null,
-      "scrape_status": "pending"
+      "scraped_at": "2025-06-29T17:41:43.997537",
+      "scrape_status": "completed"
     },
     {
       "url": "https://www.tileshop.com/products/arbour-highlands-byron-bay-oak-luxury-vinyl-quarter-round-84-in-683966",
       "lastmod": null,
-      "scraped_at": null,
-      "scrape_status": "pending"
+      "scraped_at": "2025-06-29T17:41:57.536293",
+      "scrape_status": "completed"
     },
     {
       "url": "https://www.tileshop.com/products/arbour-highlands-byron-bay-oak-luxury-vinyl-flush-stair-nose-84-in-683965",
       "lastmod": null,
-      "scraped_at": null,
-      "scrape_status": "pending"
+      "scraped_at": "2025-06-29T17:42:10.997143",
+      "scrape_status": "completed"
     },
     {
       "url": "https://www.tileshop.com/products/arbour-highlands-byron-bay-oak-luxury-vinyl-overlap-stair-nose-84-in-683964",

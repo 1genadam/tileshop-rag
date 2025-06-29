@@ -22,7 +22,7 @@ class DatabaseManager:
         import os
         self.demo_mode = os.environ.get('DEMO_MODE', 'true').lower() == 'true'
         
-        self.n8n_config = {
+        self.relational_db_config = {
             'host': '127.0.0.1',  # Use IPv4 explicitly
             'port': 5432,
             'database': 'postgres',
@@ -41,36 +41,36 @@ class DatabaseManager:
         if self.demo_mode:
             logger.info("Running in demo mode - using mock data")
     
-    def get_connection(self, db_type: str = 'n8n'):
+    def get_connection(self, db_type: str = 'relational_db'):
         """Get database connection"""
         if db_type == 'supabase':
             # For Supabase, we'll use docker exec instead of network connection
             # This is handled by individual methods that need Supabase access
             return None
         else:
-            return psycopg2.connect(**self.n8n_config)
+            return psycopg2.connect(**self.relational_db_config)
     
     def test_connections(self) -> Dict[str, Any]:
         """Test both database connections"""
         results = {}
         
-        # Test n8n database
+        # Test relational database
         try:
-            conn = self.get_connection('n8n')
+            conn = self.get_connection('relational_db')
             cursor = conn.cursor()
             cursor.execute("SELECT version();")
             version = cursor.fetchone()[0]
             cursor.close()
             conn.close()
             
-            results['n8n'] = {
+            results['relational_db'] = {
                 'connected': True,
                 'version': version,
                 'message': 'Connection successful'
             }
             
         except Exception as e:
-            results['n8n'] = {
+            results['relational_db'] = {
                 'connected': False,
                 'error': str(e),
                 'message': f'Connection failed: {str(e)}'
@@ -109,7 +109,7 @@ class DatabaseManager:
         
         return results
     
-    def get_product_stats(self, db_type: str = 'n8n') -> Dict[str, Any]:
+    def get_product_stats(self, db_type: str = 'relational_db') -> Dict[str, Any]:
         """Get product data statistics"""
         try:
             if db_type == 'supabase':
@@ -191,7 +191,7 @@ class DatabaseManager:
             if db_type == 'supabase':
                 return self._get_products_docker_exec(offset, limit, search, sort_by, sort_order, filters)
             
-            conn = self.get_connection('n8n')
+            conn = self.get_connection('relational_db')
             cursor = conn.cursor(cursor_factory=psycopg2.extras.RealDictCursor)
             
             # Build WHERE clause
@@ -284,7 +284,7 @@ class DatabaseManager:
     def get_product_detail(self, product_id: int) -> Dict[str, Any]:
         """Get detailed product information"""
         try:
-            conn = self.get_connection('n8n')
+            conn = self.get_connection('relational_db')
             cursor = conn.cursor(cursor_factory=psycopg2.extras.RealDictCursor)
             
             cursor.execute("""
@@ -409,7 +409,7 @@ class DatabaseManager:
     def cleanup_old_data(self, days: int = 30) -> Dict[str, Any]:
         """Clean up old product data"""
         try:
-            conn = self.get_connection('n8n')
+            conn = self.get_connection('relational_db')
             cursor = conn.cursor()
             
             cursor.execute("""
@@ -441,7 +441,7 @@ class DatabaseManager:
     def get_unique_values(self, column: str) -> List[str]:
         """Get unique values for a column (for filter dropdowns)"""
         try:
-            conn = self.get_connection('n8n')
+            conn = self.get_connection('relational_db')
             cursor = conn.cursor()
             
             valid_columns = ['finish', 'color', 'size_shape']
