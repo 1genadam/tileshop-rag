@@ -45,15 +45,15 @@ sync_manager = DatabaseSyncManager()
 rag_manager = RAGManager()
 
 # Global scraper manager with progress callback
-def scraper_progress_callback(event_type, data):
-    """Callback for scraper progress updates"""
-    socketio.emit('scraper_progress', {
+def acquisition_progress_callback(event_type, data):
+    """Callback for acquisition progress updates"""
+    socketio.emit('acquisition_progress', {
         'type': event_type,
         'data': data,
         'timestamp': datetime.now().isoformat()
     })
 
-scraper_manager = ScraperManager(progress_callback=scraper_progress_callback)
+acquisition_manager = ScraperManager(progress_callback=acquisition_progress_callback)
 
 # Routes
 @app.route('/')
@@ -172,7 +172,7 @@ def system_resources():
 def scraper_status():
     """Get scraper status"""
     try:
-        status = scraper_manager.get_status()
+        status = acquisition_manager.get_status()
         return jsonify({'success': True, 'status': status})
     except Exception as e:
         return jsonify({'success': False, 'error': str(e)})
@@ -186,7 +186,7 @@ def start_scraper():
         limit = data.get('limit')
         fresh = data.get('fresh', False)
         
-        result = scraper_manager.start_scraping(mode, limit, fresh)
+        result = acquisition_manager.start_acquisition(mode, limit, fresh)
         return jsonify(result)
     except Exception as e:
         return jsonify({'success': False, 'error': str(e)})
@@ -195,7 +195,7 @@ def start_scraper():
 def stop_scraper():
     """Stop scraping"""
     try:
-        result = scraper_manager.stop_scraping()
+        result = acquisition_manager.stop_acquisition()
         return jsonify(result)
     except Exception as e:
         return jsonify({'success': False, 'error': str(e)})
@@ -205,7 +205,7 @@ def scraper_logs():
     """Get scraper logs"""
     try:
         lines = request.args.get('lines', 50, type=int)
-        logs = scraper_manager.get_logs(lines)
+        logs = acquisition_manager.get_logs(lines)
         return jsonify({'success': True, 'logs': logs})
     except Exception as e:
         return jsonify({'success': False, 'error': str(e)})
@@ -214,7 +214,7 @@ def scraper_logs():
 def scraper_modes():
     """Get available scraper modes"""
     try:
-        modes = scraper_manager.get_available_modes()
+        modes = acquisition_manager.get_available_modes()
         return jsonify({'success': True, 'modes': modes})
     except Exception as e:
         return jsonify({'success': False, 'error': str(e)})
@@ -223,7 +223,7 @@ def scraper_modes():
 def scraper_dependencies():
     """Check scraper dependencies"""
     try:
-        deps = scraper_manager.check_dependencies()
+        deps = acquisition_manager.check_dependencies()
         return jsonify({'success': True, 'dependencies': deps})
     except Exception as e:
         return jsonify({'success': False, 'error': str(e)})
@@ -1089,7 +1089,7 @@ def get_system_context():
         
         # Get scraper status
         try:
-            scraper_status = scraper_manager.get_status()
+            scraper_status = acquisition_manager.get_status()
             context['scraper'] = scraper_status
         except Exception as e:
             context['scraper']['error'] = str(e)
@@ -1646,7 +1646,7 @@ def handle_status_request():
     try:
         # Send current status of all systems
         docker_status = docker_manager.get_required_containers_status()
-        scraper_status = scraper_manager.get_status()
+        scraper_status = acquisition_manager.get_status()
         db_stats = db_manager.get_product_stats()
         
         emit('status_update', {
@@ -1667,7 +1667,7 @@ def background_status_updates():
                 # Get current status
                 docker_status = docker_manager.get_required_containers_status()
                 system_resources = docker_manager.get_system_resources()
-                scraper_status = scraper_manager.get_status()
+                scraper_status = acquisition_manager.get_status()
                 
                 socketio.emit('status_update', {
                     'docker': docker_status,

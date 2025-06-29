@@ -2,7 +2,91 @@
 
 A comprehensive e-commerce intelligence platform and AI-powered product discovery system for Tileshop.com. Features intelligent product categorization, slip-resistance classification, and Claude-powered natural language search through a complete knowledge acquisition and retrieval interface.
 
-## 🆕 **Latest Enhancements (June 27, 2025)**
+## 🆕 **Latest Enhancements (June 29, 2025 - 2:20 AM)**
+
+### **🔧 Enhanced Microservices Health Check System**
+- **Comprehensive Service Health Checks**: All 8 services now use real health validation instead of showing "Not Found"
+- **External Service Testing**: Database, API, and crawler services now test actual connectivity
+  - **PostgreSQL (relational_db)**: Tests port 5432 connectivity with authentication fallback
+  - **Supabase (vector_db)**: Tests ports 54321, 5433, 8000 with HTTP health checks
+  - **Crawl4AI (crawler)**: Tests port 11235 with HTTP API validation
+  - **API Gateway**: Tests ports 8000, 8001, 8443 with status endpoint validation
+- **Conceptual Service Management**: Docker engine, LLM API, web server, and intelligence platform now have full start/stop control
+- **Smart Service Categorization**: Services marked as `conceptual_service` or `external_service` for proper handling
+- **Enhanced Status Messages**: Meaningful status descriptions replace generic "Container not found" errors
+- **All 8 Services Running**: Complete microservices directory shows proper status for all infrastructure components
+
+### **⚙️ Proper Dashboard Reboot Protocol**
+- **Background Process Management**: Dashboard now launches in background with proper process tracking
+- **Clear Cache Requirements**: Browser cache must be cleared after dashboard updates for UI changes
+- **Service Count Accuracy**: Toggle now correctly shows "8 total services" instead of container-only count
+- **Environment Verification**: Dashboard startup confirms autogen_env usage and logs status
+- **Health Check Integration**: All services participate in "Start All Services" functionality
+- **Real-time Status Updates**: Conceptual and external services update status properly via WebSocket
+
+## 📋 **Session Changes Summary (June 29, 2025 - 2:20 AM)**
+
+### **🎯 Major Improvements Implemented**
+
+#### **1. Enhanced Microservices Health Check System**
+- **Before**: Services showed "Container not found" for external services
+- **After**: Real connectivity testing for all 8 services with meaningful status messages
+- **Impact**: Users can now see actual service status instead of confusing error messages
+
+#### **2. Conceptual vs External Service Architecture**
+- **Added**: New service categorization system distinguishing between:
+  - **Conceptual Services** (4): docker_engine, llm_api, web_server, intelligence_platform
+  - **External Services** (4): relational_db, vector_db, crawler, api_gateway
+- **Enhanced**: All services now participate in start/stop operations and health checks
+- **Result**: Complete 8-service ecosystem with proper management controls
+
+#### **3. Real Health Check Implementation**
+**Before**: Only checked for Docker containers
+**After**: Actual service testing:
+- PostgreSQL: Port 5432 connectivity with authentication fallback
+- Supabase: Multi-port testing (54321, 5433, 8000) with HTTP health checks  
+- Crawl4AI: Port 11235 with HTTP API validation
+- API Gateway: Multi-port testing (8000, 8001, 8443) with status endpoints
+- Conceptual services: Proper health validation for Docker engine, LLM API, web server
+
+#### **4. Enhanced Dashboard Management**
+- **Background Process**: Proper background launching with log redirection
+- **Process Tracking**: Clear instructions for stopping/starting dashboard
+- **Cache Management**: Documentation for browser cache clearing requirements
+- **Status Verification**: Commands to verify all 8 services are working
+
+#### **5. Service Count Accuracy**
+- **Before**: Toggle showed only container services count
+- **After**: Accurate "8 total services" count including conceptual services
+- **Enhanced**: Start/stop operations now handle all service types properly
+
+### **🔧 Technical Changes Made**
+
+#### **Modified Files:**
+1. **`modules/docker_manager.py`**:
+   - Added `intelligence_platform` to REQUIRED_CONTAINERS (8th service)
+   - Enhanced `_perform_health_check()` with service-specific routing
+   - Added real health check methods for external services
+   - Updated start/stop methods to handle conceptual services
+   - Improved service counting in start/stop operations
+
+2. **`templates/dashboard.html`**:
+   - Updated container mapping to include all 8 services
+   - Fixed intelligence_platform element IDs for proper status updates
+   - Enhanced JavaScript to handle conceptual and external services
+   - Updated service counting logic for accurate toggle messages
+
+3. **`README.md`**:
+   - Added comprehensive reboot protocol documentation
+   - Documented health check system improvements
+   - Added verification commands for testing all services
+   - Updated usage instructions with background process management
+   - Fixed conflicting directory paths (tileshop_scraper → tileshop_rag_clean)
+   - Corrected environment references (consistent autogen_env usage)
+   - Added proper timestamps (June 29, 2025 - 2:20 AM)
+   - Removed obsolete configuration sections
+
+### **📋 Previous Session Improvements (June 27, 2025)**
 
 ### **🔧 Product Grouping & Recommendations System**
 - **Automatic Product Grouping**: Similar products automatically grouped by base pattern (removes color/finish variations)
@@ -80,9 +164,9 @@ User has the following containerized services running on `app-network`:
 - **PostgreSQL**: Direct access via docker exec or localhost:5432
 
 ### Development Environment
-- **Python**: Uses `sandbox_env` virtual environment in `/Users/robertsher/Projects/`
-- **Working Directory**: `/Users/robertsher/Projects/tileshop_scraper/`
-- **Activation**: `source sandbox_env/bin/activate`
+- **Python**: Uses `autogen_env` virtual environment in `/Users/robertsher/Projects/`
+- **Working Directory**: `/Users/robertsher/Projects/tileshop_rag_clean/`
+- **Activation**: `source autogen_env/bin/activate`
 
 ## Technical Issues Resolved
 
@@ -111,11 +195,11 @@ docker run -d \
 - Use multiple URL variants with fragments
 
 ### 3. Virtual Environment Management
-**Issue**: User prefers `sandbox_env` but packages were being installed globally
+**Issue**: Package management conflicts between global and virtual environments
 **Solution**: 
 - Cleaned up global package installations
 - Used virtual environment Python executable directly
-- Organized project files in dedicated `/tileshop_scraper/` directory
+- Organized project files in dedicated `/tileshop_rag_clean/` directory
 
 ## Features
 
@@ -130,32 +214,32 @@ docker run -d \
 1. **Activate virtual environment:**
    ```bash
    cd /Users/robertsher/Projects
-   source sandbox_env/bin/activate
+   source autogen_env/bin/activate
    ```
 
 2. **Install dependencies (Poetry - Recommended):**
    ```bash
-   cd tileshop_scraper
+   cd tileshop_rag_clean
    poetry install
    ```
    
    **Or using pip:**
    ```bash
-   cd tileshop_scraper
+   cd tileshop_rag_clean
    pip install -r requirements.txt
    ```
 
 3. **Environment Configuration:**
    ```bash
    # ✅ Claude API Key is configured in .env file
-   # Location: /Users/robertsher/Projects/tileshop_scraper/.env
+   # Location: /Users/robertsher/Projects/tileshop_rag_clean/.env
    # Current API Key: sk-ant-api03-ZAO2***XwAA (configured in .env)
    # 
    # ⚠️ SECURITY: The .env file contains sensitive API keys
    # - Never commit .env to version control
    # - .env is protected by .gitignore
    # - API key persists across sessions automatically
-   # - Updated: June 27, 2025 - Full Claude API integration working
+   # - Updated: June 29, 2025 - Enhanced health check system implemented
    ```
 
 4. **Ensure Docker services are running:**
@@ -167,14 +251,14 @@ docker run -d \
 
 ### 🆕 **Admin Dashboard (Recommended)**
 ```bash
-cd /Users/robertsher/Projects/tileshop_scraper
+cd /Users/robertsher/Projects/tileshop_rag_clean
 
 # Using Poetry (Recommended)
 poetry run python admin_dashboard.py
 
 # Or using virtual environment
 source autogen_env/bin/activate
-python admin_dashboard.py
+python admin_dashboard.py > dashboard.log 2>&1 &
 ```
 - **Dashboard**: http://localhost:8080 - Complete control panel
 - **RAG Chat**: http://localhost:8080/chat - AI assistant for product queries
@@ -190,7 +274,7 @@ python admin_dashboard.py
 ```bash
 cd /Users/robertsher/Projects
 source autogen_env/bin/activate
-cd tileshop_scraper
+cd tileshop_rag_clean
 python tileshop_scraper.py
 ```
 
@@ -845,10 +929,46 @@ For production deployment, the scraper will need **custom filter criteria** to h
 - **Configuration Management**: Update settings through UI
 - **Log Streaming**: Real-time logs from all components
 
+## 🔄 **Proper Dashboard Reboot Protocol**
+
+### **Important Startup Notes**
+- ✅ **Environment**: Dashboard uses `/Users/robertsher/Projects/autogen_env` virtual environment
+- 🧹 **Cache Clearing Required**: Browser cache must be cleared after code changes for UI updates to display
+- 📊 **Service Count**: All 8 services (4 conceptual + 4 external) now participate in health checks and toggle
+
+### **Correct Restart Sequence**
+```bash
+# 1. Stop existing dashboard process
+pkill -f admin_dashboard.py
+
+# 2. Wait for process to terminate
+sleep 3
+
+# 3. Start dashboard in background with logging
+python admin_dashboard.py > dashboard.log 2>&1 &
+
+# 4. Verify startup and environment status
+sleep 2 && tail -10 dashboard.log
+
+# 5. Clear browser cache and refresh http://localhost:8080
+# In Chrome: Cmd+Shift+R or Ctrl+Shift+R
+# In Firefox: Cmd+Shift+R or Ctrl+F5
+```
+
+### **Health Check Verification**
+```bash
+# Test all 8 services health check system
+curl -s http://localhost:8080/api/docker/status | python -m json.tool
+
+# Expected: All services show meaningful status instead of "Not Found"
+# - conceptual_service: true (docker_engine, llm_api, web_server, intelligence_platform)
+# - external_service: true (relational_db, vector_db, crawler, api_gateway)
+```
+
 ### Usage Commands
 ```bash
 # 🆕 Admin Dashboard (All-in-One)
-python admin_dashboard.py                    # Complete control center
+python admin_dashboard.py > dashboard.log 2>&1 &    # Complete control center (background)
 
 # Development & Testing
 python tileshop_scraper.py                    # Test individual product scraper
@@ -878,12 +998,12 @@ python scrape_all_products.py 10             # Legacy scraper with limit
 
 ## Configuration
 
-Edit the configuration constants in `tileshop_scraper.py`:
+All configuration is managed through environment variables in `.env` file:
 
+- `ANTHROPIC_API_KEY`: Claude API key for RAG chat functionality
+- `DATABASE_URL`: PostgreSQL connection (auto-configured for local Docker)
 - `CRAWL4AI_URL`: crawl4ai service endpoint (http://localhost:11235)
 - `CRAWL4AI_TOKEN`: authentication token (tileshop)
-- `DB_CONFIG`: PostgreSQL connection settings
-- `SAMPLE_URLS`: URLs to scrape (modify for your use case)
 
 ## 🚀 Production Deployment
 
@@ -996,12 +1116,13 @@ The project now uses proper environment variable management to protect sensitive
 **✅ **Claude API Key Storage:**
 ```bash
 # ✅ CONFIGURED: API key is stored in .env file
-# File Location: /Users/robertsher/Projects/tileshop_scraper/.env
+# File Location: /Users/robertsher/Projects/tileshop_rag_clean/.env
 # Variable Name: ANTHROPIC_API_KEY
 # 
 # ✅ PERSISTENCE: Key persists across sessions automatically
 # ✅ SECURITY: Protected by .gitignore (never committed)
 # ✅ AUTO-LOAD: Dashboard loads via load_dotenv() on startup
+# ✅ UPDATED: June 29, 2025 - Enhanced health check system
 ```
 
 **✅ **Security Best Practices:**
@@ -1194,6 +1315,7 @@ curl http://localhost:8080/api/docker/status
 curl http://localhost:8080/api/database/status
 
 # View scraper logs
+cd /Users/robertsher/Projects/tileshop_rag_clean
 python tileshop_scraper.py 2>&1 | tee scraper.log
 
 # Check git configuration

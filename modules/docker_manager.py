@@ -65,6 +65,13 @@ class DockerManager:
             'health_check': 'http',
             'description': 'Microservices API gateway and routing layer',
             'startup_order': 7
+        },
+        'intelligence_platform': {
+            'image_pattern': None,  # Conceptual service
+            'ports': [],
+            'health_check': 'web',
+            'description': 'AI-powered orchestration and management interface',
+            'startup_order': 8
         }
     }
     
@@ -121,17 +128,31 @@ class DockerManager:
         required_status = {}
         
         for container_name, config in self.REQUIRED_CONTAINERS.items():
-            if container_name in all_status:
+            # Check if this is a conceptual service (no actual container)
+            if config.get('image_pattern') is None:
+                # This is a conceptual service - use health check instead of container lookup
+                health_result = self._perform_health_check(None, container_name, config['health_check'])
+                required_status[container_name] = {
+                    'status': 'running' if health_result['healthy'] else 'unavailable',
+                    'state': 'running' if health_result['healthy'] else 'error',
+                    'health': 'healthy' if health_result['healthy'] else 'unhealthy',
+                    'config': config,
+                    'message': health_result['message'],
+                    'conceptual_service': True
+                }
+            elif container_name in all_status:
                 required_status[container_name] = all_status[container_name]
                 required_status[container_name]['config'] = config
             else:
-                # Container not found
+                # Container not found - but try health check for external services
+                health_result = self._perform_health_check(None, container_name, config['health_check'])
                 required_status[container_name] = {
-                    'status': 'not_found',
-                    'state': 'missing',
-                    'health': 'unknown',
+                    'status': 'running' if health_result['healthy'] else 'unavailable',
+                    'state': 'running' if health_result['healthy'] else 'stopped',
+                    'health': 'healthy' if health_result['healthy'] else 'unhealthy',
                     'config': config,
-                    'error': f'Container {container_name} not found'
+                    'message': health_result['message'],
+                    'external_service': True
                 }
         
         return required_status
@@ -269,7 +290,12 @@ class DockerManager:
             }
     
     def start_container(self, container_name: str) -> Dict[str, Any]:
-        """Start a specific container"""
+        """Start a specific container or conceptual service"""
+        # Check if this is a conceptual service
+        config = self.REQUIRED_CONTAINERS.get(container_name, {})
+        if config.get('image_pattern') is None:
+            return self._start_conceptual_service(container_name)
+        
         try:
             container = self.client.containers.get(container_name)
             if container.status == 'running':
@@ -294,7 +320,12 @@ class DockerManager:
             return {'success': False, 'error': f'Unexpected error: {str(e)}'}
     
     def stop_container(self, container_name: str) -> Dict[str, Any]:
-        """Stop a specific container"""
+        """Stop a specific container or conceptual service"""
+        # Check if this is a conceptual service
+        config = self.REQUIRED_CONTAINERS.get(container_name, {})
+        if config.get('image_pattern') is None:
+            return self._stop_conceptual_service(container_name)
+        
         try:
             container = self.client.containers.get(container_name)
             if container.status == 'exited':
@@ -367,25 +398,39 @@ class DockerManager:
             key=lambda x: x[1]['startup_order']
         )
         
+        # Separate conceptual services and actual containers
+        conceptual_services = []
+        actual_containers = []
+        
         for container_name, config in ordered_containers:
+            if config.get('image_pattern') is None:
+                conceptual_services.append(container_name)
+            else:
+                actual_containers.append(container_name)
+            
             result = self.start_container(container_name)
             results.append({
                 'container': container_name,
                 'result': result
             })
             
-            # Wait between starts for dependencies
-            if result['success']:
+            # Wait between starts for dependencies (only for actual containers)
+            if result['success'] and config.get('image_pattern') is not None:
                 time.sleep(2)
         
         # Check final status
         successful = sum(1 for r in results if r['result']['success'])
         total = len(results)
+        container_count = len(actual_containers)
+        conceptual_count = len(conceptual_services)
         
         return {
             'success': successful == total,
-            'message': f'Started {successful}/{total} containers',
-            'results': results
+            'message': f'Started {successful}/{total} services ({len([r for r in results if r["result"]["success"] and r["container"] in actual_containers])}/{container_count} containers, {len([r for r in results if r["result"]["success"] and r["container"] in conceptual_services])}/{conceptual_count} conceptual)',
+            'results': results,
+            'container_services': container_count,
+            'conceptual_services': conceptual_count,
+            'total_services': total
         }
     
     def stop_all_dependencies(self) -> Dict[str, Any]:
@@ -399,7 +444,16 @@ class DockerManager:
             reverse=True
         )
         
+        # Separate conceptual services and actual containers
+        conceptual_services = []
+        actual_containers = []
+        
         for container_name, config in ordered_containers:
+            if config.get('image_pattern') is None:
+                conceptual_services.append(container_name)
+            else:
+                actual_containers.append(container_name)
+            
             result = self.stop_container(container_name)
             results.append({
                 'container': container_name,
@@ -408,11 +462,16 @@ class DockerManager:
         
         successful = sum(1 for r in results if r['result']['success'])
         total = len(results)
+        container_count = len(actual_containers)
+        conceptual_count = len(conceptual_services)
         
         return {
             'success': successful == total,
-            'message': f'Stopped {successful}/{total} containers',
-            'results': results
+            'message': f'Stopped {successful}/{total} services ({len([r for r in results if r["result"]["success"] and r["container"] in actual_containers])}/{container_count} containers, {len([r for r in results if r["result"]["success"] and r["container"] in conceptual_services])}/{conceptual_count} conceptual)',
+            'results': results,
+            'container_services': container_count,
+            'conceptual_services': conceptual_count,
+            'total_services': total
         }
     
     def health_check_container(self, container_name: str) -> Dict[str, Any]:
@@ -580,6 +639,344 @@ class DockerManager:
                 'healthy': False,
                 'status': 'error',
                 'message': f'Web server health check failed: {str(e)}'
+            }
+
+    def _perform_health_check(self, container, service_name: str, check_type: str) -> Dict[str, Any]:
+        """Perform health check for conceptual services (no actual container)"""
+        try:
+            if check_type == 'docker':
+                return self._health_check_docker()
+            elif check_type == 'llm':
+                return self._health_check_llm()
+            elif check_type == 'web':
+                return self._health_check_web()
+            elif check_type == 'http':
+                # Route to specific service health checks
+                if service_name == 'crawler':
+                    return self._health_check_crawler()
+                elif service_name == 'api_gateway':
+                    return self._health_check_api_gateway()
+                else:
+                    return self._health_check_conceptual_http(service_name)
+            elif check_type == 'database':
+                # Route to specific database health checks
+                if service_name == 'relational_db':
+                    return self._health_check_relational_db()
+                elif service_name == 'vector_db':
+                    return self._health_check_vector_db()
+                else:
+                    return self._health_check_conceptual_database(service_name)
+            else:
+                return {
+                    'healthy': False,
+                    'status': 'unknown',
+                    'message': f'Unknown health check type: {check_type}'
+                }
+        except Exception as e:
+            return {
+                'healthy': False,
+                'status': 'error',
+                'message': f'Health check failed: {str(e)}'
+            }
+
+    def _health_check_conceptual_http(self, service_name: str) -> Dict[str, Any]:
+        """Health check for conceptual HTTP services"""
+        config = self.REQUIRED_CONTAINERS.get(service_name, {})
+        ports = config.get('ports', [])
+        
+        if not ports:
+            return {
+                'healthy': True,
+                'status': 'available',
+                'message': f'{service_name} service is conceptually available'
+            }
+        
+        # Try to check if port is accessible
+        try:
+            import socket
+            port = ports[0]
+            sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+            sock.settimeout(2)
+            result = sock.connect_ex(('localhost', port))
+            sock.close()
+            
+            if result == 0:
+                return {
+                    'healthy': True,
+                    'status': 'running',
+                    'message': f'{service_name} is accessible on port {port}'
+                }
+            else:
+                return {
+                    'healthy': False,
+                    'status': 'unavailable',
+                    'message': f'{service_name} is not accessible on port {port}'
+                }
+        except Exception as e:
+            return {
+                'healthy': False,
+                'status': 'error',
+                'message': f'Port check failed: {str(e)}'
+            }
+
+    def _health_check_relational_db(self) -> Dict[str, Any]:
+        """Health check for relational database (Postgres)"""
+        try:
+            # First try socket connection to see if port is open
+            import socket
+            sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+            sock.settimeout(3)
+            result = sock.connect_ex(('localhost', 5432))
+            sock.close()
+            
+            if result == 0:
+                # Port is open, try to connect with psycopg2 if available
+                try:
+                    import psycopg2
+                    # Try to connect to common local PostgreSQL configurations
+                    connection_configs = [
+                        {'host': 'localhost', 'port': 5432, 'user': 'postgres', 'password': '', 'database': 'postgres'},
+                        {'host': 'localhost', 'port': 5432, 'user': 'postgres', 'password': 'postgres', 'database': 'postgres'},
+                        {'host': 'localhost', 'port': 5432, 'user': 'postgres', 'password': 'password', 'database': 'postgres'}
+                    ]
+                    
+                    for config in connection_configs:
+                        try:
+                            conn = psycopg2.connect(
+                                host=config['host'],
+                                port=config['port'],
+                                user=config['user'],
+                                password=config['password'],
+                                database=config['database'],
+                                connect_timeout=3
+                            )
+                            conn.close()
+                            return {
+                                'healthy': True,
+                                'status': 'running',
+                                'message': f'PostgreSQL database is accessible on {config["host"]}:{config["port"]}'
+                            }
+                        except psycopg2.OperationalError:
+                            continue
+                            
+                    return {
+                        'healthy': True,
+                        'status': 'running',
+                        'message': 'PostgreSQL port 5432 is open (authentication may be required)'
+                    }
+                    
+                except ImportError:
+                    return {
+                        'healthy': True,
+                        'status': 'running',
+                        'message': 'PostgreSQL port 5432 is open (psycopg2 not installed for full verification)'
+                    }
+            else:
+                return {
+                    'healthy': False,
+                    'status': 'unavailable',
+                    'message': 'PostgreSQL database is not accessible on port 5432'
+                }
+            
+        except Exception as e:
+            return {
+                'healthy': False,
+                'status': 'error',
+                'message': f'Database health check failed: {str(e)}'
+            }
+
+    def _health_check_vector_db(self) -> Dict[str, Any]:
+        """Health check for vector database (Supabase)"""
+        try:
+            # Try socket connections to common Supabase ports
+            import socket
+            
+            supabase_ports = [54321, 5433, 8000]
+            
+            for port in supabase_ports:
+                try:
+                    sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+                    sock.settimeout(3)
+                    result = sock.connect_ex(('localhost', port))
+                    sock.close()
+                    
+                    if result == 0:
+                        # Port is open, try HTTP request if requests is available
+                        try:
+                            import requests
+                            response = requests.get(f'http://localhost:{port}/health', timeout=3)
+                            if response.status_code == 200:
+                                return {
+                                    'healthy': True,
+                                    'status': 'running',
+                                    'message': f'Supabase is accessible at http://localhost:{port}'
+                                }
+                        except:
+                            pass
+                        
+                        return {
+                            'healthy': True,
+                            'status': 'running',
+                            'message': f'Supabase port {port} is open'
+                        }
+                except:
+                    continue
+            
+            return {
+                'healthy': False,
+                'status': 'unavailable',
+                'message': 'Supabase is not accessible on standard ports (54321, 5433, 8000)'
+            }
+            
+        except Exception as e:
+            return {
+                'healthy': False,
+                'status': 'error',
+                'message': f'Vector database health check failed: {str(e)}'
+            }
+
+    def _health_check_crawler(self) -> Dict[str, Any]:
+        """Health check for crawler service (Crawl4AI)"""
+        try:
+            # First check if port 11235 is open
+            import socket
+            sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+            sock.settimeout(3)
+            result = sock.connect_ex(('localhost', 11235))
+            sock.close()
+            
+            if result == 0:
+                # Port is open, try HTTP request
+                try:
+                    import requests
+                    response = requests.get('http://localhost:11235/health', timeout=3)
+                    if response.status_code == 200:
+                        return {
+                            'healthy': True,
+                            'status': 'running',
+                            'message': 'Crawl4AI service is accessible at http://localhost:11235'
+                        }
+                    else:
+                        return {
+                            'healthy': True,
+                            'status': 'running',
+                            'message': f'Crawl4AI port 11235 is open (HTTP status: {response.status_code})'
+                        }
+                except:
+                    return {
+                        'healthy': True,
+                        'status': 'running',
+                        'message': 'Crawl4AI port 11235 is open'
+                    }
+            else:
+                return {
+                    'healthy': False,
+                    'status': 'unavailable',
+                    'message': 'Crawl4AI service is not accessible on port 11235'
+                }
+                
+        except Exception as e:
+            return {
+                'healthy': False,
+                'status': 'error',
+                'message': f'Crawler health check failed: {str(e)}'
+            }
+
+    def _health_check_api_gateway(self) -> Dict[str, Any]:
+        """Health check for API gateway"""
+        try:
+            # Check if Kong or other API gateway ports are accessible
+            import socket
+            
+            gateway_ports = [8000, 8001, 8443]
+            
+            for port in gateway_ports:
+                try:
+                    sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+                    sock.settimeout(3)
+                    result = sock.connect_ex(('localhost', port))
+                    sock.close()
+                    
+                    if result == 0:
+                        # Port is open, try HTTP request
+                        try:
+                            import requests
+                            response = requests.get(f'http://localhost:{port}/status', timeout=3)
+                            if response.status_code == 200:
+                                return {
+                                    'healthy': True,
+                                    'status': 'running',
+                                    'message': f'API Gateway is accessible at http://localhost:{port}'
+                                }
+                        except:
+                            pass
+                        
+                        return {
+                            'healthy': True,
+                            'status': 'running',
+                            'message': f'API Gateway port {port} is open'
+                        }
+                except:
+                    continue
+            
+            return {
+                'healthy': False,
+                'status': 'unavailable',
+                'message': 'API Gateway is not accessible on standard ports (8000, 8001, 8443)'
+            }
+            
+        except Exception as e:
+            return {
+                'healthy': False,
+                'status': 'error',
+                'message': f'API Gateway health check failed: {str(e)}'
+            }
+
+    def _health_check_conceptual_database(self, service_name: str) -> Dict[str, Any]:
+        """Health check for conceptual database services"""
+        return {
+            'healthy': True,
+            'status': 'managed',
+            'message': f'{service_name} is managed externally'
+        }
+
+    def _start_conceptual_service(self, service_name: str) -> Dict[str, Any]:
+        """Start a conceptual service (mock operation)"""
+        config = self.REQUIRED_CONTAINERS.get(service_name, {})
+        check_type = config.get('health_check', 'basic')
+        
+        # Perform health check to determine if service can be "started"
+        health_result = self._perform_health_check(None, service_name, check_type)
+        
+        if health_result['healthy']:
+            return {
+                'success': True,
+                'message': f'{service_name} conceptual service is available and ready'
+            }
+        else:
+            return {
+                'success': False,
+                'error': f'{service_name} conceptual service is not available: {health_result["message"]}'
+            }
+
+    def _stop_conceptual_service(self, service_name: str) -> Dict[str, Any]:
+        """Stop a conceptual service (mock operation)"""
+        # For conceptual services, stopping is usually not applicable
+        # but we return success for UI consistency
+        if service_name == 'web_server':
+            return {
+                'success': False,
+                'error': 'Cannot stop web server - would terminate this application'
+            }
+        elif service_name == 'docker_engine':
+            return {
+                'success': False,
+                'error': 'Cannot stop Docker engine - would affect all containerized services'
+            }
+        else:
+            return {
+                'success': True,
+                'message': f'{service_name} conceptual service stopped (simulated)'
             }
     
     def get_system_resources(self) -> Dict[str, Any]:

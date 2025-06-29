@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 """
-Scraper Manager - Orchestrates all scraping operations
+Intelligence Manager - Orchestrates all data acquisition operations
 """
 
 import os
@@ -19,9 +19,9 @@ sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 logger = logging.getLogger(__name__)
 
 class ScraperManager:
-    """Manages all scraping operations with real-time monitoring"""
+    """Manages all data acquisition operations with real-time monitoring"""
     
-    SCRAPER_MODES = {
+    ACQUISITION_MODES = {
         'test': {
             'script': 'acquire_from_sitemap.py',
             'description': 'Test mode with limited products (default: 10 URLs)',
@@ -29,7 +29,7 @@ class ScraperManager:
         },
         'sitemap': {
             'script': 'acquire_from_sitemap.py',
-            'description': 'Full sitemap scraper with recovery',
+            'description': 'Full sitemap acquisition with recovery',
             'args': []
         }
     }
@@ -52,22 +52,22 @@ class ScraperManager:
         self.log_lines = []
         self.max_log_lines = 100
         
-    def start_scraping(self, mode: str, limit: Optional[int] = None, fresh: bool = False) -> Dict[str, Any]:
-        """Start scraping in specified mode"""
+    def start_acquisition(self, mode: str, limit: Optional[int] = None, fresh: bool = False) -> Dict[str, Any]:
+        """Start data acquisition in specified mode"""
         if self.is_running:
             return {
                 'success': False,
-                'error': 'Scraper is already running'
+                'error': 'Data acquisition is already running'
             }
         
-        if mode not in self.SCRAPER_MODES:
+        if mode not in self.ACQUISITION_MODES:
             return {
                 'success': False,
-                'error': f'Unknown scraper mode: {mode}'
+                'error': f'Unknown acquisition mode: {mode}'
             }
         
         # Build command arguments
-        script_path = self.SCRAPER_MODES[mode]['script']
+        script_path = self.ACQUISITION_MODES[mode]['script']
         args = ['python', script_path]
         
         # Add mode-specific arguments
@@ -84,18 +84,18 @@ class ScraperManager:
         self.reset_stats()
         
         try:
-            # Start the scraping process
+            # Start the acquisition process
             self.start_time = datetime.now()
             self.is_running = True
             
             # Run in separate thread to avoid blocking
-            thread = threading.Thread(target=self._run_scraper, args=(args,))
+            thread = threading.Thread(target=self._run_acquisition, args=(args,))
             thread.daemon = True
             thread.start()
             
             return {
                 'success': True,
-                'message': f'Started {mode} scraping',
+                'message': f'Started {mode} acquisition',
                 'mode': mode,
                 'args': args
             }
@@ -104,30 +104,30 @@ class ScraperManager:
             self.is_running = False
             return {
                 'success': False,
-                'error': f'Failed to start scraper: {str(e)}'
+                'error': f'Failed to start acquisition: {str(e)}'
             }
     
-    def _run_scraper(self, args: list):
-        """Run the scraper subprocess with monitoring"""
+    def _run_acquisition(self, args: list):
+        """Run the acquisition subprocess with monitoring"""
         try:
-            # Change to scraper directory
-            scraper_dir = os.path.dirname(os.path.abspath(__file__)).replace('/modules', '')
+            # Change to project directory
+            project_dir = os.path.dirname(os.path.abspath(__file__)).replace('/modules', '')
             
             # Activate virtual environment and run
-            venv_python = '/Users/robertsher/Projects/autogen_env/bin/python'  # Sandbox environment
+            venv_python = '/Users/robertsher/Projects/sandbox_env/bin/python'  # Sandbox environment
             if os.path.exists(venv_python):
                 args[0] = venv_python
             
             # Set up environment for virtual environment
             env = os.environ.copy()
-            venv_dir = '/Users/robertsher/Projects/autogen_env'  # Sandbox directory
+            venv_dir = '/Users/robertsher/Projects/sandbox_env'  # Sandbox directory
             if os.path.exists(venv_dir):
                 env['VIRTUAL_ENV'] = venv_dir
                 env['PATH'] = f"{venv_dir}/bin:{env.get('PATH', '')}"
             
             self.current_process = subprocess.Popen(
                 args,
-                cwd=scraper_dir,
+                cwd=project_dir,
                 stdout=subprocess.PIPE,
                 stderr=subprocess.STDOUT,
                 universal_newlines=True,
@@ -157,7 +157,7 @@ class ScraperManager:
                 })
                 
         except Exception as e:
-            logger.error(f"Error running scraper: {e}")
+            logger.error(f"Error running acquisition: {e}")
             self.is_running = False
             if self.progress_callback:
                 self.progress_callback('error', {'error': str(e)})
@@ -261,12 +261,12 @@ class ScraperManager:
                 'stats': self.stats.copy()
             })
     
-    def stop_scraping(self) -> Dict[str, Any]:
-        """Stop the currently running scraper"""
+    def stop_acquisition(self) -> Dict[str, Any]:
+        """Stop the currently running acquisition process"""
         if not self.is_running or not self.current_process:
             return {
                 'success': False,
-                'error': 'No scraper is currently running'
+                'error': 'No acquisition process is currently running'
             }
         
         try:
@@ -285,17 +285,17 @@ class ScraperManager:
             
             return {
                 'success': True,
-                'message': 'Scraper stopped successfully'
+                'message': 'Acquisition stopped successfully'
             }
             
         except Exception as e:
             return {
                 'success': False,
-                'error': f'Failed to stop scraper: {str(e)}'
+                'error': f'Failed to stop acquisition: {str(e)}'
             }
     
     def get_status(self) -> Dict[str, Any]:
-        """Get current scraper status and statistics"""
+        """Get current acquisition status and statistics"""
         runtime = None
         if self.start_time:
             runtime = (datetime.now() - self.start_time).total_seconds()
@@ -488,18 +488,18 @@ class ScraperManager:
         
         try:
             # Check if virtual environment exists
-            venv_python = '/Users/robertsher/Projects/autogen_env/bin/python'  # Sandbox environment
+            venv_python = '/Users/robertsher/Projects/sandbox_env/bin/python'  # Sandbox environment
             if os.path.exists(venv_python):
                 dependencies['python_environment'] = True
             
-            # Check if scraper scripts exist
-            scraper_dir = os.path.dirname(os.path.abspath(__file__)).replace('/modules', '')
-            for mode, config in self.SCRAPER_MODES.items():
-                script_path = os.path.join(scraper_dir, config['script'])
+            # Check if acquisition scripts exist
+            project_dir = os.path.dirname(os.path.abspath(__file__)).replace('/modules', '')
+            for mode, config in self.ACQUISITION_MODES.items():
+                script_path = os.path.join(project_dir, config['script'])
                 if not os.path.exists(script_path):
                     return {
                         'ready': False,
-                        'error': f'Missing scraper script: {config["script"]}',
+                        'error': f'Missing acquisition script: {config["script"]}',
                         'dependencies': dependencies
                     }
             
@@ -520,5 +520,5 @@ class ScraperManager:
             }
     
     def get_available_modes(self) -> Dict[str, Dict[str, str]]:
-        """Get all available scraping modes"""
-        return self.SCRAPER_MODES.copy()
+        """Get all available acquisition modes"""
+        return self.ACQUISITION_MODES.copy()

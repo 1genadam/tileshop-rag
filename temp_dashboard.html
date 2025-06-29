@@ -56,7 +56,7 @@
                     <!-- Service 0: Docker Engine -->
                     <tr>
                         <td style="text-align: center; font-weight: bold;">0</td>
-                        <td style="white-space: nowrap;">
+                        <td>
                             <i class="fas fa-cube" style="margin-right: 8px; color: #3b82f6;"></i>
                             docker_engine
                         </td>
@@ -75,7 +75,7 @@
                     <!-- Service 1: Relational Database -->
                     <tr>
                         <td style="text-align: center; font-weight: bold;">1</td>
-                        <td style="white-space: nowrap;">
+                        <td>
                             <i class="fas fa-server" style="margin-right: 8px; color: #10b981;"></i>
                             relational_db
                         </td>
@@ -94,7 +94,7 @@
                     <!-- Service 2: Vector Database -->
                     <tr>
                         <td style="text-align: center; font-weight: bold;">2</td>
-                        <td style="white-space: nowrap;">
+                        <td>
                             <i class="fas fa-database" style="margin-right: 8px; color: #8b5cf6;"></i>
                             vector_db
                         </td>
@@ -113,7 +113,7 @@
                     <!-- Service 3: Web Crawler -->
                     <tr>
                         <td style="text-align: center; font-weight: bold;">3</td>
-                        <td style="white-space: nowrap;">
+                        <td>
                             <i class="fas fa-spider" style="margin-right: 8px; color: #f59e0b;"></i>
                             crawler
                         </td>
@@ -132,7 +132,7 @@
                     <!-- Service 4: LLM API -->
                     <tr>
                         <td style="text-align: center; font-weight: bold;">4</td>
-                        <td style="white-space: nowrap;">
+                        <td>
                             <i class="fas fa-brain" style="margin-right: 8px; color: #ef4444;"></i>
                             llm_api
                         </td>
@@ -148,64 +148,69 @@
                         </td>
                     </tr>
 
-                    <!-- Service 5: Web Server -->
-                    <tr>
-                        <td style="text-align: center; font-weight: bold;">5</td>
-                        <td style="white-space: nowrap;">
-                            <i class="fas fa-globe" style="margin-right: 8px; color: #06b6d4;"></i>
-                            web_server
-                        </td>
-                        <td>
-                            <div style="display: flex; align-items: center; gap: 8px;">
-                                <div class="status-dot gray" id="web_server-dot"></div>
-                                <span id="web_server-text">Checking...</span>
-                            </div>
-                        </td>
-                        <td id="web_server-info">Flask application server and dashboard interface</td>
-                        <td>
-                            <button class="btn btn-xs btn-secondary" onclick="showLogs('web_server')">Logs</button>
-                        </td>
-                    </tr>
+            <!-- Service 5: Web Server -->
+            <div class="service-card">
+                <div class="service-header">
+                    <i class="fas fa-globe"></i>
+                    <span class="service-name">5. web_server</span>
+                    <div class="status-dot gray" id="web_server-dot"></div>
+                </div>
+                <div class="service-details">
+                    <div class="service-status" id="web_server-text">Checking...</div>
+                    <div class="service-info" id="web_server-info">Intelligence platform web server and dashboard</div>
+                    <div class="service-progress" id="web_server-progress" style="display: none;">
+                        <div class="progress-bar">
+                            <div class="progress-fill animated"></div>
+                        </div>
+                    </div>
+                </div>
+                <div class="service-actions">
+                    <button class="btn btn-xs btn-secondary" onclick="showLogs('web_server')">Logs</button>
+                </div>
+            </div>
 
-                    <!-- Service 6: API Gateway -->
-                    <tr>
-                        <td style="text-align: center; font-weight: bold;">6</td>
-                        <td style="white-space: nowrap;">
-                            <i class="fas fa-exchange-alt" style="margin-right: 8px; color: #84cc16;"></i>
-                            api_gateway
-                        </td>
-                        <td>
-                            <div style="display: flex; align-items: center; gap: 8px;">
-                                <div class="status-dot gray" id="api_gateway-dot"></div>
-                                <span id="api_gateway-text">Checking...</span>
-                            </div>
-                        </td>
-                        <td id="api_gateway-info">API management and routing service</td>
-                        <td>
-                            <button class="btn btn-xs btn-secondary" onclick="showLogs('api_gateway')">Logs</button>
-                        </td>
-                    </tr>
+            <!-- Service 6: API Gateway -->
+            <div class="service-card">
+                <div class="service-header">
+                    <i class="fas fa-network-wired"></i>
+                    <span class="service-name">6. api_gateway</span>
+                    <div class="status-dot gray" id="api_gateway-dot"></div>
+                </div>
+                <div class="service-details">
+                    <div class="service-status" id="api_gateway-text">Checking...</div>
+                    <div class="service-info" id="api_gateway-info">Microservices API gateway and routing layer</div>
+                    <div class="service-progress" id="api_gateway-progress" style="display: none;">
+                        <div class="progress-bar">
+                            <div class="progress-fill animated"></div>
+                        </div>
+                    </div>
+                </div>
+                <div class="service-actions">
+                    <button class="btn btn-xs btn-secondary" onclick="showLogs('api_gateway')">Logs</button>
+                </div>
+            </div>
 
-                    <!-- Service 7: Intelligence Platform -->
-                    <tr>
-                        <td style="text-align: center; font-weight: bold;">7</td>
-                        <td style="white-space: nowrap;">
-                            <i class="fas fa-cog" style="margin-right: 8px; color: #6366f1;"></i>
-                            intelligence_platform
-                        </td>
-                        <td>
-                            <div style="display: flex; align-items: center; gap: 8px;">
-                                <div class="status-dot gray" id="intelligence_platform-dot"></div>
-                                <span id="intelligence_platform-text">Checking...</span>
-                            </div>
-                        </td>
-                        <td id="intelligence_platform-info">AI-powered orchestration and management interface</td>
-                        <td>
-                            <button class="btn btn-xs btn-secondary" onclick="checkEnvironmentStatus()">Check</button>
-                        </td>
-                    </tr>
-                </tbody>
-            </table>
+            <!-- Service 7: Intelligence Platform -->
+            <div class="service-card">
+                <div class="service-header">
+                    <i class="fas fa-cog"></i>
+                    <span class="service-name">7. intelligence_platform</span>
+                    <div class="status-dot gray" id="environment-dot"></div>
+                </div>
+                <div class="service-details">
+                    <div class="service-status" id="environment-text">Checking...</div>
+                    <div class="service-info" id="environment-info">AI-powered orchestration and management interface</div>
+                    <div class="service-progress" id="environment-progress" style="display: none;">
+                        <div class="progress-bar">
+                            <div class="progress-fill animated"></div>
+                        </div>
+                    </div>
+                </div>
+                <div class="service-actions">
+                    <button class="btn btn-xs btn-primary" onclick="setupEnvironment()">Setup</button>
+                    <button class="btn btn-xs btn-secondary" onclick="checkEnvironmentStatus()">Check</button>
+                </div>
+            </div>
         </div>
     </div>
     
@@ -858,32 +863,22 @@
     }
     
     function updateDockerStatus(containers) {
-        // Updated container map to include all services
         const containerMap = {
-            'postgres': 'relational_db',
-            'supabase': 'vector_db', 
-            'crawl4ai': 'crawler',
-            'kong': 'api_gateway'
+            'relational_db': 'postgres',
+            'vector_db': 'supabase',
+            'crawler': 'crawl4ai'
         };
-        
-        // Conceptual services that don't have actual containers
-        const conceptualServices = [
-            'docker_engine',
-            'llm_api', 
-            'web_server',
-            'intelligence_platform'
-        ];
         
         let allRunning = true;
         let anyRunning = false;
         let runningCount = 0;
-        let totalServices = Object.keys(containerMap).length + conceptualServices.length;
+        let totalContainers = Object.keys(containerMap).length;
         
-        Object.entries(containerMap).forEach(([containerName, serviceId]) => {
+        Object.entries(containerMap).forEach(([containerName, prefix]) => {
             const container = containers[containerName];
-            const dot = document.getElementById(serviceId + '-dot');
-            const text = document.getElementById(serviceId + '-text');
-            const info = document.getElementById(serviceId + '-info');
+            const dot = document.getElementById(prefix + '-dot');
+            const text = document.getElementById(prefix + '-text');
+            const info = document.getElementById(prefix + '-info');
             
             if (container) {
                 if (container.status === 'running') {
@@ -910,9 +905,9 @@
                         const descriptions = {
                             'relational_db': 'Primary relational database for structured data',
                             'vector_db': 'Vector database with embeddings and AI capabilities',
-                            'crawler': 'AI-powered web crawling service'
+                            'crawler': 'Intelligent web crawling microservice'
                         };
-                        info.textContent = descriptions[serviceId] || 'Service stopped';
+                        info.textContent = descriptions[prefix] || 'Service stopped';
                     }
                 } else {
                     dot.className = 'status-dot yellow';
@@ -937,53 +932,9 @@
             // Services can only be started via "Start All Services" button
         });
         
-        // Handle conceptual services from the containers response
-        conceptualServices.forEach(serviceId => {
-            const dot = document.getElementById(serviceId + '-dot');
-            const text = document.getElementById(serviceId + '-text');
-            const info = document.getElementById(serviceId + '-info');
-            
-            // Check if we have data for this conceptual service in the containers response
-            const serviceData = containers[serviceId];
-            
-            if (serviceData) {
-                if (serviceData.status === 'running' || serviceData.health === 'healthy') {
-                    dot.className = 'status-dot green';
-                    text.textContent = 'Running';
-                    runningCount++;
-                    anyRunning = true;
-                    
-                    if (info && serviceData.message) {
-                        info.textContent = serviceData.message;
-                    }
-                } else if (serviceData.status === 'unavailable' || serviceData.health === 'unhealthy') {
-                    dot.className = 'status-dot red';
-                    text.textContent = 'Unavailable';
-                    allRunning = false;
-                    
-                    if (info && serviceData.message) {
-                        info.textContent = serviceData.message;
-                    }
-                } else {
-                    dot.className = 'status-dot yellow';
-                    text.textContent = serviceData.status || 'Unknown';
-                    allRunning = false;
-                    
-                    if (info && serviceData.message) {
-                        info.textContent = serviceData.message;
-                    }
-                }
-            } else {
-                // Default state for conceptual services when no data
-                dot.className = 'status-dot gray';
-                text.textContent = 'Checking...';
-                allRunning = false;
-            }
-        });
-        
         // Calculate if all services are running
-        allRunning = (runningCount === totalServices);
-        console.log(`All running status: ${runningCount}/${totalServices} services running, allRunning=${allRunning}`);
+        allRunning = (runningCount === totalContainers);
+        console.log(`All running status: ${runningCount}/${totalContainers} containers running, allRunning=${allRunning}`);
         
         // Update toggle switch state based on service status
         updateServicesToggle(allRunning, anyRunning);
@@ -1801,8 +1752,7 @@ Status: ${comp.is_in_sync ? 'In Sync' : 'Out of Sync'}`;
             }
             
             const successCount = results.filter(r => r.success).length;
-            const totalServices = 8; // Total services in microservices directory
-            const message = `Started ${successCount}/${containers.length} container services (${totalServices} total services)`;
+            const message = `Started ${successCount}/${containers.length} services successfully`;
             
             setBulkOperationStatus(message, successCount === containers.length ? 'success' : 'warning');
             setTimeout(() => setBulkOperationStatus('', ''), 3000);
@@ -1834,8 +1784,7 @@ Status: ${comp.is_in_sync ? 'In Sync' : 'Out of Sync'}`;
             }
             
             const successCount = results.filter(r => r.success).length;
-            const totalServices = 8; // Total services in microservices directory
-            const message = `Stopped ${successCount}/${containers.length} container services (${totalServices} total services)`;
+            const message = `Stopped ${successCount}/${containers.length} services successfully`;
             
             setBulkOperationStatus(message, successCount === containers.length ? 'success' : 'warning');
             setTimeout(() => setBulkOperationStatus('', ''), 3000);
@@ -1980,9 +1929,9 @@ Status: ${comp.is_in_sync ? 'In Sync' : 'Out of Sync'}`;
         const runningCount = Object.values(containers).filter(c => c.status === 'running').length;
         const totalCount = Object.keys(containers).length;
         
-        const envDot = document.getElementById('intelligence_platform-dot');
-        const envText = document.getElementById('intelligence_platform-text');
-        const envInfo = document.getElementById('intelligence_platform-info');
+        const envDot = document.getElementById('environment-dot');
+        const envText = document.getElementById('environment-text');
+        const envInfo = document.getElementById('environment-info');
         
         if (runningCount === totalCount) {
             envDot.className = 'status-dot green';

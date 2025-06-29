@@ -1,0 +1,153 @@
+                <tbody>
+                    <!-- Service 0: Docker Engine -->
+                    <tr>
+                        <td style="text-align: center; font-weight: bold;">0</td>
+                        <td>
+                            <i class="fas fa-cube" style="margin-right: 8px; color: #3b82f6;"></i>
+                            docker_engine
+                        </td>
+                        <td>
+                            <div style="display: flex; align-items: center; gap: 8px;">
+                                <div class="status-dot gray" id="docker_engine-dot"></div>
+                                <span id="docker_engine-text">Checking...</span>
+                            </div>
+                        </td>
+                        <td id="docker_engine-info">Container orchestration and infrastructure platform</td>
+                        <td>
+                            <button class="btn btn-xs btn-secondary" onclick="showLogs('docker_engine')">Logs</button>
+                        </td>
+                    </tr>
+
+                    <!-- Service 1: Relational Database -->
+                    <tr>
+                        <td style="text-align: center; font-weight: bold;">1</td>
+                        <td>
+                            <i class="fas fa-server" style="margin-right: 8px; color: #10b981;"></i>
+                            relational_db
+                        </td>
+                        <td>
+                            <div style="display: flex; align-items: center; gap: 8px;">
+                                <div class="status-dot gray" id="relational_db-dot"></div>
+                                <span id="relational_db-text">Checking...</span>
+                            </div>
+                        </td>
+                        <td id="relational_db-info">Primary relational database for structured data</td>
+                        <td>
+                            <button class="btn btn-xs btn-secondary" onclick="showLogs('relational_db')">Logs</button>
+                        </td>
+                    </tr>
+
+                    <!-- Service 2: Vector Database -->
+                    <tr>
+                        <td style="text-align: center; font-weight: bold;">2</td>
+                        <td>
+                            <i class="fas fa-database" style="margin-right: 8px; color: #8b5cf6;"></i>
+                            vector_db
+                        </td>
+                        <td>
+                            <div style="display: flex; align-items: center; gap: 8px;">
+                                <div class="status-dot gray" id="vector_db-dot"></div>
+                                <span id="vector_db-text">Checking...</span>
+                            </div>
+                        </td>
+                        <td id="vector_db-info">Vector database with embeddings and AI capabilities</td>
+                        <td>
+                            <button class="btn btn-xs btn-secondary" onclick="showLogs('vector_db')">Logs</button>
+                        </td>
+                    </tr>
+
+                    <!-- Service 3: Web Crawler -->
+                    <tr>
+                        <td style="text-align: center; font-weight: bold;">3</td>
+                        <td>
+                            <i class="fas fa-spider" style="margin-right: 8px; color: #f59e0b;"></i>
+                            crawler
+                        </td>
+                        <td>
+                            <div style="display: flex; align-items: center; gap: 8px;">
+                                <div class="status-dot gray" id="crawler-dot"></div>
+                                <span id="crawler-text">Checking...</span>
+                            </div>
+                        </td>
+                        <td id="crawler-info">AI-powered web crawling service</td>
+                        <td>
+                            <button class="btn btn-xs btn-secondary" onclick="showLogs('crawler')">Logs</button>
+                        </td>
+                    </tr>
+
+                    <!-- Service 4: LLM API -->
+                    <tr>
+                        <td style="text-align: center; font-weight: bold;">4</td>
+                        <td>
+                            <i class="fas fa-brain" style="margin-right: 8px; color: #ef4444;"></i>
+                            llm_api
+                        </td>
+                        <td>
+                            <div style="display: flex; align-items: center; gap: 8px;">
+                                <div class="status-dot gray" id="llm_api-dot"></div>
+                                <span id="llm_api-text">Checking...</span>
+                            </div>
+                        </td>
+                        <td id="llm_api-info">Large language model API for AI processing</td>
+                        <td>
+                            <button class="btn btn-xs btn-secondary" onclick="showLogs('llm_api')">Logs</button>
+                        </td>
+                    </tr>
+
+                    <!-- Service 5: Web Server -->
+                    <tr>
+                        <td style="text-align: center; font-weight: bold;">5</td>
+                        <td>
+                            <i class="fas fa-globe" style="margin-right: 8px; color: #06b6d4;"></i>
+                            web_server
+                        </td>
+                        <td>
+                            <div style="display: flex; align-items: center; gap: 8px;">
+                                <div class="status-dot gray" id="web_server-dot"></div>
+                                <span id="web_server-text">Checking...</span>
+                            </div>
+                        </td>
+                        <td id="web_server-info">Flask application server and dashboard interface</td>
+                        <td>
+                            <button class="btn btn-xs btn-secondary" onclick="showLogs('web_server')">Logs</button>
+                        </td>
+                    </tr>
+
+                    <!-- Service 6: API Gateway -->
+                    <tr>
+                        <td style="text-align: center; font-weight: bold;">6</td>
+                        <td>
+                            <i class="fas fa-exchange-alt" style="margin-right: 8px; color: #84cc16;"></i>
+                            api_gateway
+                        </td>
+                        <td>
+                            <div style="display: flex; align-items: center; gap: 8px;">
+                                <div class="status-dot gray" id="api_gateway-dot"></div>
+                                <span id="api_gateway-text">Checking...</span>
+                            </div>
+                        </td>
+                        <td id="api_gateway-info">API management and routing service</td>
+                        <td>
+                            <button class="btn btn-xs btn-secondary" onclick="showLogs('api_gateway')">Logs</button>
+                        </td>
+                    </tr>
+
+                    <!-- Service 7: Intelligence Platform -->
+                    <tr>
+                        <td style="text-align: center; font-weight: bold;">7</td>
+                        <td>
+                            <i class="fas fa-cog" style="margin-right: 8px; color: #6366f1;"></i>
+                            intelligence_platform
+                        </td>
+                        <td>
+                            <div style="display: flex; align-items: center; gap: 8px;">
+                                <div class="status-dot gray" id="environment-dot"></div>
+                                <span id="environment-text">Checking...</span>
+                            </div>
+                        </td>
+                        <td id="environment-info">AI-powered orchestration and management interface</td>
+                        <td>
+                            <button class="btn btn-xs btn-secondary" onclick="checkEnvironmentStatus()">Check</button>
+                        </td>
+                    </tr>
+                </tbody>

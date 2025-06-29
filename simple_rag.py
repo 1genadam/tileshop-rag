@@ -27,7 +27,7 @@ except ImportError:
     ANTHROPIC_AVAILABLE = False
     logger.warning("Anthropic library not available - analytical queries will be limited")
 
-class SimpleTileshopRAG:
+class SimpleTileShopRAG:
     def __init__(self):
         # Supabase container for data access
         self.supabase_container = 'supabase'

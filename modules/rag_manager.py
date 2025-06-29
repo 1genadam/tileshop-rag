@@ -12,9 +12,9 @@ from typing import Dict, List, Any, Optional
 sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 
 try:
-    from simple_rag import SimpleTileshopRAG
+    from simple_rag import SimpleTileShopRAG
 except ImportError:
-    SimpleTileshopRAG = None
+    SimpleTileShopRAG = None
 
 logger = logging.getLogger(__name__)
 
@@ -30,11 +30,11 @@ class RAGManager:
     def _initialize_rag(self):
         """Initialize RAG system"""
         try:
-            if SimpleTileshopRAG:
-                self.rag_system = SimpleTileshopRAG()
+            if SimpleTileShopRAG:
+                self.rag_system = SimpleTileShopRAG()
                 logger.info("RAG system initialized successfully")
             else:
-                logger.warning("SimpleTileshopRAG not available")
+                logger.warning("SimpleTileShopRAG not available")
         except Exception as e:
             logger.error(f"Failed to initialize RAG system: {e}")
             self.rag_system = None

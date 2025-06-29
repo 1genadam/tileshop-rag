@@ -622,6 +622,47 @@
             opacity: 0.6;
             pointer-events: none;
         }
+        
+        /* Services Table Styles */
+        .services-table-container {
+            background: white;
+            border-radius: 8px;
+            overflow: hidden;
+            box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+        }
+        
+        .services-table {
+            width: 100%;
+            border-collapse: collapse;
+            font-size: 0.9rem;
+        }
+        
+        .services-table thead {
+            background: #f8fafc;
+            border-bottom: 2px solid #e2e8f0;
+        }
+        
+        .services-table th {
+            padding: 12px 16px;
+            text-align: left;
+            font-weight: 600;
+            color: #475569;
+            border-bottom: 1px solid #e2e8f0;
+        }
+        
+        .services-table td {
+            padding: 12px 16px;
+            border-bottom: 1px solid #f1f5f9;
+            vertical-align: middle;
+        }
+        
+        .services-table tr:hover {
+            background: #f8fafc;
+        }
+        
+        .services-table tr:last-child td {
+            border-bottom: none;
+        }
     </style>
     {% block extra_css %}{% endblock %}
 </head>
