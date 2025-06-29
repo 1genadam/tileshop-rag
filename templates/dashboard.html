@@ -412,14 +412,14 @@
                 <p><strong>Current URL:</strong></p>
                 <div id="current-url-container" style="position: relative;">
                     <div id="current-url" style="font-family: monospace; font-size: 0.8rem; background: #f3f4f6; padding: 0.5rem; border-radius: 4px; word-break: break-all; max-height: 60px; overflow-y: auto; transition: background-color 0.3s;">
-                        Waiting for data acquisition...
+                        Waiting for learning process...
                     </div>
                     <div id="url-status-indicator" style="position: absolute; top: 0.5rem; right: 0.5rem; width: 8px; height: 8px; border-radius: 50%; background: #ccc; transition: background-color 0.3s;"></div>
                 </div>
             </div>
             <div style="margin-top: 1rem; display: flex; gap: 1rem; align-items: center;">
                 <button class="btn btn-success" id="start-acquisition" onclick="startAcquisition()">
-                    <i class="fas fa-play"></i> Start Data Acquisition
+                    <i class="fas fa-play"></i> Start Learning
                 </button>
                 <button class="btn btn-danger" id="stop-acquisition" onclick="stopAcquisition()" disabled>
                     <i class="fas fa-stop"></i> Stop
@@ -475,7 +475,7 @@
             <p style="font-size: 2rem; font-weight: bold;" id="success-rate">-</p>
         </div>
         <div>
-            <h4 style="color: #f59e0b;">Avg Acquisition Time</h4>
+            <h4 style="color: #f59e0b;">Avg Learning Time</h4>
             <p style="font-size: 2rem; font-weight: bold;" id="avg-scrape-time">-</p>
         </div>
         <div>
@@ -595,7 +595,7 @@
             <div id="ai-chat-history" style="flex: 1; background: #1f2937; color: #e5e7eb; padding: 1rem; border-radius: 6px; overflow-y: auto; font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; margin-bottom: 1rem;">
                 <div class="ai-message system">
                     <strong>🤖 Customer Service Assistant:</strong> Hello! I'm here to help with your Tile Shop intelligence platform questions and issues. I can assist with:
-                    <br>• Troubleshooting scraping errors
+                    <br>• Troubleshooting learning process errors
                     <br>• Product data questions and analysis
                     <br>• Error log interpretation
                     <br>• Usage guidance and support
@@ -1103,7 +1103,7 @@
             }
         }
         
-        // Update the "Start Scraping" button state based on sitemap availability
+        // Update the "Start Learning" button state based on sitemap availability
         const startAcquisitionBtn = document.getElementById('start-acquisition');
         if (startAcquisitionBtn && sitemapData.status === 'not_found') {
             startAcquisitionBtn.title = 'Download a sitemap first to enable scraping';
