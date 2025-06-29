@@ -40,7 +40,19 @@ A comprehensive e-commerce intelligence platform and AI-powered product discover
 
 ---
 
-## 🆕 **Latest Enhancements (June 29, 2025 - 6:03 PM)**
+## 🆕 **Latest Enhancements (June 29, 2025 - 6:55 PM)**
+
+### **🚀 Pre-warming System for Instant Learning**
+- **Eliminated 8-13 Second Delay**: Start Learning button now responds instantly
+- **Background Initialization**: 4 initialization components moved to dashboard startup:
+  - ✅ **Python subprocess startup** / Virtual environment activation (~2-4s)
+  - ✅ **Database connections** & data loading (~2-3s)  
+  - ✅ **Sitemap validation** & refresh (~3-5s)
+  - ✅ **Crawl4AI service** connections (~1-2s)
+- **Visual Progress Display**: Real-time status indicators for each initialization component
+- **Smart Start Learning**: Button automatically checks pre-warm status and waits if needed
+- **Auto-startup Pre-warming**: System begins initialization when dashboard boots up
+- **New API Endpoints**: `/api/acquisition/prewarm` and `/api/acquisition/prewarm-status`
 
 ### **🎯 Dashboard Terminology & UI Improvements**
 - **Sitemap Statistics Rebranding**: Renamed "Completed" to "Learned" to better reflect the AI learning process
@@ -51,10 +63,18 @@ A comprehensive e-commerce intelligence platform and AI-powered product discover
 - **Persistent Timestamps**: Sync timestamps now persist across page reloads using localStorage
 
 ### **🔧 Database & Backend Improvements**  
+- **Fixed Inserted Count Logic**: Corrected sitemap status API to use consistent `'supabase'` parameter
 - **Consistent Database References**: All `n8n` database references updated to `relational_db`
 - **API Parameter Alignment**: Fixed `/api/database/stats` to query Supabase for accurate RAG counts
 - **Improved Error Handling**: Better fallback calculations for inserted count metrics
 - **Enhanced Logging**: More detailed database connection and query logging
+
+### **⚡ User Experience Transformation**
+- **Before**: Click Start Learning → 8-13 second delay → Learning begins
+- **After**: Dashboard boots → Background pre-warming → Click Start Learning → Instant response
+- **Progressive Feedback**: Multi-stage loading indicators during initialization
+- **Component Status Display**: Real-time monitoring of initialization progress
+- **Automatic Recovery**: System handles pre-warming failures gracefully
 
 ---
 
