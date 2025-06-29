@@ -2009,86 +2009,87 @@
     {
       "url": "https://www.tileshop.com/products/best-of-everything-short-vacuum-brazed-diamond-bit-25-in-351312",
       "lastmod": null,
-      "scraped_at": null,
-      "scrape_status": "pending"
+      "scraped_at": "2025-06-29T17:24:09.331150",
+      "scrape_status": "completed"
     },
     {
       "url": "https://www.tileshop.com/products/best-of-everything-leveling-system-washer-150-pieces-per-box-351311",
       "lastmod": null,
-      "scraped_at": null,
-      "scrape_status": "pending"
+      "scraped_at": "2025-06-29T17:24:22.869613",
+      "scrape_status": "completed"
     },
     {
       "url": "https://www.tileshop.com/products/best-of-everything-leveling-system-cap-400-pieces-per-box-351310",
       "lastmod": null,
-      "scraped_at": null,
-      "scrape_status": "pending"
+      "scraped_at": "2025-06-29T17:24:36.390389",
+      "scrape_status": "completed"
     },
     {
       "url": "https://www.tileshop.com/products/best-of-everything-leveling-system-cap-100-pieces-per-tub-351309",
       "lastmod": null,
-      "scraped_at": null,
-      "scrape_status": "pending"
+      "scraped_at": "2025-06-29T17:24:49.893298",
+      "scrape_status": "completed"
     },
     {
       "url": "https://www.tileshop.com/products/best-of-everything-lippage-washer-240-pieces-per-tub-351303",
       "lastmod": null,
-      "scraped_at": null,
-      "scrape_status": "pending"
+      "scraped_at": "2025-06-29T17:25:03.429314",
+      "scrape_status": "completed"
     },
     {
       "url": "https://www.tileshop.com/products/best-of-everything-lippage-red-wedge-500-pieces-per-bag-351301",
       "lastmod": null,
-      "scraped_at": null,
-      "scrape_status": "pending"
+      "scraped_at": "2025-06-29T17:25:16.888854",
+      "scrape_status": "completed"
     },
     {
       "url": "https://www.tileshop.com/products/best-of-everything-lippage-red-wedge-250-pieces-per-bag-351300",
       "lastmod": null,
-      "scraped_at": null,
-      "scrape_status": "pending"
+      "scraped_at": "2025-06-29T17:25:30.435153",
+      "scrape_status": "completed"
     },
     {
       "url": "https://www.tileshop.com/products/la-petite-by-alison-victoria-montmartre-porcelain-wall-and-floor-tile-6-x-6-in-684177",
       "lastmod": null,
-      "scraped_at": null,
-      "scrape_status": "pending"
+      "scraped_at": "2025-06-29T17:25:43.817854",
+      "scrape_status": "completed"
     },
     {
       "url": "https://www.tileshop.com/products/la-petite-by-alison-victoria-le-marais-porcelain-wall-and-floor-tile-6-x-6-in-684176",
       "lastmod": null,
-      "scraped_at": null,
-      "scrape_status": "pending"
+      "scraped_at": "2025-06-29T17:26:12.964876",
+      "scrape_status": "failed",
+      "error": "Crawl timeout"
     },
     {
       "url": "https://www.tileshop.com/products/natura-montreux-oak-laminate-96-x-7886-in-684064",
       "lastmod": null,
-      "scraped_at": null,
-      "scrape_status": "pending"
+      "scraped_at": "2025-06-29T17:26:23.373884",
+      "scrape_status": "completed"
     },
     {
       "url": "https://www.tileshop.com/products/farro-blonde-montreux-oak-laminate-96-x-7886-in-684063",
       "lastmod": null,
-      "scraped_at": null,
-      "scrape_status": "pending"
+      "scraped_at": "2025-06-29T17:33:15.415088",
+      "scrape_status": "completed"
     },
     {
       "url": "https://www.tileshop.com/products/blonde-montreux-oak-laminate-96-x-7886-in-684062",
       "lastmod": null,
-      "scraped_at": null,
-      "scrape_status": "pending"
+      "scraped_at": "2025-06-29T17:33:28.799462",
+      "scrape_status": "completed"
     },
     {
       "url": "https://www.tileshop.com/products/oak-kansas-witchita-laminate-96-x-5445-in-684061",
       "lastmod": null,
-      "scraped_at": null,
-      "scrape_status": "pending"
+      "scraped_at": "2025-06-29T17:33:42.166013",
+      "scrape_status": "completed"
     },
     {
       "url": "https://www.tileshop.com/products/oak-kansas-overland-laminate-96-x-5445-in-684060",
       "lastmod": null,
-      "scraped_at": null,
-      "scrape_status": "pending"
+      "scraped_at": "2025-06-29T17:33:55.524834",
+      "scrape_status": "completed"
     },
     {
       "url": "https://www.tileshop.com/products/oak-brera-classic-laminate-96-x-5445-in-684059",

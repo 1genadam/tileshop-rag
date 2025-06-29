@@ -53,10 +53,19 @@ async function loadRAGStatus() {
         if (data.success && data.stats) {
             const recordCount = data.stats.total_products || 0;
             const recordsCountEl = document.getElementById('records-count');
+            const footerProductCountEl = document.getElementById('footer-product-count');
+            
             if (recordsCountEl) {
                 recordsCountEl.textContent = recordCount.toLocaleString();
             }
+            if (footerProductCountEl) {
+                footerProductCountEl.textContent = recordCount.toLocaleString();
+            }
         }
+        
+        // Load and display last sync timestamp from localStorage
+        loadLastSyncTime();
+        
     } catch (error) {
         console.error('Error loading RAG status:', error);
         const recordsCountEl = document.getElementById('records-count');
@@ -64,6 +73,43 @@ async function loadRAGStatus() {
             recordsCountEl.textContent = 'Error loading';
         }
     }
+}
+
+// Load last sync timestamp from localStorage
+function loadLastSyncTime() {
+    const lastSyncTime = localStorage.getItem('lastSyncTime');
+    const lastSyncEl = document.getElementById('last-sync-time');
+    const footerLastSyncEl = document.getElementById('footer-last-sync-time');
+    
+    if (lastSyncTime) {
+        const syncDate = new Date(lastSyncTime);
+        const timeStr = syncDate.toLocaleString('en-US', { 
+            month: 'short', 
+            day: 'numeric', 
+            hour: '2-digit', 
+            minute: '2-digit' 
+        });
+        
+        if (lastSyncEl) {
+            lastSyncEl.textContent = `Last sync: ${timeStr}`;
+        }
+        if (footerLastSyncEl) {
+            footerLastSyncEl.textContent = timeStr;
+        }
+    } else {
+        if (lastSyncEl) {
+            lastSyncEl.textContent = 'No sync yet';
+        }
+        if (footerLastSyncEl) {
+            footerLastSyncEl.textContent = 'Never';
+        }
+    }
+}
+
+// Save sync timestamp to localStorage
+function saveLastSyncTime() {
+    const now = new Date().toISOString();
+    localStorage.setItem('lastSyncTime', now);
 }
 
 // Sync function
@@ -85,10 +131,13 @@ async function syncData() {
         if (data.success) {
             btn.innerHTML = '<span class="material-icons mr-2">check_circle</span> Synced!';
             
+            // Save sync timestamp to localStorage
+            saveLastSyncTime();
+            
             // Get updated record count
             await loadRAGStatus();
             
-            // Update sync timestamp
+            // Update sync timestamp display
             const now = new Date();
             const timeStr = now.toLocaleString('en-US', { 
                 month: 'short', 
