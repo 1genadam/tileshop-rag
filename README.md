@@ -769,130 +769,193 @@ A complete e-commerce intelligence system with advanced product categorization, 
 - **Specification variance**: 13-16 fields depending on product type
 - **Consistent quality**: 100% success rate for core fields across all tested products
 
-## Project Files & Executables
+## 📁 **Project Architecture & File Index**
 
-### Main Scripts
+> **Navigation Guide**: This comprehensive index helps developers (including AI assistants) quickly understand file purposes, relationships, and usage patterns without diving into code first.
 
-#### **`tileshop_scraper.py`** - Individual Product Scraper
-**Purpose**: Development and testing scraper for individual product pages
-- Scrapes 2 hardcoded sample URLs for testing
-- Extracts all 18 target data fields (SKU, title, price, specifications, images, brand, etc.)
-- Uses enhanced JSON-LD and embedded JSON extraction
-- Saves to PostgreSQL with conflict resolution
-- **Usage**: `python tileshop_scraper.py`
-- **Best for**: Testing extraction logic, debugging new features, validating data quality
+### 🏗️ **Core Application Files**
 
-#### **`scrape_all_products.py`** - Production Batch Scraper (Legacy)
-**Purpose**: Original production scraper (superseded by enhanced version)
-- Downloads and parses Tileshop sitemap.xml (~4,775+ product URLs)
-- Applies n8n workflow filtering logic (excludes samples, special URLs)
-- **Status**: Legacy - use `scrape_from_sitemap.py` for enhanced features
-- **Best for**: Simple batch processing without recovery features
+| File | Purpose | Key Functionality | When to Use |
+|------|---------|-------------------|-------------|
+| **`admin_dashboard.py`** | 🎯 **Main Flask Application** | All API endpoints, WebSocket handling, service orchestration | Primary entry point - contains all business logic |
+| **`reboot_dashboard.sh`** | 🔄 **Automated Startup Script** | Dashboard restart with environment verification | When dashboard needs clean restart with proper env |
 
-#### **`scrape_from_sitemap.py`** - Enhanced Production Scraper ⭐
-**Purpose**: Production-scale scraper with intelligent prioritization and auto-recovery
-- **Auto-refresh sitemap**: Downloads fresh sitemap if older than 7 days
-- **Intelligent URL prioritization**: 
-  - Never-attempted URLs first (highest priority)
-  - Then oldest failed attempts (retry oldest failures first)
-  - Avoids re-scraping recent completions
-- **Resume capability**: Continues from exact interruption point with progress preservation
-- **Graceful shutdown**: Handles Ctrl+C with automatic progress saving
-- **Recovery checkpoints**: Creates recovery files for debugging and analysis
-- **Comprehensive statistics**: Shows completion rates, timing, and progress analytics
-- **Enhanced error handling**: Robust retry logic with failure categorization
-- **Usage**: 
-  - All products: `python scrape_from_sitemap.py`
-  - Test mode: `python scrape_from_sitemap.py 10`
-  - Fresh start: `python scrape_from_sitemap.py --fresh`
-- **Best for**: Production deployment, long-running sessions, optimal coverage with minimal redundancy
+### 📂 **Backend Modules (`/modules/`)**
 
-#### **`debug_tabs.py`** - Tab Content Debugger (Legacy)
-**Purpose**: Debug tool to examine tab content extraction (no longer needed)
-- Originally used to debug #description, #specifications, #resources tabs
-- **Status**: Legacy - superseded by embedded JSON discovery
-- **Note**: Tab navigation no longer needed since all data is embedded in main page
+| Module | Responsibility | Dependencies | Critical For |
+|--------|---------------|--------------|--------------|
+| **`docker_manager.py`** | 🐳 **Container Orchestration** | Docker daemon, 8 microservices | Service health checks, start/stop operations |
+| **`intelligence_manager.py`** | 🧠 **Scraping Orchestration** | Crawl4AI service, sitemap files | Progress tracking, acquisition management |
+| **`db_manager.py`** | 🗄️ **Database Operations** | PostgreSQL, Supabase connections | Product queries, data export, statistics |
+| **`rag_manager.py`** | 🤖 **AI Integration** | Claude API, database access | Natural language product search |
+| **`sync_manager.py`** | 🔄 **Data Synchronization** | Both databases via docker exec | Keeping Supabase in sync with PostgreSQL |
 
-### Analysis & Discovery Tools
+### 🎨 **Frontend & Templates (`/templates/`, `/static/`)**
 
-#### **`discover_missing_data.py`** - Data Discovery Analyzer
-**Purpose**: Systematic analysis to find overlooked data fields
-- Scans HTML content for JSON structures, meta tags, and data attributes
-- Identifies potential data points not currently extracted
-- Generates recommendations for new fields to implement
-- **Usage**: `python discover_missing_data.py`
-- **Best for**: Finding new data opportunities, improving extraction completeness
+| File | UI Responsibility | Key Components | Integrations |
+|------|------------------|----------------|--------------|
+| **`dashboard.html`** | 📊 **Main Admin Interface** | Service controls, scraping management, analytics | WebSocket, all backend APIs |
+| **`chat.html`** | 💬 **RAG Chat Interface** | Product search, AI conversations | Claude API, database search |
+| **`base.html`** | 🎨 **Shared Layout & Logic** | CSS framework, JS utilities, WebSocket setup | Foundation for all pages |
+| **`/static/chat.js`** | ⚡ **Chat Functionality** | API interactions, message handling | RAG system, search APIs |
 
-#### **`extract_brand_examples.py`** - Brand Intelligence Analyzer
-**Purpose**: Analyzes brand information patterns across product types
-- Tests brand extraction from JSON-LD, meta tags, and embedded data
-- Shows brand coverage rates and data quality
-- Identifies manufacturer vs. retailer brand distinctions
-- **Usage**: `python extract_brand_examples.py`
-- **Best for**: Understanding brand data availability, testing brand extraction logic
+### 🛠️ **Scraping Engine Scripts**
 
-#### **`extract_image_examples.py`** - Image Pattern Analyzer  
-**Purpose**: Analyzes image extraction opportunities and CDN patterns
-- Tests image extraction from JSON-LD, meta tags, and Scene7 CDN
-- Discovers image size variants and URL patterns
-- Shows image coverage rates across product types
-- **Usage**: `python extract_image_examples.py`
-- **Best for**: Understanding image data structure, testing image extraction logic
+| Script | Use Case | Production Ready | Capabilities |
+|--------|----------|------------------|--------------|
+| **`acquire_from_sitemap.py`** | ⭐ **Production Scraper** | ✅ **Primary Choice** | Auto-recovery, intelligent prioritization, progress checkpoints |
+| **`tileshop_learner.py`** | 🧪 **Development Testing** | For testing only | Individual product validation, extraction logic testing |
+| **`acquire_all_products.py`** | 📦 **Batch Scraper** | ✅ **Utility** | Full sitemap processing, bulk operations |
+| **`download_sitemap.py`** | 🗺️ **Sitemap Management** | ✅ **Utility** | URL filtering, sitemap refresh, status tracking |
 
-#### **`check_missing_fields.py`** - Field Coverage Checker
-**Purpose**: Validates extraction of specific fields (images, collection links)
-- Checks HTML content for presence of target data fields
-- Validates extraction patterns against actual page content
-- **Usage**: `python check_missing_fields.py`
-- **Best for**: Debugging specific field extraction issues
+### 🔍 **Analysis & Discovery Tools**
 
-#### **`analyze_specs.py`** - Specifications Debugger
-**Purpose**: Debug tool for specifications content analysis  
-- Analyzes embedded JSON specifications structure
-- Tests specification field extraction patterns
-- **Usage**: `python analyze_specs.py`
-- **Best for**: Debugging specification extraction, understanding JSON structure
+| Tool | Analysis Focus | Output | Best For |
+|------|---------------|---------|----------|
+| **`discover_missing_data.py`** | 🔎 **Data Gap Analysis** | Field recommendations | Finding overlooked extraction opportunities |
+| **`extract_brand_examples.py`** | 🏷️ **Brand Intelligence** | Coverage rates, patterns | Understanding brand data availability |
+| **`extract_image_examples.py`** | 🖼️ **Image Pattern Analysis** | CDN patterns, URL variants | Debugging image extraction issues |
+| **`retry_failed.py`** | 🔧 **Error Recovery** | Failure categories, retry scripts | Recovering from scraping failures |
+| **`check_missing_fields.py`** | ✅ **Field Validation** | Extraction coverage reports | Verifying data completeness |
+| **`analyze_specs.py`** | 📋 **Specifications Analysis** | JSON structure patterns | Debugging specification extraction |
+| **`debug_extractor.py`** | 🛠️ **Extraction Debugging** | Step-by-step extraction logs | Troubleshooting parser issues |
+| **`debug_tabs.py`** | 🔍 **Tab Content Analysis** | Tab structure and content | Understanding page navigation (legacy) |
+| **`inspect_tabs.py`** | 👁️ **Page Structure Inspection** | HTML structure analysis | Debugging page layout issues |
 
-#### **`inspect_tabs.py`** - Tab Structure Inspector
-**Purpose**: Inspects tab structure and content on product pages
-- Analyzes tab navigation and content loading
-- **Usage**: `python inspect_tabs.py`  
-- **Best for**: Understanding page structure, debugging tab-related issues
+### 🎨 **RAG & AI System Files**
 
-### Utilities
+| File | AI Component | Integration | Purpose |
+|------|-------------|-------------|---------|
+| **`rag_system.py`** | 🤖 **Standalone RAG System** | Independent Claude integration | Testing RAG functionality |
+| **`rag_web_ui.py`** | 🌐 **RAG Web Interface** | Lightweight chat UI | Alternative chat interface |
+| **`simple_rag.py`** | 📝 **Simplified RAG Implementation** | Basic chat functionality | RAG system prototyping |
+| **`simple_rag_backup.py`** | 💾 **RAG System Backup** | Previous RAG version | Recovery/rollback purposes |
 
-#### **`extract_html.sh`** - Database HTML Extractor
-**Purpose**: Shell script to extract HTML content from database for analysis
-- Exports HTML content from PostgreSQL for offline analysis
-- Useful for debugging extraction patterns
-- **Usage**: `./extract_html.sh`
-- **Best for**: Offline HTML analysis, debugging data extraction issues
+### 🗃️ **Documentation & Reports (`/reports/`)**
 
-#### **`retry_failed.py`** - Failed URL Recovery Tool
-**Purpose**: Analyzes and retries failed URLs from scraping sessions
-- Lists failed URLs grouped by error type for debugging
-- Resets failed URLs back to pending status for retry
-- Integrated retry functionality with automatic recovery
-- **Usage**: 
-  - Show failures: `python retry_failed.py list`
-  - Reset failures: `python retry_failed.py reset [N]`
-  - Retry failures: `python retry_failed.py retry [N]`
-- **Best for**: Debugging scraping issues, recovering from network failures
+| File | Documentation Type | Audience | Content |
+|------|------------------|----------|---------|
+| **`README.md`** | 📖 **Reports Overview** | Development team | Directory contents and purpose |
+| **`demo-scenarios.md`** | 🎭 **Demo Scenarios** | Business stakeholders | Use case demonstrations |
+| **`presentation-guidelines.md`** | 📊 **Presentation Guide** | Business team | Presentation structure and talking points |
+| **`rag-solution-alignment-analysis.md`** | 🔍 **Technical Analysis** | Technical team | RAG system architecture analysis |
+| **`dev_roadmap.md`** | 🗺️ **Development Roadmap** | Project managers | Future development planning |
+| **`missing_data_summary.md`** | 📊 **Data Analysis Report** | Data team | Summary of missing field analysis |
 
-#### **`download_sitemap.py`** - Sitemap Management Tool
-**Purpose**: Downloads and manages Tileshop sitemap with age-based refresh
-- Downloads sitemap.xml and filters for product URLs (4,775+ products)
-- Auto-refresh logic: downloads fresh sitemap if older than 7 days
-- Tracks scraping status per URL (pending/completed/failed)
-- **Usage**: `python download_sitemap.py`
-- **Best for**: Initial setup, manual sitemap refresh, sitemap analysis
+### 🔧 **Utility Scripts & Tools**
 
-#### **`requirements.txt`** - Python Dependencies
-**Purpose**: Defines Python package dependencies for the virtual environment
-- Lists all required packages: requests, psycopg2, lxml, etc.
-- Ensures consistent development environment
-- **Usage**: `pip install -r requirements.txt`
-- **Best for**: Environment setup, dependency management
+| Script | Utility Type | Function | Usage |
+|--------|-------------|----------|-------|
+| **`extract_html.sh`** | 🐚 **Shell Script** | Database HTML extraction | `./extract_html.sh` |
+| **`start_dashboard.sh`** | 🚀 **Alternative Startup** | Dashboard startup script | `./start_dashboard.sh` |
+| **`reboot_dashboard.sh`** | 🔄 **Primary Startup** | Automated restart with env check | `./reboot_dashboard.sh` |
+
+### ⚙️ **Configuration & Dependencies**
+
+| File | Configuration Type | Security Level | Purpose |
+|------|------------------|---------------|----------|
+| **`.env`** | 🔐 **Environment Variables** | **SENSITIVE** - gitignored | API keys, database URLs, secrets |
+| **`requirements.txt`** | 📦 **Python Dependencies** | Public | pip-based package management |
+| **`pyproject.toml`** | 🎯 **Poetry Configuration** | Public | Modern dependency management |
+| **`poetry.lock`** | 🔒 **Locked Dependencies** | Public | Exact versions for reproducible builds |
+| **`nginx-proxy.conf`** | 🌐 **Nginx Configuration** | Public | Reverse proxy settings for production |
+
+### 🚀 **Deployment & Infrastructure**
+
+| File | Deployment Target | Purpose | Usage |
+|------|------------------|---------|-------|
+| **`Dockerfile`** | 🐳 **Production Container** | Multi-stage build with Poetry | `docker build -t tileshop-rag .` |
+| **`fly.toml`** | ☁️ **Fly.io Configuration** | Cloud deployment settings | `fly deploy` |
+| **`deploy.py`** | 🚀 **Automated Deployment** | Secrets + deployment script | `python deploy.py full` |
+| **`Procfile`** | 🔧 **Process Configuration** | Alternative deployment config | Heroku-style process definition |
+
+### 📁 **Template & Static Assets**
+
+| File/Directory | Type | Purpose | Contains |
+|---------------|------|---------|----------|
+| **`templates/dashboard.html`** | 📊 **Main Dashboard** | Primary admin interface | Service controls, scraping management |
+| **`templates/chat.html`** | 💬 **Chat Interface** | RAG chat system | Product search and AI conversations |
+| **`templates/chat_backup.html`** | 💾 **Chat Backup** | Previous chat version | Recovery/rollback purposes |
+| **`templates/base.html`** | 🎨 **Base Template** | Shared layout and utilities | CSS, JS, WebSocket foundation |
+| **`templates/index.html`** | 🏠 **Landing Page** | Alternative entry point | Basic index page |
+| **`static/chat.js`** | ⚡ **Chat JavaScript** | Frontend chat functionality | API interactions, message handling |
+| **`temp_dashboard.html`** | 🛠️ **Development Template** | Temporary UI development | Testing new dashboard features |
+| **`services_table.html`** | 📋 **Services Template** | Service management UI | Microservices status table |
+
+### 🗂️ **Generated Files & Runtime Data**
+
+| File Pattern | Generated By | Contains | Lifecycle |
+|-------------|--------------|----------|-----------|
+| **`dashboard.log`** | Dashboard startup | Application logs | Rotated/cleared on restart |
+| **`tileshop_sitemap.json`** | Sitemap downloader | URLs with scraping status | Updated every 7 days |
+| **`recovery_checkpoint.json`** | Production scraper | Current interruption recovery data | Created during failures |
+| **`recovery_*.json`** | Production scraper | Interruption recovery archives | Historical failure points |
+
+### 🔧 **Modules Directory (`/modules/`)**
+
+| Module | Class/Function | Dependencies | Primary Responsibility |
+|--------|---------------|--------------|----------------------|
+| **`__init__.py`** | 📦 **Package Initializer** | None | Makes `/modules` a Python package |
+| **`docker_manager.py`** | `DockerManager` | Docker daemon, psutil | Container orchestration and health monitoring |
+| **`intelligence_manager.py`** | `ScraperManager` | Crawl4AI, sitemap files | Scraping progress and orchestration |
+| **`db_manager.py`** | `DatabaseManager` | PostgreSQL, Supabase | Database operations and data export |
+| **`rag_manager.py`** | `RAGManager` | Claude API, database | AI-powered product search and chat |
+| **`sync_manager.py`** | `DatabaseSyncManager` | Both databases via docker exec | Data synchronization between systems |
+| **`sync_manager_backup.py`** | 💾 **Sync Manager Backup** | Previous sync version | Recovery/rollback for sync functionality |
+
+---
+
+## 🔄 **Common Workflows & File Relationships**
+
+### **🚀 Starting the System**
+```
+reboot_dashboard.sh → admin_dashboard.py → modules/* → templates/dashboard.html
+```
+
+### **📊 Data Acquisition Process**  
+```
+dashboard.html (Start Learning) → intelligence_manager.py → scrape_from_sitemap.py → db_manager.py
+```
+
+### **🔄 Data Synchronization**
+```
+sync_manager.py → PostgreSQL (docker exec) → Supabase (docker exec) → dashboard stats update
+```
+
+### **🤖 RAG Chat Query**
+```
+chat.html → rag_manager.py → Claude API + db_manager.py → formatted response
+```
+
+### **🔍 Troubleshooting Failed Scrapes**
+```
+retry_failed.py (analyze) → discover_missing_data.py (debug) → tileshop_scraper.py (test fix)
+```
+
+---
+
+## 🎯 **Quick Reference: "Which File Do I Need?"**
+
+| **I Want To...** | **Primary File** | **Supporting Files** |
+|-------------------|------------------|---------------------|
+| **Fix dashboard UI issues** | `dashboard.html`, `base.html` | `admin_dashboard.py` (API endpoints) |
+| **Modify scraping logic** | `scrape_from_sitemap.py` | `intelligence_manager.py` (orchestration) |
+| **Add new data fields** | `tileshop_scraper.py` (test) → `scrape_from_sitemap.py` (implement) | `discover_missing_data.py` (analyze) |
+| **Debug AI chat issues** | `rag_manager.py` | `chat.html`, `/static/chat.js` |
+| **Fix database sync** | `sync_manager.py` | `db_manager.py` |
+| **Add service health checks** | `docker_manager.py` | `admin_dashboard.py` (API endpoints) |
+| **Deploy to production** | `deploy.py` | `Dockerfile`, `fly.toml` |
+| **Recover from scraping failures** | `retry_failed.py` | Production scraper logs |
+
+---
+
+## ⚠️ **Critical Dependencies & Relationships**
+
+- **Dashboard won't start** → Check `docker_manager.py` for service dependencies
+- **Scraping fails** → Verify Crawl4AI service in `docker_manager.py` 
+- **RAG chat broken** → Check `ANTHROPIC_API_KEY` in `.env` and `rag_manager.py`
+- **Sync issues** → Both PostgreSQL and Supabase must be accessible via `docker exec`
+- **Missing data** → Run analysis tools before modifying extraction logic
 
 ## 🆕 Admin Dashboard Features
 
