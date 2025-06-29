@@ -18,6 +18,10 @@ class DatabaseManager:
     """Manages database connections and operations"""
     
     def __init__(self):
+        # Demo mode - check if we're in cloud environment
+        import os
+        self.demo_mode = os.environ.get('DEMO_MODE', 'true').lower() == 'true'
+        
         self.n8n_config = {
             'host': '127.0.0.1',  # Use IPv4 explicitly
             'port': 5432,
@@ -33,6 +37,9 @@ class DatabaseManager:
             'user': 'postgres',
             'password': 'supabase123'
         }
+        
+        if self.demo_mode:
+            logger.info("Running in demo mode - using mock data")
     
     def get_connection(self, db_type: str = 'n8n'):
         """Get database connection"""

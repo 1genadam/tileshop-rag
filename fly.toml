@@ -34,10 +34,6 @@ app = "tileshop-rag"
   source = "tileshop_data"
   destination = "/app/data"
 
-[[mounts]]
-  source = "tileshop_instance"
-  destination = "/app/instance"
-
 [deploy]
   strategy = "immediate"
 

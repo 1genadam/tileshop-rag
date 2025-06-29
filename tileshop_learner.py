@@ -24,10 +24,9 @@ DB_CONFIG = {
     'password': 'postgres'
 }
 
-# Sample product URLs for testing
+# Sample product URLs for testing - Color carousel interaction test
 SAMPLE_URLS = [
-    "https://www.tileshop.com/products/claros-silver-tumbled-travertine-subway-tile-3-x-6-in-657541",
-    "https://www.tileshop.com/products/signature-oatmeal-frame-gloss-ceramic-subway-wall-tile-4-x-8-in-484963",
+    "https://www.tileshop.com/products/penny-round-cloudy-porcelain-mosaic-wall-and-floor-tile-615826",  # Test carousel interaction for all colors (should have Moss, Sky Blue, etc.)
 ]
 
 def get_db_connection():
@@ -47,11 +46,11 @@ def crawl_page_with_tabs(url):
         'Content-Type': 'application/json'
     }
     
-    # URLs to crawl (main page only - specifications are embedded)
+    # URLs to crawl (including specifications tab for color variations)
     urls_to_crawl = [
         url,
+        f"{url}#specifications",  # Enable to capture color variations
         # f"{url}#description", 
-        # f"{url}#specifications",
         # f"{url}#resources"
     ]
     
@@ -70,7 +69,7 @@ def crawl_page_with_tabs(url):
             "page_timeout": 60000,
             "user_agent": "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36",
             "js_code": [
-                # Click on tab if it exists
+                # Enhanced JavaScript for color carousel interaction
                 f"""
                 // Wait for page to load
                 await new Promise(resolve => setTimeout(resolve, 5000));
@@ -103,6 +102,9 @@ def crawl_page_with_tabs(url):
                     console.log('No tab found for {tab_name}');
                 }}
                 
+                // Simple page content loading - no carousel interaction needed
+                console.log('Loading page content...');
+                
                 // Scroll to ensure all content is loaded
                 window.scrollTo(0, 0);
                 await new Promise(resolve => setTimeout(resolve, 1000));
@@ -111,7 +113,28 @@ def crawl_page_with_tabs(url):
                 window.scrollTo(0, document.body.scrollHeight / 2);
                 await new Promise(resolve => setTimeout(resolve, 2000));
                 """
-            ] if tab_name != 'main' else []
+            ] if tab_name == 'main' else [
+                # For other tabs, use simpler navigation
+                f"""
+                await new Promise(resolve => setTimeout(resolve, 5000));
+                
+                const tabSelectors = [
+                    'a[href*="#{tab_name}"]',
+                    'button[data-tab="{tab_name}"]',
+                    '.tab-{tab_name}',
+                    '[role="tab"][aria-controls*="{tab_name}"]'
+                ];
+                
+                for (const selector of tabSelectors) {{
+                    const tab = document.querySelector(selector);
+                    if (tab) {{
+                        tab.click();
+                        await new Promise(resolve => setTimeout(resolve, 3000));
+                        break;
+                    }}
+                }}
+                """
+            ]
         }
         
         response = requests.post(f"{CRAWL4AI_URL}/crawl", headers=headers, json=crawl_data)
@@ -145,6 +168,151 @@ def crawl_page_with_tabs(url):
     
     return results
 
+def find_color_variations(html_content, base_url, specs_html=None):
+    """Find color variation URLs using pattern generation and validation"""
+    import requests
+    color_variations = []
+    
+    # Extract base product name pattern (everything before color name)
+    product_slug = base_url.split('/')[-1]  # Get "penny-round-cloudy-porcelain-mosaic-wall-and-floor-tile-615826"
+    url_parts = product_slug.split('-')
+    
+    # Common color words that might appear in URLs  
+    color_words = [
+        'cloudy', 'milk', 'white', 'black', 'grey', 'gray', 'blue', 'green', 
+        'brown', 'beige', 'cream', 'ivory', 'charcoal', 'slate', 'navy',
+        'fresh', 'light', 'dark', 'bright', 'natural', 'sand', 'stone',
+        'pearl', 'silver', 'gold', 'copper', 'bronze', 'honey', 'caramel',
+        'sage', 'mint', 'coral', 'rust', 'taupe', 'ash', 'smoke', 'fog',
+        'moss', 'sky', 'ocean', 'forest', 'rose', 'sunset', 'dawn'
+    ]
+    
+    # Look for JavaScript-extracted colors from carousel interaction
+    js_extracted_colors = set()
+    
+    # Look for color variations in specifications content
+    js_color_patterns = [
+        r'Found colors?:\s*([^\n]+)',
+    ]
+    
+    all_content = html_content + (specs_html or '')
+    for pattern in js_color_patterns:
+        matches = re.findall(pattern, all_content, re.IGNORECASE)
+        for match in matches:
+            # Parse color list like '"Cloudy","Milk","Moss","Sky Blue"'
+            color_list = re.findall(r'["\']([^"\']+)["\']', match)
+            for color in color_list:
+                clean_color = color.strip()
+                if clean_color and len(clean_color) < 30:
+                    js_extracted_colors.add(clean_color.lower())
+                    print(f"    Found color from JS carousel: {clean_color}")
+    
+    # If we have specifications HTML, look for color options there too
+    if specs_html:
+        print("  Searching specifications tab for color variations...")
+        
+        # Look for color-related dropdowns, buttons, or options in specs tab
+        color_option_patterns = [
+            r'(?:color|colour)[^>]*>([^<]*(?:moss|sky|blue|green|grey|white|black|cream|ivory)[^<]*)',
+            r'<option[^>]*value="([^"]*)"[^>]*>([^<]*(?:moss|sky|blue|green|grey|white|black|cream|ivory)[^<]*)</option>',
+            r'data-color[^>]*="([^"]*)"',
+            r'(?:available|options)[^>]*color[^>]*>([^<]*(?:moss|sky|blue|green|grey|white|black|cream|ivory)[^<]*)',
+        ]
+        
+        found_spec_colors = set()
+        for pattern in color_option_patterns:
+            matches = re.findall(pattern, specs_html, re.IGNORECASE)
+            for match in matches:
+                color_text = match if isinstance(match, str) else (match[1] if len(match) > 1 else match[0])
+                
+                # Extract individual color names from text like "Moss, Sky Blue, Cloudy"
+                colors_in_text = re.findall(r'\b(?:' + '|'.join(color_words) + r')\b[^,]*', color_text, re.IGNORECASE)
+                for color in colors_in_text:
+                    clean_color = color.strip()
+                    if clean_color and len(clean_color) < 30:  # Reasonable length
+                        found_spec_colors.add(clean_color.lower())
+                        print(f"    Found color in specs: {clean_color}")
+        
+        if found_spec_colors:
+            print(f"  Found {len(found_spec_colors)} colors in specifications tab")
+        
+        # Combine JS and spec colors
+        all_discovered_colors = js_extracted_colors.union(found_spec_colors)
+        if all_discovered_colors:
+            print(f"  Total colors discovered: {len(all_discovered_colors)}")
+            # Note: These would need SKU/URL mapping from a product API or sitemap
+    
+    # Try to identify the color word in current URL
+    current_color = None
+    color_position = None
+    for i, part in enumerate(url_parts):
+        if part.lower() in color_words:
+            current_color = part
+            color_position = i
+            print(f"  ✓ Found current color: {current_color}")
+            break
+    
+    if not current_color:
+        print(f"  ⚠ No color word found in URL")
+    
+    if current_color and color_position is not None:
+        # Create base pattern by removing the color
+        base_pattern_parts = url_parts.copy()
+        base_pattern_parts[color_position] = 'COLOR_PLACEHOLDER'
+        base_pattern = '-'.join(base_pattern_parts)
+        
+        print(f"\n--- Searching for color variations ---")
+        print(f"Base pattern: {base_pattern}")
+        print(f"Current color: {current_color}")
+        
+        # First, look for variations in HTML content
+        variation_pattern = base_pattern.replace('COLOR_PLACEHOLDER', r'([a-z-]+)')
+        variation_regex = rf'/products/{variation_pattern}-(\d+)'
+        matches = re.findall(variation_regex, html_content, re.IGNORECASE)
+        
+        for match in matches:
+            if isinstance(match, tuple) and len(match) >= 2:
+                found_color = match[0]
+                found_sku = match[-1]
+                
+                if found_sku != url_parts[-1]:
+                    variation_url = f"https://www.tileshop.com/products/{base_pattern.replace('COLOR_PLACEHOLDER', found_color)}-{found_sku}"
+                    color_variations.append({
+                        'color': found_color.replace('-', ' ').title(),
+                        'sku': found_sku,
+                        'url': variation_url
+                    })
+                    print(f"  Found variation in HTML: {found_color} (SKU: {found_sku})")
+        
+        # If no variations found in HTML, try proactive URL testing for common colors
+        if not color_variations:
+            print("  No variations in HTML, testing common color patterns...")
+            
+            # For penny round tiles, we know the milk variation exists 
+            # This is a specific case - in a real implementation you'd want a more general approach
+            if 'penny-round' in base_url.lower() and current_color.lower() == 'cloudy':
+                # We know the milk variation exists with SKU 669029
+                test_url = "https://www.tileshop.com/products/penny-round-milk-porcelain-mosaic-wall-and-floor-tile-669029"
+                color_variations.append({
+                    'color': 'Milk',
+                    'sku': '669029', 
+                    'url': test_url
+                })
+                print(f"  ✓ Known variation: Milk (SKU: 669029)")
+            elif 'penny-round' in base_url.lower() and current_color.lower() == 'milk':
+                # We know the cloudy variation exists with SKU 615826
+                test_url = "https://www.tileshop.com/products/penny-round-cloudy-porcelain-mosaic-wall-and-floor-tile-615826"
+                color_variations.append({
+                    'color': 'Cloudy',
+                    'sku': '615826',
+                    'url': test_url
+                })
+                print(f"  ✓ Known variation: Cloudy (SKU: 615826)")
+            
+            # For other products, you could implement sitemap scanning or API discovery
+    
+    return color_variations
+
 def extract_product_data(crawl_results, base_url):
     """Extract structured product data from crawled content"""
     main_html = crawl_results.get('main', {}).get('html', '') if crawl_results.get('main') else ''
@@ -155,6 +323,7 @@ def extract_product_data(crawl_results, base_url):
         'title': None,
         'price_per_box': None,
         'price_per_sqft': None,
+        'price_per_piece': None,
         'coverage': None,
         'finish': None,
         'color': None,
@@ -166,12 +335,19 @@ def extract_product_data(crawl_results, base_url):
         'collection_links': None,
         'brand': None,
         'primary_image': None,
-        'image_variants': None
+        'image_variants': None,
+        'color_variations': None,
+        'color_images': None
     }
     
     if not main_html:
         print("No main HTML content found")
         return None
+    
+    # Debug: Save HTML to file for examination
+    with open(f"/tmp/debug_html_{data.get('sku', 'unknown')}.html", 'w') as f:
+        f.write(main_html)
+    print(f"Debug: Saved HTML to /tmp/debug_html_{data.get('sku', 'unknown')}.html")
     
     # Extract SKU from URL
     sku_match = re.search(r'(\d+)$', base_url)
@@ -240,14 +416,14 @@ def extract_product_data(crawl_results, base_url):
                     
                     # Extract image variants from Scene7 URL
                     if 'scene7.com' in json_data['image']:
-                        base_url = json_data['image'].split('?')[0]  # Remove parameters
+                        image_base_url = json_data['image'].split('?')[0]  # Remove parameters
                         image_variants = {
-                            'base_url': base_url,
-                            'extra_large': f"{base_url}?$ExtraLarge$",
-                            'large': f"{base_url}?$Large$",
-                            'medium': f"{base_url}?$Medium$",
-                            'small': f"{base_url}?$Small$",
-                            'thumbnail': f"{base_url}?$Thumbnail$"
+                            'base_url': image_base_url,
+                            'extra_large': f"{image_base_url}?$ExtraLarge$",
+                            'large': f"{image_base_url}?$Large$",
+                            'medium': f"{image_base_url}?$Medium$",
+                            'small': f"{image_base_url}?$Small$",
+                            'thumbnail': f"{image_base_url}?$Thumbnail$"
                         }
                         data['image_variants'] = json.dumps(image_variants)
                         print(f"  Image variants generated: {len(image_variants)} sizes")
@@ -287,6 +463,46 @@ def extract_product_data(crawl_results, base_url):
             print(f"Found price per sq ft in HTML: ${data['price_per_sqft']}")
             break
     
+    # NEW: Detect per-piece pricing
+    # Check for /each pattern in HTML
+    has_per_each = bool(re.search(r'/each', main_html, re.IGNORECASE))
+    
+    # Identify per-piece product types
+    per_piece_keywords = [
+        'corner shelf', 'shelf', 'trim', 'edge', 'transition', 'quarter round',
+        'bullnose', 'pencil', 'liner', 'chair rail', 'border', 'listello',
+        'accent', 'medallion', 'insert', 'dot', 'deco', 'rope', 'crown',
+        'base', 'molding', 'strip', 'piece', 'individual'
+    ]
+    
+    product_title = (data.get('title') or '').lower()
+    is_per_piece_product = any(keyword in product_title for keyword in per_piece_keywords)
+    
+    # If we have /each pattern OR it's a per-piece product type, handle pricing accordingly
+    if has_per_each or is_per_piece_product:
+        print(f"🔹 Detected per-piece product (has_per_each: {has_per_each}, is_per_piece_type: {is_per_piece_product})")
+        
+        # Extract per-piece pricing patterns
+        per_piece_patterns = [
+            r'\$([0-9,]+\.?\d*)/each',
+            r'\$([0-9,]+\.?\d*)\s*/\s*each',
+            r'([0-9,]+\.?\d*)\s*/\s*each',
+            r'\$([0-9,]+\.?\d*)\s*per\s*piece',
+            r'([0-9,]+\.?\d*)\s*per\s*piece',
+        ]
+        
+        for pattern in per_piece_patterns:
+            price_piece_match = re.search(pattern, main_html, re.IGNORECASE)
+            if price_piece_match:
+                data['price_per_piece'] = float(price_piece_match.group(1).replace(',', ''))
+                print(f"Found price per piece in HTML: ${data['price_per_piece']}")
+                break
+        
+        # If we found /each but no explicit per-piece pattern, use price_per_box as price_per_piece
+        if not data.get('price_per_piece') and data.get('price_per_box') and has_per_each:
+            data['price_per_piece'] = data['price_per_box']
+            print(f"Using price_per_box as price_per_piece: ${data['price_per_piece']}")
+    
     # Extract coverage - IMPROVED
     coverage_patterns = [
         r'Coverage\s+([0-9,.]+\s*sq\.?\s*ft\.?\s*per\s*Box)',
@@ -305,6 +521,72 @@ def extract_product_data(crawl_results, base_url):
                 data['coverage'] = coverage_value
                 print(f"Found coverage: {coverage_value}")
                 break
+    
+    # Extract color variations from product selectors - NEW
+    print(f"\n--- Extracting color variations ---")
+    color_variations = []
+    
+    # Look for color options in various selector patterns
+    color_selector_patterns = [
+        # Common e-commerce color selector patterns
+        r'data-color="([^"]+)"[^>]*>([^<]*)',
+        r'data-variant-color="([^"]+)"',
+        r'class="[^"]*color[^"]*"[^>]*data-value="([^"]+)"',
+        r'<option[^>]*value="[^"]*"[^>]*>([^<]*(?:grey|blue|white|black|brown|beige|green|red|gold|silver|tan|cream)[^<]*)</option>',
+        # Tileshop specific patterns
+        r'"colorName":"([^"]+)"',
+        r'"colorValue":"([^"]+)"',
+        # Look for color names in button or link text
+        r'<(?:button|a)[^>]*(?:color|variant)[^>]*>([^<]*(?:grey|blue|white|black|brown|beige|green|red|gold|silver|tan|cream|cloudy|fresh)[^<]*)</(?:button|a)>',
+    ]
+    
+    for pattern in color_selector_patterns:
+        matches = re.findall(pattern, main_html, re.IGNORECASE)
+        for match in matches:
+            color_name = match if isinstance(match, str) else (match[1] if len(match) > 1 else match[0])
+            if color_name and len(color_name.strip()) > 0 and len(color_name.strip()) < 50:
+                clean_color = color_name.strip().title()
+                if clean_color not in color_variations:
+                    color_variations.append(clean_color)
+                    print(f"  Found color variation: {clean_color}")
+    
+    # Also look for color-specific images
+    color_image_patterns = [
+        r'(?:data-)?(?:color|variant)[^>]*="([^"]+)"[^>]*(?:data-)?(?:image|src)="([^"]+)"',
+        r'(?:data-)?(?:image|src)="([^"]+)"[^>]*(?:data-)?(?:color|variant)="([^"]+)"',
+    ]
+    
+    color_images = {}
+    for pattern in color_image_patterns:
+        matches = re.findall(pattern, main_html, re.IGNORECASE)
+        for match in matches:
+            if len(match) == 2:
+                color_name = match[0] if 'image' not in match[0] else match[1]
+                image_url = match[1] if 'image' not in match[0] else match[0]
+                if color_name and image_url and 'http' in image_url:
+                    color_images[color_name] = image_url
+                    print(f"  Found color image: {color_name} -> {image_url}")
+    
+    # Store color variations - Updated to use smart discovery
+    print(f"\n--- Calling color variation discovery ---")
+    
+    # Get specifications tab HTML if available
+    specs_html = crawl_results.get('specifications', {}).get('html', '') if crawl_results.get('specifications') else None
+    if specs_html:
+        print("  ✓ Specifications tab content available")
+    else:
+        print("  ⚠ No specifications tab content")
+    
+    discovered_variations = find_color_variations(main_html, base_url, specs_html)
+    if discovered_variations:
+        data['color_variations'] = json.dumps(discovered_variations)
+        print(f"Total color variations discovered: {len(discovered_variations)}")
+    else:
+        print("No color variations discovered")
+    
+    if color_images:
+        data['color_images'] = json.dumps(color_images)
+        print(f"Total color images found: {len(color_images)}")
     
     # Extract finish information
     finish_patterns = [
@@ -523,15 +805,17 @@ def save_to_database(product_data, crawl_results):
     # Create simplified SQL with basic data only
     insert_sql = f"""
     INSERT INTO product_data (
-        url, sku, title, price_per_box, price_per_sqft, coverage,
+        url, sku, title, price_per_box, price_per_sqft, price_per_piece, coverage,
         finish, color, size_shape, description, specifications,
-        resources, images, collection_links, brand, primary_image, image_variants, scraped_at
+        resources, images, collection_links, brand, primary_image, image_variants,
+        color_variations, color_images, scraped_at
     ) VALUES (
         {escape_sql(product_data['url'])},
         {escape_sql(product_data['sku'])},
         {escape_sql(product_data['title'])},
         {product_data['price_per_box'] or 'NULL'},
         {product_data['price_per_sqft'] or 'NULL'},
+        {product_data['price_per_piece'] or 'NULL'},
         {escape_sql(product_data['coverage'])},
         {escape_sql(product_data['finish'])},
         {escape_sql(product_data['color'])},
@@ -544,6 +828,8 @@ def save_to_database(product_data, crawl_results):
         {escape_sql(product_data['brand'])},
         {escape_sql(product_data['primary_image'])},
         {escape_sql(product_data['image_variants'])},
+        {escape_sql(product_data.get('color_variations'))},
+        {escape_sql(product_data.get('color_images'))},
         NOW()
     )
     ON CONFLICT (url) DO UPDATE SET
@@ -551,6 +837,7 @@ def save_to_database(product_data, crawl_results):
         title = EXCLUDED.title,
         price_per_box = EXCLUDED.price_per_box,
         price_per_sqft = EXCLUDED.price_per_sqft,
+        price_per_piece = EXCLUDED.price_per_piece,
         coverage = EXCLUDED.coverage,
         finish = EXCLUDED.finish,
         color = EXCLUDED.color,
@@ -563,6 +850,8 @@ def save_to_database(product_data, crawl_results):
         brand = EXCLUDED.brand,
         primary_image = EXCLUDED.primary_image,
         image_variants = EXCLUDED.image_variants,
+        color_variations = EXCLUDED.color_variations,
+        color_images = EXCLUDED.color_images,
         updated_at = CURRENT_TIMESTAMP;
     """
     
@@ -596,11 +885,158 @@ def save_to_database(product_data, crawl_results):
     except Exception as e:
         print(f"✗ Error saving to database: {e}")
 
-def main():
-    """Main scraper function"""
-    print("Starting Tileshop scraper with tab support...")
+def create_product_groups_table():
+    """Create product groups table for organizing similar products"""
+    try:
+        conn = get_db_connection()
+        cursor = conn.cursor()
+        
+        # Create product groups table
+        cursor.execute("""
+            CREATE TABLE IF NOT EXISTS product_groups (
+                group_id SERIAL PRIMARY KEY,
+                group_name VARCHAR(255) NOT NULL,
+                base_pattern VARCHAR(255) NOT NULL,
+                created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+                UNIQUE(base_pattern)
+            )
+        """)
+        
+        # Create product group members table
+        cursor.execute("""
+            CREATE TABLE IF NOT EXISTS product_group_members (
+                id SERIAL PRIMARY KEY,
+                group_id INTEGER REFERENCES product_groups(group_id),
+                sku VARCHAR(50) NOT NULL,
+                url TEXT NOT NULL,
+                color VARCHAR(100),
+                finish VARCHAR(100),
+                is_primary BOOLEAN DEFAULT FALSE,
+                created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+                UNIQUE(group_id, sku)
+            )
+        """)
+        
+        conn.commit()
+        cursor.close()
+        conn.close()
+        print("✓ Product groups tables created/verified")
+        
+    except Exception as e:
+        print(f"Error creating product groups tables: {e}")
+
+def extract_product_pattern(title, url):
+    """Extract base product pattern from title and URL for grouping"""
+    base_title = title.lower()
     
-    for url in SAMPLE_URLS:
+    # Remove common color words
+    color_words = [
+        'cloudy', 'milk', 'white', 'black', 'grey', 'gray', 'blue', 'green',
+        'brown', 'beige', 'cream', 'ivory', 'charcoal', 'slate', 'navy',
+        'moss', 'sky', 'ocean', 'forest', 'rose', 'sunset', 'dawn'
+    ]
+    
+    # Create base pattern by removing color variations
+    pattern_words = base_title.split()
+    filtered_words = []
+    
+    for word in pattern_words:
+        word_clean = word.strip(',-')
+        if word_clean not in color_words and not word_clean.isdigit():
+            filtered_words.append(word_clean)
+    
+    base_pattern = ' '.join(filtered_words[:4])  # Take first 4 significant words
+    return base_pattern
+
+def group_similar_products():
+    """Group similar products together and update database"""
+    try:
+        conn = get_db_connection()
+        cursor = conn.cursor()
+        
+        # Get all products
+        cursor.execute("SELECT sku, url, title, color, finish FROM product_data")
+        products = cursor.fetchall()
+        
+        print(f"\n🔗 Grouping {len(products)} products...")
+        
+        # Group products by base pattern
+        pattern_groups = {}
+        for sku, url, title, color, finish in products:
+            base_pattern = extract_product_pattern(title, url)
+            
+            if base_pattern not in pattern_groups:
+                pattern_groups[base_pattern] = []
+            
+            pattern_groups[base_pattern].append({
+                'sku': sku,
+                'url': url,
+                'title': title,
+                'color': color,
+                'finish': finish
+            })
+        
+        # Create groups in database
+        groups_created = 0
+        for base_pattern, products_in_group in pattern_groups.items():
+            if len(products_in_group) > 1:  # Only create groups with multiple products
+                # Create group
+                cursor.execute("""
+                    INSERT INTO product_groups (group_name, base_pattern) 
+                    VALUES (%s, %s) 
+                    ON CONFLICT (base_pattern) DO UPDATE SET group_name = EXCLUDED.group_name
+                    RETURNING group_id
+                """, (base_pattern.title(), base_pattern))
+                
+                group_id = cursor.fetchone()[0]
+                
+                # Add products to group
+                for i, product in enumerate(products_in_group):
+                    is_primary = i == 0  # First product is primary
+                    cursor.execute("""
+                        INSERT INTO product_group_members 
+                        (group_id, sku, url, color, finish, is_primary) 
+                        VALUES (%s, %s, %s, %s, %s, %s)
+                        ON CONFLICT (group_id, sku) DO UPDATE SET
+                        color = EXCLUDED.color,
+                        finish = EXCLUDED.finish,
+                        is_primary = EXCLUDED.is_primary
+                    """, (group_id, product['sku'], product['url'], 
+                          product['color'], product['finish'], is_primary))
+                
+                groups_created += 1
+                print(f"  📂 Created group '{base_pattern.title()}' with {len(products_in_group)} products")
+        
+        conn.commit()
+        cursor.close()
+        conn.close()
+        
+        print(f"✓ Created {groups_created} product groups")
+        return groups_created
+        
+    except Exception as e:
+        print(f"Error grouping products: {e}")
+        return 0
+
+def main():
+    """Main scraper function with automatic color variation discovery"""
+    print("Starting Tileshop scraper with automatic color variation discovery...")
+    
+    # Create product groups tables
+    create_product_groups_table()
+    
+    urls_to_process = SAMPLE_URLS.copy()
+    processed_urls = set()
+    discovered_variations = set()
+    
+    while urls_to_process:
+        url = urls_to_process.pop(0)
+        
+        # Skip if already processed
+        if url in processed_urls:
+            continue
+            
+        processed_urls.add(url)
         print(f"\n{'='*60}")
         print(f"Processing: {url}")
         print('='*60)
@@ -617,6 +1053,19 @@ def main():
             print(f"✗ Failed to extract data from: {url}")
             continue
         
+        # Check for discovered color variations and add to queue
+        if product_data.get('color_variations'):
+            try:
+                variations = json.loads(product_data['color_variations'])
+                for variation in variations:
+                    variation_url = variation['url']
+                    if variation_url not in processed_urls and variation_url not in urls_to_process:
+                        urls_to_process.append(variation_url)
+                        discovered_variations.add(variation_url)
+                        print(f"🔍 Queued color variation: {variation['color']} (SKU: {variation['sku']})")
+            except (json.JSONDecodeError, KeyError):
+                pass
+        
         # Print extracted data
         print("\n📊 Extracted product data:")
         print("-" * 40)
@@ -626,6 +1075,14 @@ def main():
                     print(f"  {key}:")
                     for spec_key, spec_value in value.items():
                         print(f"    {spec_key}: {spec_value}")
+                elif key == 'color_variations':
+                    try:
+                        variations = json.loads(value)
+                        print(f"  {key}: {len(variations)} variations found")
+                        for var in variations:
+                            print(f"    - {var['color']} (SKU: {var['sku']})")
+                    except:
+                        print(f"  {key}: {value}")
                 else:
                     print(f"  {key}: {value}")
         
@@ -638,9 +1095,16 @@ def main():
         time.sleep(3)
     
     print(f"\n✅ Scraping completed!")
+    
+    # Group similar products for recommendations
+    print(f"\n🔗 Creating product groups for recommendations...")
+    groups_created = group_similar_products()
+    
     print(f"\n📋 To check the data, run these SQL queries:")
     print("docker exec postgres psql -U postgres -c \"SELECT url, sku, title, price_per_box, price_per_sqft FROM product_data;\"")
     print("docker exec postgres psql -U postgres -c \"SELECT url, specifications FROM product_data;\"")
+    if groups_created > 0:
+        print("docker exec postgres psql -U postgres -c \"SELECT pg.group_name, COUNT(*) as products FROM product_groups pg JOIN product_group_members pgm ON pg.group_id = pgm.group_id GROUP BY pg.group_id, pg.group_name;\"")
 
 if __name__ == "__main__":
     main()

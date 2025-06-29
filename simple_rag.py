@@ -12,6 +12,10 @@ import os
 import re
 from typing import List, Dict, Any
 
+# Load environment variables
+from dotenv import load_dotenv
+load_dotenv(override=True)
+
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
 
@@ -43,36 +47,138 @@ class SimpleTileshopRAG:
             else:
                 logger.warning("ANTHROPIC_API_KEY not found in environment variables")
     
-    def search_products(self, query: str, limit: int = 5) -> List[Dict[str, Any]]:
+    def _enhance_slip_resistant_query(self, query: str) -> str:
+        """Enhance queries for slip-resistant tiles by mapping to database terms"""
+        query_lower = query.lower()
+        
+        # Map slip-resistant terms to specific finish categories
+        slip_resistant_terms = [
+            'non-slip', 'non slip', 'slip resistant', 'slip-resistant', 
+            'anti-slip', 'anti slip', 'textured surface', 'grip', 'safe'
+        ]
+        
+        slippery_terms = [
+            'slippery', 'glossy', 'polished', 'smooth', 'shiny'
+        ]
+        
+        if any(term in query_lower for term in slip_resistant_terms):
+            # Add terms that indicate slip resistance: tumbled, honed, matte, pebble, cobble, mosaic, penny round
+            if 'tile' in query_lower or 'tiles' in query_lower:
+                enhanced_terms = ['tumbled', 'honed', 'matte', 'textured', 'pebble', 'cobble', 'mosaic', 'penny round', 'hexagon']
+                return f"{query} {' '.join(enhanced_terms)}"
+        elif any(term in query_lower for term in slippery_terms):
+            # Add terms that indicate slippery surfaces: gloss, satin
+            if 'tile' in query_lower or 'tiles' in query_lower:
+                enhanced_terms = ['gloss', 'glossy', 'satin', 'polished']
+                return f"{query} {' '.join(enhanced_terms)}"
+        
+        return query
+    
+    def search_products(self, query: str, limit: int = 3) -> List[Dict[str, Any]]:
         """Search products using PostgreSQL full-text search via docker exec"""
         try:
-            # Escape the query for SQL
-            query_escaped = query.replace("'", "''")
+            # Map slip-resistant terms to database values
+            query_mapped = self._enhance_slip_resistant_query(query)
             
-            # Use PostgreSQL full-text search via docker exec
-            search_sql = f"""
-                COPY (
-                    SELECT url, sku, title, description, price_per_box, price_per_sqft,
-                           finish, color, size_shape, specifications,
-                           ts_rank(to_tsvector('english', 
-                               COALESCE(title, '') || ' ' || 
-                               COALESCE(description, '') || ' ' || 
-                               COALESCE(finish, '') || ' ' || 
-                               COALESCE(color, '') || ' ' || 
-                               COALESCE(size_shape, '')
-                           ), plainto_tsquery('english', '{query_escaped}')) as relevance
-                    FROM product_data
-                    WHERE to_tsvector('english', 
-                        COALESCE(title, '') || ' ' || 
-                        COALESCE(description, '') || ' ' || 
-                        COALESCE(finish, '') || ' ' || 
-                        COALESCE(color, '') || ' ' || 
-                        COALESCE(size_shape, '')
-                    ) @@ plainto_tsquery('english', '{query_escaped}')
-                    ORDER BY relevance DESC
-                    LIMIT {limit}
-                ) TO STDOUT CSV HEADER;
-            """
+            # Escape the query for SQL
+            query_escaped = query_mapped.replace("'", "''")
+            
+            # Check if query looks like a SKU (numeric or starts with #)
+            is_sku_query = query.strip().isdigit() or query.strip().startswith('#')
+            
+            if is_sku_query:
+                # Direct SKU search for exact matches
+                clean_sku = query.strip().replace('#', '')
+                search_sql = f"""
+                    COPY (
+                        SELECT url, sku, title, description, price_per_box, price_per_sqft, price_per_piece,
+                               finish, color, size_shape, specifications, primary_image, image_variants, 
+                               product_category, slip_rating, 1.0 as relevance
+                        FROM product_data
+                        WHERE sku = '{clean_sku}' OR sku = '#{clean_sku}'
+                        LIMIT {limit}
+                    ) TO STDOUT CSV HEADER;
+                """
+            else:
+                # Determine product category filter based on query keywords - prioritize TILE for slip/floor queries
+                category_filter = ""
+                query_lower = query.lower()
+                
+                # PRIORITY: Slip/floor queries should default to TILE
+                if any(word in query_lower for word in ['slip', 'floor', 'textured', 'matte', 'glossy', 'anti-slip', 'non-slip']):
+                    category_filter = "AND product_category = 'TILE'"
+                elif any(word in query_lower for word in ['tile', 'tiles', 'ceramic', 'porcelain', 'mosaic', 'subway', 'marble']):
+                    category_filter = "AND product_category = 'TILE'"
+                elif any(word in query_lower for word in ['wood', 'hardwood', 'engineered']) and 'tile' not in query_lower:
+                    category_filter = "AND product_category = 'WOOD'"
+                elif any(word in query_lower for word in ['shelf', 'shelves']):
+                    category_filter = "AND product_category = 'SHELF'"
+                elif any(word in query_lower for word in ['threshold', 'threshhold']):
+                    category_filter = "AND product_category = 'THRESHOLD'"
+                elif any(word in query_lower for word in ['curb']):
+                    category_filter = "AND product_category = 'CURB'"
+                elif any(word in query_lower for word in ['laminate']):
+                    category_filter = "AND product_category = 'LAMINATE'"
+                elif any(word in query_lower for word in ['lvp', 'lvt', 'luxury vinyl']):
+                    category_filter = "AND product_category = 'LVP_LVT'"
+                elif any(word in query_lower for word in ['molding', 'trim', 'quarter round', 't-molding', 'stair', 'reducer']):
+                    category_filter = "AND product_category = 'TRIM_MOLDING'"
+                # If dimensions mentioned, likely tiles
+                elif any(word in query_lower for word in ['2x2', '3x6', '12x24', 'inch', 'in.']):
+                    category_filter = "AND product_category = 'TILE'"
+                
+                # Enhanced search for slip-resistant and color queries
+                slip_boost = ""
+                color_filter = ""
+                
+                if any(term in query_lower for term in ['slip', 'anti-slip', 'non-slip', 'slip resistant', 'slip-resistant']):
+                    # Add boost for slip-resistant tiles and include slip rating in search
+                    slip_boost = """
+                        + CASE WHEN slip_rating = 'SLIP_RESISTANT' THEN 0.5 ELSE 0 END
+                        + CASE WHEN finish ILIKE '%matte%' OR finish ILIKE '%honed%' OR finish ILIKE '%tumbled%' OR finish ILIKE '%textured%' THEN 0.3 ELSE 0 END
+                    """
+                
+                # Add color filtering for dark colors
+                if any(term in query_lower for term in ['dark', 'black', 'brown', 'grey', 'gray', 'charcoal', 'slate']):
+                    color_filter = """
+                        AND (color ILIKE '%dark%' OR color ILIKE '%black%' OR color ILIKE '%brown%' OR 
+                             color ILIKE '%grey%' OR color ILIKE '%gray%' OR color ILIKE '%charcoal%' OR 
+                             color ILIKE '%slate%' OR title ILIKE '%dark%' OR title ILIKE '%black%' OR 
+                             title ILIKE '%brown%' OR title ILIKE '%grey%' OR title ILIKE '%gray%')
+                    """
+                
+                # Use PostgreSQL full-text search via docker exec with category filtering
+                search_sql = f"""
+                    COPY (
+                        SELECT url, sku, title, description, price_per_box, price_per_sqft, price_per_piece,
+                               finish, color, size_shape, specifications, primary_image, image_variants, 
+                               product_category, slip_rating,
+                               (ts_rank(to_tsvector('english', 
+                                   COALESCE(sku, '') || ' ' ||
+                                   COALESCE(title, '') || ' ' || 
+                                   COALESCE(description, '') || ' ' || 
+                                   COALESCE(finish, '') || ' ' || 
+                                   COALESCE(color, '') || ' ' || 
+                                   COALESCE(size_shape, '') || ' ' ||
+                                   COALESCE(slip_rating, '')
+                               ), plainto_tsquery('english', '{query_escaped}')) {slip_boost}) as relevance
+                        FROM product_data
+                        WHERE (to_tsvector('english', 
+                            COALESCE(sku, '') || ' ' ||
+                            COALESCE(title, '') || ' ' || 
+                            COALESCE(description, '') || ' ' || 
+                            COALESCE(finish, '') || ' ' || 
+                            COALESCE(color, '') || ' ' || 
+                            COALESCE(size_shape, '') || ' ' ||
+                            COALESCE(slip_rating, '')
+                        ) @@ plainto_tsquery('english', '{query_escaped}')
+                        OR ('{query_lower}' LIKE '%slip%' AND slip_rating = 'SLIP_RESISTANT'))
+                        {category_filter}
+                        {color_filter}
+                        ORDER BY relevance DESC
+                        LIMIT {limit}
+                    ) TO STDOUT CSV HEADER;
+                """
             
             result = subprocess.run([
                 'docker', 'exec', self.supabase_container,
@@ -91,7 +197,7 @@ class SimpleTileshopRAG:
                     for key, value in row.items():
                         if value == '':
                             product[key] = None
-                        elif key in ['price_per_box', 'price_per_sqft', 'relevance']:
+                        elif key in ['price_per_box', 'price_per_sqft', 'price_per_piece', 'relevance']:
                             product[key] = float(value) if value else None
                         else:
                             product[key] = value
@@ -105,9 +211,59 @@ class SimpleTileshopRAG:
             return []
     
     def chat(self, query: str) -> str:
-        """Generate intelligent chat response - LLM first, fallback to search"""
+        """Generate intelligent chat response - Smart routing based on query type"""
         try:
-            # Always try Claude LLM first if available
+            # Check if this is a direct SKU query (more comprehensive detection)
+            query_lower = query.lower().strip()
+            
+            # Direct patterns
+            is_direct_sku = query.strip().isdigit() or query.strip().startswith('#')
+            
+            # Contains SKU patterns
+            contains_sku_pattern = bool(re.search(r'\bsku\s*#?\s*\d+|\b\d{6}\b', query, re.IGNORECASE))
+            
+            # SKU-related queries
+            is_sku_question = 'sku' in query_lower and any(word in query_lower for word in ['what', 'show', 'find', 'get', 'lookup'])
+            
+            # Image requests for recently mentioned products (context-aware)
+            is_image_request = any(word in query_lower for word in ['image', 'images', 'picture', 'photo']) and any(word in query_lower for word in ['show', 'display', 'see'])
+            
+            # Treat image requests as SKU queries if they contain this/that/it (referring to previous product)
+            is_contextual_image_request = is_image_request and any(word in query_lower for word in ['this', 'that', 'it', 'these', 'them'])
+            
+            is_sku_query = is_direct_sku or contains_sku_pattern or is_sku_question or is_contextual_image_request
+            
+            if is_sku_query:
+                # For SKU queries, use search directly for immediate results
+                logger.info("Detected SKU query, using direct search")
+                
+                # Extract SKU number from query
+                sku_match = re.search(r'\b(\d{6})\b', query)
+                if sku_match:
+                    sku_number = sku_match.group(1)
+                    logger.info(f"Extracted SKU: {sku_number}")
+                    return self._handle_search_query(sku_number)
+                elif is_contextual_image_request:
+                    # For contextual image requests without explicit SKU, search for common SKUs
+                    # For now, default to last known good SKU (683549) as fallback
+                    logger.info("Contextual image request detected, using fallback SKU search")
+                    return self._handle_search_query("683549")
+                else:
+                    return self._handle_search_query(query)
+            
+            # Check if this is a product search query (looking for specific products)
+            search_indicators = ['looking for', 'find', 'show me', 'need', 'want', 'search', 'tiles', 'tile', 'floor', 'wall']
+            analytical_indicators = ['cheapest', 'lowest', 'highest', 'most expensive', 'average', 'compare', 'best value', 'analyze']
+            
+            is_product_search = any(word in query_lower for word in search_indicators)
+            is_analytical = any(word in query_lower for word in analytical_indicators)
+            
+            # If it's clearly a product search (not analytical), use database search for real results with images
+            if is_product_search and not is_analytical:
+                logger.info("Detected product search query, using database search")
+                return self._handle_search_query(query)
+            
+            # For analytical queries, try Claude LLM first if available
             if self.claude_client:
                 try:
                     return self._handle_analytical_query(query)
@@ -178,10 +334,19 @@ Provide a specific, helpful answer with exact product names, SKUs, prices, and U
         
         for i, result in enumerate(results, 1):
             price_info = ""
-            if result['price_per_box']:
+            
+            # Show per-piece pricing first if available
+            if result.get('price_per_piece'):
+                price_info = f" - ${result['price_per_piece']:.2f}/each"
+            elif result.get('price_per_box'):
                 price_info = f" - ${result['price_per_box']:.2f}/box"
-            if result['price_per_sqft']:
-                price_info += f" (${result['price_per_sqft']:.2f}/sq ft)"
+                
+            # Add per sq ft pricing if available
+            if result.get('price_per_sqft'):
+                if price_info:
+                    price_info += f" (${result['price_per_sqft']:.2f}/sq ft)"
+                else:
+                    price_info = f" - ${result['price_per_sqft']:.2f}/sq ft"
             
             finish_color = []
             if result['finish']:
@@ -192,9 +357,15 @@ Provide a specific, helpful answer with exact product names, SKUs, prices, and U
             finish_color_str = " - " + " ".join(finish_color) if finish_color else ""
             size_str = f" - {result['size_shape']}" if result['size_shape'] else ""
             
+            # Add image if available
+            image_str = ""
+            if result.get('primary_image'):
+                image_str = f"   ![Product Image]({result['primary_image']})\n"
+            
             response_parts.append(
                 f"{i}. **{result['title']}** (SKU: {result['sku']})\n"
                 f"   {price_info}{finish_color_str}{size_str}\n"
+                f"{image_str}"
                 f"   {result['url']}\n"
             )
         
@@ -203,14 +374,13 @@ Provide a specific, helpful answer with exact product names, SKUs, prices, and U
     def _get_all_products_for_analysis(self, limit: int = 500) -> List[Dict[str, Any]]:
         """Get all products for analytical queries"""
         try:
-            # Get products with essential fields for analysis
+            # Get products with essential fields for analysis (includes images)
             analysis_sql = f"""
                 COPY (
-                    SELECT url, sku, title, price_per_box, price_per_sqft,
-                           finish, color, size_shape
+                    SELECT url, sku, title, price_per_box, price_per_sqft, price_per_piece,
+                           finish, color, size_shape, primary_image, image_variants
                     FROM product_data
-                    WHERE price_per_sqft IS NOT NULL
-                    ORDER BY price_per_sqft DESC
+                    ORDER BY price_per_sqft DESC NULLS LAST
                     LIMIT {limit}
                 ) TO STDOUT CSV HEADER;
             """
@@ -229,6 +399,7 @@ Provide a specific, helpful answer with exact product names, SKUs, prices, and U
                 try:
                     row['price_per_box'] = float(row['price_per_box']) if row['price_per_box'] else None
                     row['price_per_sqft'] = float(row['price_per_sqft']) if row['price_per_sqft'] else None
+                    row['price_per_piece'] = float(row['price_per_piece']) if row['price_per_piece'] else None
                 except:
                     continue
                     

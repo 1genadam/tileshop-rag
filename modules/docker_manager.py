@@ -51,13 +51,21 @@ class DockerManager:
         try:
             self.client = docker.from_env()
             self.client.ping()  # Test connection
+            self.docker_available = True
             logger.info("Docker client initialized successfully")
         except DockerException as e:
-            logger.error(f"Failed to connect to Docker: {e}")
-            raise
+            logger.warning(f"Docker not available (running in cloud environment): {e}")
+            self.client = None
+            self.docker_available = False
     
     def get_all_containers_status(self) -> Dict[str, Any]:
         """Get status of all containers (running and stopped)"""
+        if not self.docker_available:
+            return {
+                'docker_status': 'unavailable',
+                'message': 'Running in cloud environment - Docker not available'
+            }
+            
         try:
             all_containers = self.client.containers.list(all=True)
             container_status = {}
@@ -75,6 +83,19 @@ class DockerManager:
     
     def get_required_containers_status(self) -> Dict[str, Any]:
         """Get status of only required containers"""
+        if not self.docker_available:
+            return {
+                'docker_status': 'unavailable',
+                'message': 'Running in cloud environment - Docker not available',
+                'containers': {name: {
+                    'status': 'cloud_managed',
+                    'state': 'external',
+                    'health': 'managed_externally',
+                    'config': config,
+                    'message': 'Service managed by cloud provider'
+                } for name, config in self.REQUIRED_CONTAINERS.items()}
+            }
+            
         all_status = self.get_all_containers_status()
         required_status = {}
         
