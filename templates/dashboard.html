@@ -6,7 +6,7 @@
 <div class="grid grid-4">
     <!-- Docker Status Cards -->
     <div class="card span-3">
-        <h3><i class="fas fa-cogs"></i> Data Intelligence Services</h3>
+        <h3><i class="fas fa-cogs"></i> Microservices Directory</h3>
         
         <!-- Unified Controls -->
         <div style="margin-bottom: 1.5rem; padding: 1rem; background: #f8f9fa; border-radius: 8px;">
@@ -42,79 +42,79 @@
         
         <!-- Services Grid -->
         <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: 1rem;">
-            <!-- postgres Service -->
+            <!-- Service 1: Relational Database -->
             <div class="service-card">
                 <div class="service-header">
                     <i class="fas fa-server"></i>
-                    <span class="service-name">postgres</span>
-                    <div class="status-dot gray" id="postgres-dot"></div>
+                    <span class="service-name">1. relational_db</span>
+                    <div class="status-dot gray" id="relational_db-dot"></div>
                 </div>
                 <div class="service-details">
-                    <div class="service-status" id="postgres-text">Checking...</div>
-                    <div class="service-info" id="postgres-info">Main PostgreSQL database for product data</div>
-                    <div class="service-progress" id="postgres-progress" style="display: none;">
+                    <div class="service-status" id="relational_db-text">Checking...</div>
+                    <div class="service-info" id="relational_db-info">Primary relational database for structured data</div>
+                    <div class="service-progress" id="relational_db-progress" style="display: none;">
                         <div class="progress-bar">
                             <div class="progress-fill animated"></div>
                         </div>
                     </div>
                 </div>
                 <div class="service-actions">
-                    <button class="btn btn-xs btn-secondary" onclick="showLogs('postgres')">Logs</button>
+                    <button class="btn btn-xs btn-secondary" onclick="showLogs('relational_db')">Logs</button>
                 </div>
             </div>
 
-            <!-- supabase Service -->
+            <!-- Service 2: Vector Database -->
             <div class="service-card">
                 <div class="service-header">
                     <i class="fas fa-database"></i>
-                    <span class="service-name">supabase</span>
-                    <div class="status-dot gray" id="supabase-dot"></div>
+                    <span class="service-name">2. vector_db</span>
+                    <div class="status-dot gray" id="vector_db-dot"></div>
                 </div>
                 <div class="service-details">
-                    <div class="service-status" id="supabase-text">Checking...</div>
-                    <div class="service-info" id="supabase-info">Supabase PostgreSQL with vector extensions</div>
-                    <div class="service-progress" id="supabase-progress" style="display: none;">
+                    <div class="service-status" id="vector_db-text">Checking...</div>
+                    <div class="service-info" id="vector_db-info">Supabase PostgreSQL with vector extensions</div>
+                    <div class="service-progress" id="vector_db-progress" style="display: none;">
                         <div class="progress-bar">
                             <div class="progress-fill animated"></div>
                         </div>
                     </div>
                 </div>
                 <div class="service-actions">
-                    <button class="btn btn-xs btn-secondary" onclick="showLogs('supabase')">Logs</button>
+                    <button class="btn btn-xs btn-secondary" onclick="showLogs('vector_db')">Logs</button>
                 </div>
             </div>
 
-            <!-- crawl4ai Service -->
+            <!-- Service 3: Web Crawler -->
             <div class="service-card">
                 <div class="service-header">
                     <i class="fas fa-spider"></i>
-                    <span class="service-name">crawl4ai</span>
-                    <div class="status-dot gray" id="crawl4ai-dot"></div>
+                    <span class="service-name">3. crawler</span>
+                    <div class="status-dot gray" id="crawler-dot"></div>
                 </div>
                 <div class="service-details">
-                    <div class="service-status" id="crawl4ai-text">Checking...</div>
-                    <div class="service-info" id="crawl4ai-info">AI-powered web scraping service</div>
-                    <div class="service-progress" id="crawl4ai-progress" style="display: none;">
+                    <div class="service-status" id="crawler-text">Checking...</div>
+                    <div class="service-info" id="crawler-info">AI-powered web scraping service</div>
+                    <div class="service-progress" id="crawler-progress" style="display: none;">
                         <div class="progress-bar">
                             <div class="progress-fill animated"></div>
                         </div>
                     </div>
                 </div>
                 <div class="service-actions">
-                    <button class="btn btn-xs btn-secondary" onclick="showLogs('crawl4ai')">Logs</button>
+                    <button class="btn btn-xs btn-secondary" onclick="showLogs('crawler')">Logs</button>
                 </div>
             </div>
 
-            <!-- Environment Status Service -->
+            <!-- Service 4: Intelligence Platform -->
             <div class="service-card">
                 <div class="service-header">
                     <i class="fas fa-cog"></i>
-                    <span class="service-name">Environment</span>
+                    <span class="service-name">4. intelligence_platform</span>
                     <div class="status-dot gray" id="environment-dot"></div>
                 </div>
                 <div class="service-details">
                     <div class="service-status" id="environment-text">Checking...</div>
-                    <div class="service-info" id="environment-info">Python virtual environment and dependencies</div>
+                    <div class="service-info" id="environment-info">AI-powered orchestration and management interface</div>
                     <div class="service-progress" id="environment-progress" style="display: none;">
                         <div class="progress-bar">
                             <div class="progress-fill animated"></div>
@@ -197,7 +197,7 @@
     
 </div>
 
-<!-- Scraper Control -->
+<!-- Data Acquisition Control -->
 <div class="card">
     <h3><i class="fas fa-download"></i> Data Acquisition Control</h3>
     <div class="grid grid-2">
@@ -281,7 +281,7 @@
             </div>
             <div class="form-group">
                 <label>Acquisition Mode:</label>
-                <select class="form-control" id="scraper-mode">
+                <select class="form-control" id="acquisition-mode">
                     <option value="test">Test Mode (10 URLs)</option>
                     <option value="sitemap">Full Data Intelligence Platform</option>
                 </select>
@@ -297,22 +297,22 @@
             </div>
         </div>
         <div>
-            <div id="scraper-status">
-                <p><strong>Status:</strong> <span id="scraper-status-text">Idle</span></p>
-                <p><strong>Mode:</strong> <span id="scraper-mode-text">-</span></p>
-                <p><strong>Progress:</strong> <span id="scraper-progress">0%</span> 
-                   <span id="scraper-eta" style="color: #666; margin-left: 1rem;">ETA: --</span></p>
+            <div id="acquisition-status">
+                <p><strong>Status:</strong> <span id="acquisition-status-text">Idle</span></p>
+                <p><strong>Mode:</strong> <span id="acquisition-mode-text">-</span></p>
+                <p><strong>Progress:</strong> <span id="acquisition-progress">0%</span> 
+                   <span id="acquisition-eta" style="color: #666; margin-left: 1rem;">ETA: --</span></p>
                 <div class="progress-bar">
-                    <div class="progress-fill" id="scraper-progress-bar" style="width: 0%"></div>
+                    <div class="progress-fill" id="acquisition-progress-bar" style="width: 0%"></div>
                 </div>
-                <div class="scraper-stats-grid">
-                    <p><strong>Processed:</strong> <span id="scraper-count">0</span> / <span id="scraper-total">0</span></p>
-                    <p><strong>Successful:</strong> <span id="scraper-success" style="color: #16a34a;">0</span></p>
-                    <p><strong>Errors:</strong> <span id="scraper-errors" style="color: #dc2626;">0</span></p>
+                <div class="acquisition-stats-grid">
+                    <p><strong>Processed:</strong> <span id="acquisition-count">0</span> / <span id="acquisition-total">0</span></p>
+                    <p><strong>Successful:</strong> <span id="acquisition-success" style="color: #16a34a;">0</span></p>
+                    <p><strong>Errors:</strong> <span id="acquisition-errors" style="color: #dc2626;">0</span></p>
                 </div>
                 <div style="margin: 0.5rem 0;">
-                    <p><strong>Speed:</strong> <span id="scraper-speed">-- pages/min</span> 
-                       <span style="margin-left: 1rem;"><strong>Runtime:</strong> <span id="scraper-runtime">--</span></span></p>
+                    <p><strong>Speed:</strong> <span id="acquisition-speed">-- pages/min</span> 
+                       <span style="margin-left: 1rem;"><strong>Runtime:</strong> <span id="acquisition-runtime">--</span></span></p>
                 </div>
                 <p><strong>Current URL:</strong></p>
                 <div id="current-url-container" style="position: relative;">
@@ -323,10 +323,10 @@
                 </div>
             </div>
             <div style="margin-top: 1rem; display: flex; gap: 1rem; align-items: center;">
-                <button class="btn btn-success" id="start-scraper" onclick="startScraper()">
+                <button class="btn btn-success" id="start-acquisition" onclick="startAcquisition()">
                     <i class="fas fa-play"></i> Start Data Acquisition
                 </button>
-                <button class="btn btn-danger" id="stop-scraper" onclick="stopScraper()" disabled>
+                <button class="btn btn-danger" id="stop-acquisition" onclick="stopAcquisition()" disabled>
                     <i class="fas fa-stop"></i> Stop
                 </button>
             </div>
@@ -499,7 +499,7 @@
             <!-- Chat History -->
             <div id="ai-chat-history" style="flex: 1; background: #1f2937; color: #e5e7eb; padding: 1rem; border-radius: 6px; overflow-y: auto; font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; margin-bottom: 1rem;">
                 <div class="ai-message system">
-                    <strong>🤖 Customer Service Assistant:</strong> Hello! I'm here to help with your Tileshop scraper questions and issues. I can assist with:
+                    <strong>🤖 Customer Service Assistant:</strong> Hello! I'm here to help with your Tileshop intelligence platform questions and issues. I can assist with:
                     <br>• Troubleshooting scraping errors
                     <br>• Product data questions and analysis
                     <br>• Error log interpretation
@@ -567,7 +567,7 @@
 
 {% block extra_js %}
 <script>
-    let scraperRunning = false;
+    let acquisitionRunning = false;
     let globalSitemapStats = null;
     
     function initPage() {
@@ -584,11 +584,11 @@
             urlInput.addEventListener('input', debounce(detectSitemap, 1000));
         }
         
-        // Add scraper mode dropdown listener to update limit
-        const scraperModeSelect = document.getElementById('scraper-mode');
-        if (scraperModeSelect) {
-            scraperModeSelect.addEventListener('change', function() {
-                const limitInput = document.getElementById('scraper-limit');
+        // Add acquisition mode dropdown listener to update limit
+        const acquisitionModeSelect = document.getElementById('acquisition-mode');
+        if (acquisitionModeSelect) {
+            acquisitionModeSelect.addEventListener('change', function() {
+                const limitInput = document.getElementById('acquisition-limit');
                 if (this.value === 'sitemap') {
                     // Use real total URL count from sitemap stats, fallback to 4775 if not available
                     const totalUrls = globalSitemapStats ? globalSitemapStats.total_urls : 4775;
@@ -688,7 +688,7 @@
         detectBtn.style.display = 'none';
         
         try {
-            const response = await fetch('/api/scraper/detect-sitemap', {
+            const response = await fetch('/api/acquisition/detect-sitemap', {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({ url: url })
@@ -758,10 +758,10 @@
             updateDatabaseStats(dbStats.stats);
         }
         
-        // Load scraper status
-        const scraperStatus = await apiCall('/api/scraper/status');
-        if (scraperStatus.success) {
-            updateScraperStatus(scraperStatus.status);
+        // Load acquisition status
+        const acquisitionStatus = await apiCall('/api/acquisition/status');
+        if (acquisitionStatus.success) {
+            updateAcquisitionStatus(acquisitionStatus.status);
         }
         
         // Load system stats
@@ -771,7 +771,7 @@
         }
         
         // Load sitemap status
-        const sitemapStatus = await apiCall('/api/scraper/sitemap-status');
+        const sitemapStatus = await apiCall('/api/acquisition/sitemap-status');
         if (sitemapStatus.success) {
             updateSitemapStats(sitemapStatus);
         }
@@ -779,9 +779,9 @@
     
     function updateDockerStatus(containers) {
         const containerMap = {
-            'postgres': 'postgres',
-            'supabase': 'supabase',
-            'crawl4ai': 'crawl4ai'
+            'relational_db': 'postgres',
+            'vector_db': 'supabase',
+            'crawler': 'crawl4ai'
         };
         
         let allRunning = true;
@@ -818,9 +818,9 @@
                     // Restore original description when stopped
                     if (info) {
                         const descriptions = {
-                            'postgres': 'Main PostgreSQL database for product data',
-                            'supabase': 'Supabase PostgreSQL with vector extensions',
-                            'crawl4ai': 'AI-powered web scraping service'
+                            'relational_db': 'Primary relational database for structured data',
+                            'vector_db': 'Vector database with embeddings and AI capabilities',
+                            'crawler': 'Intelligent web crawling microservice'
                         };
                         info.textContent = descriptions[prefix] || 'Service stopped';
                     }
@@ -1009,49 +1009,49 @@
         }
         
         // Update the "Start Scraping" button state based on sitemap availability
-        const startScraperBtn = document.getElementById('start-scraper');
-        if (startScraperBtn && sitemapData.status === 'not_found') {
-            startScraperBtn.title = 'Download a sitemap first to enable scraping';
-        } else if (startScraperBtn) {
-            startScraperBtn.title = '';
+        const startAcquisitionBtn = document.getElementById('start-acquisition');
+        if (startAcquisitionBtn && sitemapData.status === 'not_found') {
+            startAcquisitionBtn.title = 'Download a sitemap first to enable scraping';
+        } else if (startAcquisitionBtn) {
+            startAcquisitionBtn.title = '';
         }
     }
     
     // Global variables for tracking
-    let scraperStartTime = null;
+    let acquisitionStartTime = null;
     let lastUrlChange = null;
     let urlProcessingTimes = [];
     let etaInterval = null;
     
-    function updateScraperStatus(status) {
-        scraperRunning = status.is_running;
+    function updateAcquisitionStatus(status) {
+        acquisitionRunning = status.is_running;
         
         // Initialize start time if scraper just started
-        if (status.is_running && !scraperStartTime) {
-            scraperStartTime = status.start_time ? new Date(status.start_time) : new Date();
+        if (status.is_running && !acquisitionStartTime) {
+            acquisitionStartTime = status.start_time ? new Date(status.start_time) : new Date();
         } else if (!status.is_running) {
-            scraperStartTime = null;
+            acquisitionStartTime = null;
             if (etaInterval) {
                 clearInterval(etaInterval);
                 etaInterval = null;
             }
         }
         
-        document.getElementById('scraper-status-text').textContent = 
+        document.getElementById('acquisition-status-text').textContent = 
             status.is_running ? 'Running' : 'Idle';
         
-        document.getElementById('scraper-mode-text').textContent = 
+        document.getElementById('acquisition-mode-text').textContent = 
             status.mode || '-';
         
         // Stabilize progress percentage to prevent jumping
         const currentProgress = parseFloat(status.stats.progress_percent || 0);
         const displayProgress = Math.min(100, Math.max(0, currentProgress)); // Clamp between 0-100
         
-        document.getElementById('scraper-progress').textContent = 
+        document.getElementById('acquisition-progress').textContent = 
             displayProgress.toFixed(1) + '%';
         
         // Smooth progress bar transitions
-        const progressBar = document.getElementById('scraper-progress-bar');
+        const progressBar = document.getElementById('acquisition-progress-bar');
         if (progressBar) {
             const currentWidth = parseFloat(progressBar.style.width) || 0;
             const newWidth = displayProgress;
@@ -1062,30 +1062,30 @@
             }
         }
         
-        document.getElementById('scraper-count').textContent = 
+        document.getElementById('acquisition-count').textContent = 
             status.stats.products_processed || 0;
         
-        document.getElementById('scraper-total').textContent = 
+        document.getElementById('acquisition-total').textContent = 
             status.stats.estimated_total || 0;
         
-        document.getElementById('scraper-success').textContent = 
+        document.getElementById('acquisition-success').textContent = 
             status.stats.success_count || 0;
         
-        document.getElementById('scraper-errors').textContent = 
+        document.getElementById('acquisition-errors').textContent = 
             status.stats.error_count || 0;
         
         // Calculate and display runtime
         if (status.is_running) {
             let runtime = 0;
             
-            if (scraperStartTime) {
-                runtime = Math.floor((new Date() - scraperStartTime) / 1000);
+            if (acquisitionStartTime) {
+                runtime = Math.floor((new Date() - acquisitionStartTime) / 1000);
             } else if (status.runtime_seconds) {
                 runtime = Math.floor(status.runtime_seconds);
             }
             
             if (runtime > 0) {
-                document.getElementById('scraper-runtime').textContent = formatDuration(runtime);
+                document.getElementById('acquisition-runtime').textContent = formatDuration(runtime);
                 
                 // Calculate speed (pages per minute) - use success_count for more accurate speed
                 const successful = status.stats.success_count || 0;
@@ -1093,36 +1093,36 @@
                 
                 if (successful > 0 && runtime > 0) {
                     const pagesPerMin = Math.round((successful / runtime) * 60);
-                    document.getElementById('scraper-speed').textContent = pagesPerMin + ' pages/min';
+                    document.getElementById('acquisition-speed').textContent = pagesPerMin + ' pages/min';
                     
                     // Calculate ETA based on remaining items to process
                     const remaining = (status.stats.estimated_total || 0) - successful;
                     if (remaining > 0 && pagesPerMin > 0) {
                         const etaMinutes = Math.ceil(remaining / pagesPerMin);
-                        document.getElementById('scraper-eta').textContent = 'ETA: ' + formatDuration(etaMinutes * 60);
+                        document.getElementById('acquisition-eta').textContent = 'ETA: ' + formatDuration(etaMinutes * 60);
                     } else if (remaining <= 0) {
-                        document.getElementById('scraper-eta').textContent = 'ETA: Complete';
+                        document.getElementById('acquisition-eta').textContent = 'ETA: Complete';
                     } else {
-                        document.getElementById('scraper-eta').textContent = 'ETA: Calculating...';
+                        document.getElementById('acquisition-eta').textContent = 'ETA: Calculating...';
                     }
                 } else if (processed > 0 && runtime > 0) {
                     // Fallback to processing speed if no successes yet
                     const pagesPerMin = Math.round((processed / runtime) * 60);
-                    document.getElementById('scraper-speed').textContent = pagesPerMin + ' pages/min (processing)';
-                    document.getElementById('scraper-eta').textContent = 'ETA: Calculating...';
+                    document.getElementById('acquisition-speed').textContent = pagesPerMin + ' pages/min (processing)';
+                    document.getElementById('acquisition-eta').textContent = 'ETA: Calculating...';
                 } else {
-                    document.getElementById('scraper-speed').textContent = 'Starting...';
-                    document.getElementById('scraper-eta').textContent = 'ETA: Calculating...';
+                    document.getElementById('acquisition-speed').textContent = 'Starting...';
+                    document.getElementById('acquisition-eta').textContent = 'ETA: Calculating...';
                 }
             } else {
-                document.getElementById('scraper-runtime').textContent = 'Starting...';
-                document.getElementById('scraper-speed').textContent = 'Starting...';
-                document.getElementById('scraper-eta').textContent = 'ETA: Calculating...';
+                document.getElementById('acquisition-runtime').textContent = 'Starting...';
+                document.getElementById('acquisition-speed').textContent = 'Starting...';
+                document.getElementById('acquisition-eta').textContent = 'ETA: Calculating...';
             }
         } else {
-            document.getElementById('scraper-runtime').textContent = '--';
-            document.getElementById('scraper-speed').textContent = '-- pages/min';
-            document.getElementById('scraper-eta').textContent = 'ETA: --';
+            document.getElementById('acquisition-runtime').textContent = '--';
+            document.getElementById('acquisition-speed').textContent = '-- pages/min';
+            document.getElementById('acquisition-eta').textContent = 'ETA: --';
         }
         
         // Update current URL with visual feedback
@@ -1170,7 +1170,7 @@
         }
         
         // Update buttons
-        const startButton = document.getElementById('start-scraper');
+        const startButton = document.getElementById('start-acquisition');
         const stopButton = document.getElementById('stop-scraper');
         
         if (startButton) {
@@ -1188,9 +1188,9 @@
         // Start ETA update interval if not already running
         if (status.is_running && !etaInterval) {
             etaInterval = setInterval(() => {
-                if (scraperStartTime) {
-                    const runtime = Math.floor((new Date() - scraperStartTime) / 1000);
-                    document.getElementById('scraper-runtime').textContent = formatDuration(runtime);
+                if (acquisitionStartTime) {
+                    const runtime = Math.floor((new Date() - acquisitionStartTime) / 1000);
+                    document.getElementById('acquisition-runtime').textContent = formatDuration(runtime);
                 }
             }, 1000);
         }
@@ -1276,17 +1276,17 @@
         setTimeout(loadDashboardData, 3000);
     }
     
-    async function startScraper() {
-        const mode = document.getElementById('scraper-mode').value;
-        const limit = document.getElementById('scraper-limit').value;
-        const fresh = document.getElementById('scraper-fresh').checked;
+    async function startAcquisition() {
+        const mode = document.getElementById('acquisition-mode').value;
+        const limit = document.getElementById('acquisition-limit').value;
+        const fresh = document.getElementById('acquisition-fresh').checked;
         
         const data = { mode, fresh };
         if (mode === 'test' && limit) {
             data.limit = parseInt(limit);
         }
         
-        const result = await apiCall('/api/scraper/start', 'POST', data);
+        const result = await apiCall('/api/acquisition/start', 'POST', data);
         
         if (result.success) {
             showAlert(result.message, 'success');
@@ -1297,10 +1297,10 @@
         setTimeout(loadDashboardData, 1000);
     }
     
-    async function stopScraper() {
+    async function stopAcquisition() {
         if (!confirm('Are you sure you want to stop the scraper?')) return;
         
-        const result = await apiCall('/api/scraper/stop', 'POST');
+        const result = await apiCall('/api/acquisition/stop', 'POST');
         
         if (result.success) {
             showAlert(result.message, 'success');
@@ -1504,26 +1504,26 @@ Status: ${comp.is_in_sync ? 'In Sync' : 'Out of Sync'}`;
             updateDockerStatus(data.docker);
         }
         if (data.scraper) {
-            updateScraperStatus(data.scraper);
+            updateAcquisitionStatus(data.scraper);
         }
     }
     
     // Handle scraper progress updates
     if (socket) {
-        socket.on('scraper_progress', function(data) {
+        socket.on('acquisition_progress', function(data) {
             if (data.type === 'log') {
                 const logDiv = document.getElementById('activity-log');
                 logDiv.innerHTML += `\n[${new Date().toLocaleTimeString()}] ${data.data.line}`;
                 logDiv.scrollTop = logDiv.scrollHeight;
                 
-                // Update scraper status directly from WebSocket data if available
+                // Update acquisition status directly from WebSocket data if available
                 if (data.data && data.data.stats) {
                     // Create enhanced status object for real-time updates
                     const enhancedStatus = {
                         is_running: true, // We know it's running if we're getting logs
                         stats: data.data.stats
                     };
-                    updateScraperStatus(enhancedStatus);
+                    updateAcquisitionStatus(enhancedStatus);
                 }
                 
                 // Also trigger sitemap status refresh
@@ -1533,7 +1533,7 @@ Status: ${comp.is_in_sync ? 'In Sync' : 'Out of Sync'}`;
                 showAlert('Scraping completed', 'success');
                 
                 // Refresh all status after completion
-                loadScraperStatus();
+                loadAcquisitionStatus();
                 loadSitemapStatus();
             }
         });
@@ -1654,7 +1654,7 @@ Status: ${comp.is_in_sync ? 'In Sync' : 'Out of Sync'}`;
         setBulkOperationStatus('Starting all services...', 'info');
         
         try {
-            const containers = ['postgres', 'supabase', 'crawl4ai'];
+            const containers = ['relational_db', 'vector_db', 'crawler'];
             const results = [];
             
             for (const container of containers) {
@@ -1686,7 +1686,7 @@ Status: ${comp.is_in_sync ? 'In Sync' : 'Out of Sync'}`;
         setBulkOperationStatus('Stopping all services...', 'info');
         
         try {
-            const containers = ['postgres', 'supabase', 'crawl4ai'];
+            const containers = ['relational_db', 'vector_db', 'crawler'];
             const results = [];
             
             for (const container of containers) {
@@ -1718,7 +1718,7 @@ Status: ${comp.is_in_sync ? 'In Sync' : 'Out of Sync'}`;
         setBulkOperationStatus('Restarting all services...', 'info');
         
         try {
-            const containers = ['postgres', 'supabase', 'crawl4ai'];
+            const containers = ['relational_db', 'vector_db', 'crawler'];
             const results = [];
             
             for (const container of containers) {
@@ -1964,7 +1964,7 @@ Status: ${comp.is_in_sync ? 'In Sync' : 'Out of Sync'}`;
             // Reset progress display
             updateSitemapProgress('preparing', 0, 'Preparing download...');
             
-            const response = await fetch('/api/scraper/download-sitemap', {
+            const response = await fetch('/api/acquisition/download-sitemap', {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({ sitemap_url: sitemapUrl })
@@ -2091,7 +2091,7 @@ Status: ${comp.is_in_sync ? 'In Sync' : 'Out of Sync'}`;
                 showAlert('Sitemap download completed successfully!', 'success');
                 // Refresh sitemap statistics after completion
                 setTimeout(async () => {
-                    const sitemapStatus = await apiCall('/api/scraper/sitemap-status');
+                    const sitemapStatus = await apiCall('/api/acquisition/sitemap-status');
                     if (sitemapStatus.success) {
                         updateSitemapStats(sitemapStatus);
                     }

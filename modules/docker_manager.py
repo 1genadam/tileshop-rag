@@ -17,32 +17,32 @@ class DockerManager:
     """Manages Docker containers for Tileshop scraping infrastructure"""
     
     REQUIRED_CONTAINERS = {
-        'postgres': {
+        'relational_db': {
             'image_pattern': 'postgres',
             'ports': [5432],
             'health_check': 'database',
-            'description': 'Main PostgreSQL database for product data',
+            'description': 'Primary relational database for structured data',
             'startup_order': 1
         },
-        'supabase': {
+        'vector_db': {
             'image_pattern': 'supabase/postgres',
             'ports': [5433],
             'health_check': 'database',
-            'description': 'Supabase PostgreSQL with vector extensions',
+            'description': 'Vector database with embeddings and AI capabilities',
             'startup_order': 2
         },
-        'crawl4ai': {
+        'crawler': {
             'image_pattern': 'unclecode/crawl4ai',
             'ports': [11235],
             'health_check': 'http',
-            'description': 'Browser-enabled crawling API service',
+            'description': 'Intelligent web crawling microservice',
             'startup_order': 3
         },
-        'supabase-kong': {
+        'api_gateway': {
             'image_pattern': 'kong',
             'ports': [8000, 8443],
             'health_check': 'http',
-            'description': 'Supabase API Gateway',
+            'description': 'Microservices API gateway and routing layer',
             'startup_order': 4
         }
     }

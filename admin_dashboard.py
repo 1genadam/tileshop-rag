@@ -168,7 +168,7 @@ def system_resources():
         return jsonify({'success': False, 'error': str(e)})
 
 # API Routes - Scraper Management
-@app.route('/api/scraper/status')
+@app.route('/api/acquisition/status')
 def scraper_status():
     """Get scraper status"""
     try:
@@ -177,7 +177,7 @@ def scraper_status():
     except Exception as e:
         return jsonify({'success': False, 'error': str(e)})
 
-@app.route('/api/scraper/start', methods=['POST'])
+@app.route('/api/acquisition/start', methods=['POST'])
 def start_scraper():
     """Start scraping"""
     try:
@@ -191,7 +191,7 @@ def start_scraper():
     except Exception as e:
         return jsonify({'success': False, 'error': str(e)})
 
-@app.route('/api/scraper/stop', methods=['POST'])
+@app.route('/api/acquisition/stop', methods=['POST'])
 def stop_scraper():
     """Stop scraping"""
     try:
@@ -200,7 +200,7 @@ def stop_scraper():
     except Exception as e:
         return jsonify({'success': False, 'error': str(e)})
 
-@app.route('/api/scraper/logs')
+@app.route('/api/acquisition/logs')
 def scraper_logs():
     """Get scraper logs"""
     try:
@@ -210,7 +210,7 @@ def scraper_logs():
     except Exception as e:
         return jsonify({'success': False, 'error': str(e)})
 
-@app.route('/api/scraper/modes')
+@app.route('/api/acquisition/modes')
 def scraper_modes():
     """Get available scraper modes"""
     try:
@@ -219,7 +219,7 @@ def scraper_modes():
     except Exception as e:
         return jsonify({'success': False, 'error': str(e)})
 
-@app.route('/api/scraper/dependencies')
+@app.route('/api/acquisition/dependencies')
 def scraper_dependencies():
     """Check scraper dependencies"""
     try:
@@ -228,7 +228,7 @@ def scraper_dependencies():
     except Exception as e:
         return jsonify({'success': False, 'error': str(e)})
 
-@app.route('/api/scraper/detect-sitemap', methods=['POST'])
+@app.route('/api/acquisition/detect-sitemap', methods=['POST'])
 def detect_sitemap():
     """Detect sitemap URL for a given domain"""
     try:
@@ -295,7 +295,7 @@ def detect_sitemap():
         logger.error(f"Error detecting sitemap: {e}")
         return jsonify({'success': False, 'message': f'Error detecting sitemap: {str(e)}'})
 
-@app.route('/api/scraper/download-sitemap', methods=['POST'])
+@app.route('/api/acquisition/download-sitemap', methods=['POST'])
 def download_sitemap():
     """Download and process sitemap with progress updates"""
     try:
@@ -517,7 +517,7 @@ def download_sitemap():
         logger.error(f"Error starting sitemap download: {e}")
         return jsonify({'success': False, 'message': f'Error starting download: {str(e)}'})
 
-@app.route('/api/scraper/sitemap-status')
+@app.route('/api/acquisition/sitemap-status')
 def get_sitemap_status():
     """Get current sitemap status and statistics"""
     try:
@@ -612,7 +612,7 @@ def database_stats():
     """Get database statistics from Supabase"""
     try:
         # Use Supabase for external access
-        stats = db_manager.get_product_stats('supabase')
+        stats = db_manager.get_product_stats('vector_db')
         return jsonify({'success': True, 'stats': stats})
     except Exception as e:
         return jsonify({'success': False, 'error': str(e)})
@@ -720,7 +720,7 @@ def sync_test_connections():
 
 @app.route('/api/sync/sync-data', methods=['POST'])
 def sync_data():
-    """Trigger data sync from n8n-postgres to Supabase"""
+    """Trigger data sync from relational_db to vector_db"""
     try:
         data = request.get_json() or {}
         force_full_sync = data.get('force_full_sync', False)
@@ -888,7 +888,7 @@ def comprehensive_health_check():
             import subprocess
             test_url = "https://www.tileshop.com/product/486962.do"
             
-            # Quick test using crawl4ai container with proper authorization
+            # Quick test using crawler service with proper authorization
             result = subprocess.run([
                 'curl', '-s', '-f', '--max-time', '10',
                 f'http://localhost:11235/crawl',
@@ -1082,7 +1082,7 @@ def get_system_context():
         
         # Get database stats
         try:
-            db_stats = db_manager.get_product_stats('supabase')
+            db_stats = db_manager.get_product_stats('vector_db')
             context['database'] = db_stats
         except Exception as e:
             context['database']['error'] = str(e)
@@ -1218,7 +1218,7 @@ def generate_fallback_response(message, system_context):
     # Check if message contains off-topic keywords and isn't about our system
     is_system_related = any(word in message_lower for word in [
         'container', 'docker', 'database', 'scraper', 'scraping', 'tileshop',
-        'rag', 'supabase', 'postgres', 'crawl4ai', 'health', 'status',
+        'rag', 'vector_db', 'relational_db', 'crawler', 'health', 'status',
         'monitoring', 'infrastructure', 'css', 'ui', 'dashboard', 'api'
     ])
     
@@ -1379,7 +1379,7 @@ def get_system_stats():
         system_stats['uptime'] = time.time() - boot_time
         
         # Database connections (mock for now - could be enhanced)
-        system_stats['db_connections'] = 2  # n8n + supabase
+        system_stats['db_connections'] = 2  # relational + vector
         
         return jsonify({'success': True, 'stats': system_stats})
     except Exception as e:
@@ -1588,7 +1588,7 @@ def check_docker_daemon():
 def check_infrastructure_status():
     """Check overall infrastructure container status"""
     try:
-        required_containers = ['postgres', 'supabase', 'crawl4ai']
+        required_containers = ['relational_db', 'vector_db', 'crawler']
         running_containers = []
         
         all_containers = docker_manager.get_all_containers_status()
