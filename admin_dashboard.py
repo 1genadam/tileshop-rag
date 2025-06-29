@@ -562,16 +562,17 @@ def get_sitemap_status():
         
         completion_rate = (completed / total_urls * 100) if total_urls > 0 else 0
         
-        # Calculate inserted count (difference between learned and stored in database)
+        # Calculate inserted count (products in database that didn't come from current sitemap learning)
         inserted = 0
         try:
             # Get current database count to calculate inserted
             db_stats = db_manager.get_product_stats('relational_db')
             db_count = db_stats.get('total_products', 0) if db_stats else 0
-            inserted = max(0, db_count - (total_urls - completed - failed))  # Simple approximation
+            # Inserted = Database products - Learned from sitemap
+            inserted = max(0, db_count - completed)
         except Exception as e:
             logger.warning(f"Could not calculate inserted count: {e}")
-            inserted = max(0, completed - 32)  # Fallback estimation
+            inserted = 0  # Default to 0 if calculation fails
         
         # Check age of sitemap
         downloaded_at = data.get('downloaded_at')
