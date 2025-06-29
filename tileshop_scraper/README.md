@@ -1,6 +1,6 @@
-# Tileshop Product Scraper & AI RAG System
+# Tileshop Intelligence Platform & AI Knowledge System
 
-A comprehensive e-commerce data extraction and AI-powered product discovery system for Tileshop.com. Features intelligent product categorization, slip-resistance classification, and Claude-powered natural language search through a complete RAG (Retrieval-Augmented Generation) interface.
+A comprehensive e-commerce intelligence platform and AI-powered product discovery system for Tileshop.com. Features intelligent product categorization, slip-resistance classification, and Claude-powered natural language search through a complete knowledge acquisition and retrieval interface.
 
 ## 🆕 **Latest Enhancements (June 27, 2025)**
 
@@ -46,9 +46,9 @@ A comprehensive e-commerce data extraction and AI-powered product discovery syst
 ## Project Context & Goals
 
 ### Background
-- **Primary Goal**: Build a comprehensive scraper for Tileshop product pages that can extract structured data including product specifications, pricing, and descriptions
+- **Primary Goal**: Build a comprehensive intelligence platform for Tileshop product pages that can acquire structured data including product specifications, pricing, and descriptions
 - **Secondary Goal**: Create a proven Python implementation first, then translate to n8n workflow for production use
-- **Challenge**: Previous n8n scraper attempts failed due to inadequate crawl4ai configuration and insufficient data extraction logic
+- **Challenge**: Previous n8n automation attempts failed due to inadequate crawl4ai configuration and insufficient data acquisition logic
 
 ### User Requirements Gathered
 1. **Data Points Needed**:
@@ -58,9 +58,9 @@ A comprehensive e-commerce data extraction and AI-powered product discovery syst
    - Technical specifications (dimensions, material type, thickness, etc.)
 
 2. **Infrastructure**: 
-   - Periodic scraping (add/update/remove products from database)
+   - Periodic data acquisition (add/update/remove products from database)
    - Local containerized setup to minimize costs
-   - Rate-limited, respectful scraping
+   - Rate-limited, respectful data acquisition
 
 3. **Data Sources**:
    - Main product pages from sitemap.xml (filtered for /products/ URLs)
@@ -244,7 +244,7 @@ python tileshop_scraper.py
 - Technical documentation links
 - Related product resources
 
-### Extracted Data Schema
+### Acquired Data Schema
 
 | Field | Source | Type | Example |
 |-------|--------|------|---------|
@@ -300,7 +300,7 @@ CREATE TABLE product_data (
     resources TEXT,
     raw_html TEXT,
     raw_markdown TEXT,
-    scraped_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    acquired_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
     updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
 );
 ```
@@ -320,12 +320,12 @@ docker exec postgres psql -U postgres -c "SELECT COUNT(*) FROM product_data;"
 
 ## Methodology & Implementation Details
 
-### Data Extraction Strategy
-1. **Multi-tab Crawling**: For each product URL, the scraper:
-   - Crawls the main page for basic product info
-   - Crawls `{url}#description` for detailed product descriptions
-   - Crawls `{url}#specifications` for technical specifications
-   - Crawls `{url}#resources` for PDFs and installation guides
+### Data Acquisition Strategy
+1. **Multi-tab Intelligence**: For each product URL, the platform:
+   - Acquires the main page for basic product info
+   - Acquires `{url}#description` for detailed product descriptions
+   - Acquires `{url}#specifications` for technical specifications
+   - Acquires `{url}#resources` for PDFs and installation guides
 
 2. **JavaScript Execution**: Uses crawl4ai's JavaScript capabilities to:
    - Click on tabs to load dynamic content
@@ -1023,6 +1023,16 @@ The project now uses proper environment variable management to protect sensitive
 - **GitHub**: https://github.com/1genadam/tileshop-rag
 - **Main Branch**: `main`
 - **License**: Private repository
+- **Current Authentication**: Personal Access Token (configured in remote URL)
+
+### **✅ Quick Push (Current Setup)**
+```bash
+# The repository is already configured with Personal Access Token
+# Simply stage, commit, and push:
+git add .
+git commit -m "Your commit message"
+git push tileshop-rag main
+```
 
 ### **Easy GitHub Commit Instructions**
 
@@ -1065,6 +1075,58 @@ git push tileshop-rag main
 
 # Alternative: Push to origin if set up
 git push origin main
+```
+
+#### **🔐 Authentication Methods**
+
+**✅ CURRENT METHOD: Personal Access Token (Working)**
+```bash
+# This project is currently configured to use Personal Access Token
+# Token is already configured in the remote URL
+# Simply use: git push tileshop-rag main
+```
+
+**Option 1: SSH Key (Alternative)**
+```bash
+# 1. Generate SSH key if you don't have one
+ssh-keygen -t ed25519 -C "your-email@example.com"
+
+# 2. Add key to SSH agent
+ssh-add ~/.ssh/id_ed25519
+# (Enter your passphrase when prompted)
+
+# 3. Copy public key to clipboard
+cat ~/.ssh/id_ed25519.pub
+# Add this key to GitHub → Settings → SSH and GPG keys
+
+# 4. Test connection
+ssh -T git@github.com
+
+# 5. Ensure remote uses SSH
+git remote set-url tileshop-rag git@github.com:1genadam/tileshop-rag.git
+```
+
+**Option 2: Personal Access Token Setup (For New Users)**
+```bash
+# 1. Create token at GitHub → Settings → Developer settings → Personal access tokens
+# 2. Select 'repo' permissions
+# 3. Use token in remote URL
+git remote set-url tileshop-rag https://YOUR_TOKEN@github.com/1genadam/tileshop-rag.git
+
+# 4. Push normally
+git push tileshop-rag main
+```
+
+**🚨 Troubleshooting Authentication**
+```bash
+# SSH Permission denied?
+# - Check if key is added: ssh-add -l
+# - Verify key in GitHub: cat ~/.ssh/id_ed25519.pub
+# - Test connection: ssh -T git@github.com
+
+# HTTPS asking for username/password?
+# - Use personal access token instead of password
+# - Update remote URL with token (see Option 2 above)
 ```
 
 #### **Example Complete Workflow**
@@ -1112,6 +1174,9 @@ git branch --set-upstream-to=tileshop-rag/main main
 3. **Virtual environment issues**: Use full path to activate script
 4. **Package installation problems**: Clean global packages and reinstall in venv
 5. **Git push failures**: Use correct remote (`tileshop-rag`) instead of origin
+6. **SSH authentication errors**: Add SSH key to agent with `ssh-add ~/.ssh/id_ed25519`
+7. **Permission denied (publickey)**: Ensure SSH key is added to GitHub account
+8. **HTTPS credential errors**: Use personal access token instead of password
 
 ### Debug Commands
 ```bash

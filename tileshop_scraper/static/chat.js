@@ -51,25 +51,46 @@ async function syncData() {
     if (!btn) return;
     
     const originalText = btn.innerHTML;
-    btn.innerHTML = '<span class="material-icons mr-2">sync</span> Syncing...';
-    btn.disabled = true;
     
     try {
+        // Get pre-sync counts
+        btn.innerHTML = '<span class="material-icons mr-2">sync</span> Getting counts...';
+        btn.disabled = true;
+        
+        const statusResponse = await fetch('/api/sync/status');
+        const statusData = await statusResponse.json();
+        const beforeCount = statusData.status?.connections?.target?.product_count || 0;
+        const sourceCount = statusData.status?.connections?.source?.product_count || 0;
+        
+        btn.innerHTML = '<span class="material-icons mr-2">sync</span> Syncing...';
+        
+        // Run actual sync
         const response = await fetch('/api/rag/sync', { method: 'POST' });
         const data = await response.json();
         
+        // Get post-sync counts
+        const afterStatusResponse = await fetch('/api/sync/status');
+        const afterStatusData = await afterStatusResponse.json();
+        const afterCount = afterStatusData.status?.connections?.target?.product_count || 0;
+        
+        const newProducts = afterCount - beforeCount;
+        
         if (data.success) {
-            btn.innerHTML = '<span class="material-icons mr-2">check_circle</span> Synced!';
+            if (newProducts > 0) {
+                btn.innerHTML = `<span class="material-icons mr-2">check_circle</span> Synced ${newProducts} new (${beforeCount} → ${afterCount})`;
+            } else {
+                btn.innerHTML = `<span class="material-icons mr-2">check_circle</span> Already synced (${afterCount} products)`;
+            }
             setTimeout(() => {
                 btn.innerHTML = originalText;
                 btn.disabled = false;
-            }, 2000);
+            }, 4000);
         } else {
-            btn.innerHTML = '<span class="material-icons mr-2">error</span> Failed';
+            btn.innerHTML = `<span class="material-icons mr-2">error</span> Failed (${beforeCount}/${sourceCount})`;
             setTimeout(() => {
                 btn.innerHTML = originalText;
                 btn.disabled = false;
-            }, 2000);
+            }, 3000);
         }
     } catch (error) {
         console.error('Sync error:', error);
