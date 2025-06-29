@@ -2191,62 +2191,63 @@
     {
       "url": "https://www.tileshop.com/products/arbour-highlands-byron-bay-oak-luxury-vinyl-overlap-stair-nose-84-in-683964",
       "lastmod": null,
-      "scraped_at": null,
-      "scrape_status": "pending"
+      "scraped_at": "2025-06-29T17:55:49.616440",
+      "scrape_status": "completed"
     },
     {
       "url": "https://www.tileshop.com/products/arbour-highlands-byron-bay-oak-luxury-vinyl-reducer-84-in-683963",
       "lastmod": null,
-      "scraped_at": null,
-      "scrape_status": "pending"
+      "scraped_at": "2025-06-29T17:56:18.815310",
+      "scrape_status": "failed",
+      "error": "Crawl timeout"
     },
     {
       "url": "https://www.tileshop.com/products/arbour-highlands-byron-bay-oak-luxury-vinyl-t-molding-84-in-683962",
       "lastmod": null,
-      "scraped_at": null,
-      "scrape_status": "pending"
+      "scraped_at": "2025-06-29T17:56:29.356502",
+      "scrape_status": "completed"
     },
     {
       "url": "https://www.tileshop.com/products/arbour-highlands-montecito-oak-luxury-vinyl-quarter-round-84-in-683961",
       "lastmod": null,
-      "scraped_at": null,
-      "scrape_status": "pending"
+      "scraped_at": "2025-06-29T17:56:42.874637",
+      "scrape_status": "completed"
     },
     {
       "url": "https://www.tileshop.com/products/arbour-highlands-montecito-oak-luxury-vinyl-flush-stair-nose-84-in-683960",
       "lastmod": null,
-      "scraped_at": null,
-      "scrape_status": "pending"
+      "scraped_at": "2025-06-29T17:56:56.380040",
+      "scrape_status": "completed"
     },
     {
       "url": "https://www.tileshop.com/products/arbour-highlands-montecito-oak-luxury-vinyl-overlap-stair-nose-84-in-683959",
       "lastmod": null,
-      "scraped_at": null,
-      "scrape_status": "pending"
+      "scraped_at": "2025-06-29T17:57:09.848178",
+      "scrape_status": "completed"
     },
     {
       "url": "https://www.tileshop.com/products/arbour-highlands-montecito-oak-luxury-vinyl-reducer-84-in-683958",
       "lastmod": null,
-      "scraped_at": null,
-      "scrape_status": "pending"
+      "scraped_at": "2025-06-29T17:57:23.300701",
+      "scrape_status": "completed"
     },
     {
       "url": "https://www.tileshop.com/products/arbour-highlands-montecito-oak-luxury-vinyl-t-molding-84-in-683957",
       "lastmod": null,
-      "scraped_at": null,
-      "scrape_status": "pending"
+      "scraped_at": "2025-06-29T17:57:36.763580",
+      "scrape_status": "completed"
     },
     {
       "url": "https://www.tileshop.com/products/arbour-midlands-shoreline-oak-luxury-vinyl-quarter-round-84-in-683956",
       "lastmod": null,
-      "scraped_at": null,
-      "scrape_status": "pending"
+      "scraped_at": "2025-06-29T17:57:50.270334",
+      "scrape_status": "completed"
     },
     {
       "url": "https://www.tileshop.com/products/arbour-midlands-shoreline-oak-luxury-vinyl-flush-stair-nose-84-in-683955",
       "lastmod": null,
-      "scraped_at": null,
-      "scrape_status": "pending"
+      "scraped_at": "2025-06-29T17:58:03.833334",
+      "scrape_status": "completed"
     },
     {
       "url": "https://www.tileshop.com/products/arbour-midlands-shoreline-oak-luxury-vinyl-overlap-stair-nose-84-in-683954",

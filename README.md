@@ -40,7 +40,25 @@ A comprehensive e-commerce intelligence platform and AI-powered product discover
 
 ---
 
-## 🆕 **Latest Enhancements (June 29, 2025 - 3:50 PM)**
+## 🆕 **Latest Enhancements (June 29, 2025 - 6:03 PM)**
+
+### **🎯 Dashboard Terminology & UI Improvements**
+- **Sitemap Statistics Rebranding**: Renamed "Completed" to "Learned" to better reflect the AI learning process
+- **Added "Inserted" Metric**: New field showing the difference between learned URLs and database records
+- **Database Naming Consistency**: Renamed `n8n_config` to `relational_db_config` throughout codebase
+- **RAG Status Fix**: Corrected record count display from 5 to 235 by fixing database query parameter
+- **Enhanced Sync Feedback**: Added before/after record count display for sync operations
+- **Persistent Timestamps**: Sync timestamps now persist across page reloads using localStorage
+
+### **🔧 Database & Backend Improvements**  
+- **Consistent Database References**: All `n8n` database references updated to `relational_db`
+- **API Parameter Alignment**: Fixed `/api/database/stats` to query Supabase for accurate RAG counts
+- **Improved Error Handling**: Better fallback calculations for inserted count metrics
+- **Enhanced Logging**: More detailed database connection and query logging
+
+---
+
+## 🆕 **Previous Enhancements (June 29, 2025 - 3:50 PM)**
 
 ### **🔧 Enhanced Microservices Health Check System**
 - **Comprehensive Service Health Checks**: All 8 services now use real health validation instead of showing "Not Found"

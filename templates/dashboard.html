@@ -322,18 +322,22 @@
             <div class="form-group">
                 <label>Sitemap Statistics:</label>
                 <div id="sitemap-stats-container" style="padding: 0.75rem; background: #f8f9fa; border: 1px solid #e5e7eb; border-radius: 6px;">
-                    <div style="display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 1rem; margin-bottom: 0.5rem;">
+                    <div style="display: grid; grid-template-columns: 1fr 1fr 1fr 1fr; gap: 0.75rem; margin-bottom: 0.5rem;">
                         <div style="text-align: center;">
-                            <div style="font-size: 1.2rem; font-weight: bold; color: #3b82f6;" id="sitemap-total-count">-</div>
-                            <div style="font-size: 0.8rem; color: #6b7280;">Total URLs</div>
+                            <div style="font-size: 1.1rem; font-weight: bold; color: #3b82f6;" id="sitemap-total-count">-</div>
+                            <div style="font-size: 0.75rem; color: #6b7280;">Total URLs</div>
                         </div>
                         <div style="text-align: center;">
-                            <div style="font-size: 1.2rem; font-weight: bold; color: #f59e0b;" id="sitemap-pending-count">-</div>
-                            <div style="font-size: 0.8rem; color: #6b7280;">Pending</div>
+                            <div style="font-size: 1.1rem; font-weight: bold; color: #f59e0b;" id="sitemap-pending-count">-</div>
+                            <div style="font-size: 0.75rem; color: #6b7280;">Pending</div>
                         </div>
                         <div style="text-align: center;">
-                            <div style="font-size: 1.2rem; font-weight: bold; color: #10b981;" id="sitemap-completed-count">-</div>
-                            <div style="font-size: 0.8rem; color: #6b7280;">Completed</div>
+                            <div style="font-size: 1.1rem; font-weight: bold; color: #10b981;" id="sitemap-learned-count">-</div>
+                            <div style="font-size: 0.75rem; color: #6b7280;">Learned</div>
+                        </div>
+                        <div style="text-align: center;">
+                            <div style="font-size: 1.1rem; font-weight: bold; color: #8b5cf6;" id="sitemap-inserted-count">-</div>
+                            <div style="font-size: 0.75rem; color: #6b7280;">Inserted</div>
                         </div>
                     </div>
                     <div style="display: flex; justify-content: space-between; align-items: center; font-size: 0.875rem; color: #4b5563;">
@@ -1056,14 +1060,16 @@
     function updateSitemapStats(sitemapData) {
         const totalEl = document.getElementById('sitemap-total-count');
         const pendingEl = document.getElementById('sitemap-pending-count');
-        const completedEl = document.getElementById('sitemap-completed-count');
+        const learnedEl = document.getElementById('sitemap-learned-count');
+        const insertedEl = document.getElementById('sitemap-inserted-count');
         const messageEl = document.getElementById('sitemap-status-message');
         const completionRateEl = document.getElementById('sitemap-completion-rate');
         
         if (!sitemapData.success) {
             if (totalEl) totalEl.textContent = '-';
             if (pendingEl) pendingEl.textContent = '-';
-            if (completedEl) completedEl.textContent = '-';
+            if (learnedEl) learnedEl.textContent = '-';
+            if (insertedEl) insertedEl.textContent = '-';
             if (messageEl) messageEl.textContent = 'Error loading sitemap data';
             if (completionRateEl) completionRateEl.textContent = '0%';
             return;
@@ -1074,10 +1080,15 @@
         // Store stats globally for use by other functions
         globalSitemapStats = stats;
         
+        // Get counts from API
+        const learned = stats.completed || 0;
+        const inserted = stats.inserted || 0;
+        
         // Update counts
         if (totalEl) totalEl.textContent = stats.total_urls.toLocaleString();
         if (pendingEl) pendingEl.textContent = stats.pending.toLocaleString();
-        if (completedEl) completedEl.textContent = stats.completed.toLocaleString();
+        if (learnedEl) learnedEl.textContent = learned.toLocaleString();
+        if (insertedEl) insertedEl.textContent = inserted.toLocaleString();
         
         // Update message
         if (messageEl) {
