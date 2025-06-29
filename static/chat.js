@@ -44,10 +44,34 @@ async function sendMessage() {
     }
 }
 
+// Load RAG status and record count
+async function loadRAGStatus() {
+    try {
+        const response = await fetch('/api/database/stats');
+        const data = await response.json();
+        
+        if (data.success && data.stats) {
+            const recordCount = data.stats.total_products || 0;
+            const recordsCountEl = document.getElementById('records-count');
+            if (recordsCountEl) {
+                recordsCountEl.textContent = recordCount.toLocaleString();
+            }
+        }
+    } catch (error) {
+        console.error('Error loading RAG status:', error);
+        const recordsCountEl = document.getElementById('records-count');
+        if (recordsCountEl) {
+            recordsCountEl.textContent = 'Error loading';
+        }
+    }
+}
+
 // Sync function
 async function syncData() {
     console.log('Sync function called (external)');
     const btn = document.getElementById('sync-data-button');
+    const syncMessage = document.getElementById('sync-status-message');
+    const lastSyncEl = document.getElementById('last-sync-time');
     if (!btn) return;
     
     const originalText = btn.innerHTML;
@@ -60,24 +84,54 @@ async function syncData() {
         
         if (data.success) {
             btn.innerHTML = '<span class="material-icons mr-2">check_circle</span> Synced!';
+            
+            // Get updated record count
+            await loadRAGStatus();
+            
+            // Update sync timestamp
+            const now = new Date();
+            const timeStr = now.toLocaleString('en-US', { 
+                month: 'short', 
+                day: 'numeric', 
+                hour: '2-digit', 
+                minute: '2-digit' 
+            });
+            
+            if (lastSyncEl) {
+                lastSyncEl.textContent = `Last sync: ${timeStr}`;
+            }
+            
+            if (syncMessage) {
+                syncMessage.textContent = `Sync completed at ${timeStr}`;
+            }
+            
             setTimeout(() => {
                 btn.innerHTML = originalText;
                 btn.disabled = false;
-            }, 2000);
+                if (syncMessage) syncMessage.textContent = '';
+            }, 3000);
         } else {
             btn.innerHTML = '<span class="material-icons mr-2">error</span> Failed';
+            if (syncMessage) {
+                syncMessage.textContent = 'Sync failed: ' + (data.error || 'Unknown error');
+            }
             setTimeout(() => {
                 btn.innerHTML = originalText;
                 btn.disabled = false;
-            }, 2000);
+                if (syncMessage) syncMessage.textContent = '';
+            }, 3000);
         }
     } catch (error) {
         console.error('Sync error:', error);
         btn.innerHTML = '<span class="material-icons mr-2">error</span> Failed';
+        if (syncMessage) {
+            syncMessage.textContent = 'Connection error';
+        }
         setTimeout(() => {
             btn.innerHTML = originalText;
             btn.disabled = false;
-        }, 2000);
+            if (syncMessage) syncMessage.textContent = '';
+        }, 3000);
     }
 }
 
@@ -197,6 +251,9 @@ function useSuggestion(text) {
 // DOM Ready initialization
 document.addEventListener('DOMContentLoaded', function() {
     console.log('DOM loaded - External JavaScript initializing...');
+    
+    // Load RAG status on page load
+    loadRAGStatus();
     
     // Add chat input listeners
     const input = document.getElementById('chat-input');

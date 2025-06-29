@@ -206,6 +206,10 @@
                     <span class="material-icons text-green-500 mr-2" id="rag-status-icon">check_circle</span>
                     <span class="text-gray-600" id="rag-status-text">Ready</span>
                 </div>
+                <div class="mb-3">
+                    <p class="text-sm text-gray-600">Records: <span id="records-count" class="font-medium text-blue-600">Loading...</span></p>
+                    <p class="text-xs text-gray-500" id="last-sync-time">Checking sync status...</p>
+                </div>
                 <button class="w-full bg-blue-500 hover:bg-blue-600 text-white font-medium py-2 px-4 rounded-md flex items-center justify-center transition duration-150 ease-in-out" id="sync-data-button" onclick="syncData()">
                     <span class="material-icons mr-2">sync</span> Sync Data
                 </button>
