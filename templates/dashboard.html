@@ -858,127 +858,91 @@
     }
     
     function updateDockerStatus(containers) {
-        // Updated container map to include all services
-        const containerMap = {
-            'postgres': 'relational_db',
-            'supabase': 'vector_db', 
-            'crawl4ai': 'crawler',
-            'kong': 'api_gateway'
-        };
-        
-        // Conceptual services that don't have actual containers
-        const conceptualServices = [
+        // All services are now returned directly by the API with their service names
+        const allServices = [
             'docker_engine',
-            'llm_api', 
+            'relational_db',
+            'vector_db', 
+            'crawler',
+            'llm_api',
             'web_server',
+            'api_gateway',
             'intelligence_platform'
         ];
         
         let allRunning = true;
         let anyRunning = false;
         let runningCount = 0;
-        let totalServices = Object.keys(containerMap).length + conceptualServices.length;
+        let totalServices = allServices.length;
         
-        Object.entries(containerMap).forEach(([containerName, serviceId]) => {
-            const container = containers[containerName];
-            const dot = document.getElementById(serviceId + '-dot');
-            const text = document.getElementById(serviceId + '-text');
-            const info = document.getElementById(serviceId + '-info');
-            
-            if (container) {
-                if (container.status === 'running') {
-                    dot.className = 'status-dot green';
-                    text.textContent = 'Running';
-                    anyRunning = true;
-                    runningCount++;
-                    
-                    // Update service info with stats when running
-                    if (info && container.stats) {
-                        const memoryMB = Math.round(container.stats.memory_usage_mb || 0);
-                        const cpuPercent = (container.stats.cpu_percent || 0).toFixed(1);
-                        info.textContent = `Memory: ${memoryMB}MB, CPU: ${cpuPercent}%`;
-                    } else if (info) {
-                        info.textContent = 'Running - Stats loading...';
-                    }
-                } else if (container.status === 'exited') {
-                    dot.className = 'status-dot red';
-                    text.textContent = 'Stopped';
-                    allRunning = false;
-                    
-                    // Restore original description when stopped
-                    if (info) {
-                        const descriptions = {
-                            'relational_db': 'Primary relational database for structured data',
-                            'vector_db': 'Vector database with embeddings and AI capabilities',
-                            'crawler': 'AI-powered web crawling service'
-                        };
-                        info.textContent = descriptions[serviceId] || 'Service stopped';
-                    }
-                } else {
-                    dot.className = 'status-dot yellow';
-                    text.textContent = container.status;
-                    allRunning = false;
-                    
-                    if (info) {
-                        info.textContent = `Status: ${container.status}`;
-                    }
-                }
-            } else {
-                dot.className = 'status-dot gray';
-                text.textContent = 'Not Found';
-                allRunning = false;
-                
-                if (info) {
-                    info.textContent = 'Container not found';
-                }
-            }
-            
-            // Individual start buttons have been permanently removed
-            // Services can only be started via "Start All Services" button
-        });
-        
-        // Handle conceptual services from the containers response
-        conceptualServices.forEach(serviceId => {
-            const dot = document.getElementById(serviceId + '-dot');
-            const text = document.getElementById(serviceId + '-text');
-            const info = document.getElementById(serviceId + '-info');
-            
-            // Check if we have data for this conceptual service in the containers response
+        allServices.forEach(serviceId => {
             const serviceData = containers[serviceId];
+            const dot = document.getElementById(serviceId + '-dot');
+            const text = document.getElementById(serviceId + '-text');
+            const info = document.getElementById(serviceId + '-info');
             
             if (serviceData) {
+                // Check service status based on health and status
                 if (serviceData.status === 'running' || serviceData.health === 'healthy') {
                     dot.className = 'status-dot green';
                     text.textContent = 'Running';
-                    runningCount++;
                     anyRunning = true;
+                    runningCount++;
                     
-                    if (info && serviceData.message) {
-                        info.textContent = serviceData.message;
+                    // Update service info with message and URLs when running
+                    if (info) {
+                        let infoText = serviceData.message || 'Service is running';
+                        
+                        // Add URLs for database interfaces
+                        if (serviceId === 'relational_db') {
+                            infoText += ' - pgAdmin: http://localhost:5050';
+                        } else if (serviceId === 'vector_db') {
+                            infoText += ' - Supabase Studio: http://localhost:54323';
+                        } else if (serviceId === 'crawler') {
+                            infoText += ' - API: http://localhost:11235';
+                        } else if (serviceId === 'api_gateway') {
+                            infoText += ' - Gateway: http://localhost:8000';
+                        }
+                        
+                        info.textContent = infoText;
                     }
                 } else if (serviceData.status === 'unavailable' || serviceData.health === 'unhealthy') {
                     dot.className = 'status-dot red';
                     text.textContent = 'Unavailable';
                     allRunning = false;
                     
-                    if (info && serviceData.message) {
-                        info.textContent = serviceData.message;
+                    if (info) {
+                        info.textContent = serviceData.message || 'Service unavailable';
+                    }
+                } else if (serviceData.status === 'exited' || serviceData.status === 'stopped') {
+                    dot.className = 'status-dot red';
+                    text.textContent = 'Stopped';
+                    allRunning = false;
+                    
+                    if (info) {
+                        info.textContent = serviceData.message || 'Service stopped';
                     }
                 } else {
                     dot.className = 'status-dot yellow';
                     text.textContent = serviceData.status || 'Unknown';
                     allRunning = false;
                     
-                    if (info && serviceData.message) {
-                        info.textContent = serviceData.message;
+                    if (info) {
+                        info.textContent = serviceData.message || `Status: ${serviceData.status}`;
                     }
                 }
             } else {
-                // Default state for conceptual services when no data
                 dot.className = 'status-dot gray';
                 text.textContent = 'Checking...';
                 allRunning = false;
+                
+                if (info) {
+                    info.textContent = 'Status checking...';
+                }
             }
+            
+            // Individual start buttons have been permanently removed
+            // Services can only be started via "Start All Services" button
         });
         
         // Calculate if all services are running
