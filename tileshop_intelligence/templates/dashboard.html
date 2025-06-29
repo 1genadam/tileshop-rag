@@ -1,0 +1,2105 @@
+{% extends "base.html" %}
+
+{% block title %}Dashboard - Tileshop Intelligence{% endblock %}
+
+{% block content %}
+<div class="grid grid-4">
+    <!-- Docker Status Cards -->
+    <div class="card span-3">
+        <h3><i class="fas fa-cogs"></i> Data Intelligence Services</h3>
+        
+        <!-- Unified Controls -->
+        <div style="margin-bottom: 1.5rem; padding: 1rem; background: #f8f9fa; border-radius: 8px;">
+            <div style="display: flex; gap: 1rem; align-items: center; flex-wrap: wrap;">
+                <!-- Services Toggle Switch -->
+                <div style="display: flex; align-items: center; gap: 0.75rem;">
+                    <span style="font-weight: 500; color: #374151;">All Services:</span>
+                    <div class="toggle-switch" onclick="toggleAllServices()">
+                        <input type="checkbox" id="services-toggle" style="display: none;">
+                        <label for="services-toggle" class="toggle-label">
+                            <span class="toggle-slider"></span>
+                            <span class="toggle-text-off">OFF</span>
+                            <span class="toggle-text-on">ON</span>
+                        </label>
+                    </div>
+                </div>
+                
+                <button class="btn btn-primary" onclick="restartAllServices()">
+                    <i class="fas fa-sync"></i> Restart All Services
+                </button>
+                <button class="btn btn-secondary" onclick="refreshAllStatus()">
+                    <i class="fas fa-refresh"></i> Refresh Status
+                </button>
+                <button class="btn btn-info" onclick="runHealthCheck()">
+                    <i class="fas fa-heartbeat"></i> Health Check
+                </button>
+                <button class="btn btn-dark" onclick="openAITerminal()">
+                    <i class="fas fa-headset"></i> Customer Service
+                </button>
+                <div id="bulk-operation-status" style="margin-left: auto; font-weight: bold;"></div>
+            </div>
+        </div>
+        
+        <!-- Services Grid -->
+        <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: 1rem;">
+            <!-- postgres Service -->
+            <div class="service-card">
+                <div class="service-header">
+                    <i class="fas fa-server"></i>
+                    <span class="service-name">postgres</span>
+                    <div class="status-dot gray" id="postgres-dot"></div>
+                </div>
+                <div class="service-details">
+                    <div class="service-status" id="postgres-text">Checking...</div>
+                    <div class="service-info" id="postgres-info">Main PostgreSQL database for product data</div>
+                    <div class="service-progress" id="postgres-progress" style="display: none;">
+                        <div class="progress-bar">
+                            <div class="progress-fill animated"></div>
+                        </div>
+                    </div>
+                </div>
+                <div class="service-actions">
+                    <button class="btn btn-xs btn-secondary" onclick="showLogs('postgres')">Logs</button>
+                </div>
+            </div>
+
+            <!-- supabase Service -->
+            <div class="service-card">
+                <div class="service-header">
+                    <i class="fas fa-database"></i>
+                    <span class="service-name">supabase</span>
+                    <div class="status-dot gray" id="supabase-dot"></div>
+                </div>
+                <div class="service-details">
+                    <div class="service-status" id="supabase-text">Checking...</div>
+                    <div class="service-info" id="supabase-info">Supabase PostgreSQL with vector extensions</div>
+                    <div class="service-progress" id="supabase-progress" style="display: none;">
+                        <div class="progress-bar">
+                            <div class="progress-fill animated"></div>
+                        </div>
+                    </div>
+                </div>
+                <div class="service-actions">
+                    <button class="btn btn-xs btn-secondary" onclick="showLogs('supabase')">Logs</button>
+                </div>
+            </div>
+
+            <!-- crawl4ai Service -->
+            <div class="service-card">
+                <div class="service-header">
+                    <i class="fas fa-spider"></i>
+                    <span class="service-name">crawl4ai</span>
+                    <div class="status-dot gray" id="crawl4ai-dot"></div>
+                </div>
+                <div class="service-details">
+                    <div class="service-status" id="crawl4ai-text">Checking...</div>
+                    <div class="service-info" id="crawl4ai-info">AI-powered web scraping service</div>
+                    <div class="service-progress" id="crawl4ai-progress" style="display: none;">
+                        <div class="progress-bar">
+                            <div class="progress-fill animated"></div>
+                        </div>
+                    </div>
+                </div>
+                <div class="service-actions">
+                    <button class="btn btn-xs btn-secondary" onclick="showLogs('crawl4ai')">Logs</button>
+                </div>
+            </div>
+
+            <!-- Environment Status Service -->
+            <div class="service-card">
+                <div class="service-header">
+                    <i class="fas fa-cog"></i>
+                    <span class="service-name">Environment</span>
+                    <div class="status-dot gray" id="environment-dot"></div>
+                </div>
+                <div class="service-details">
+                    <div class="service-status" id="environment-text">Checking...</div>
+                    <div class="service-info" id="environment-info">Python virtual environment and dependencies</div>
+                    <div class="service-progress" id="environment-progress" style="display: none;">
+                        <div class="progress-bar">
+                            <div class="progress-fill animated"></div>
+                        </div>
+                    </div>
+                </div>
+                <div class="service-actions">
+                    <button class="btn btn-xs btn-primary" onclick="setupEnvironment()">Setup</button>
+                    <button class="btn btn-xs btn-secondary" onclick="checkEnvironmentStatus()">Check</button>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <div class="card">
+        <h3><i class="fas fa-server"></i> Environment Status</h3>
+        <div style="margin-bottom: 1rem;">
+            <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 1rem;">
+                <div>
+                    <div class="status-indicator">
+                        <div class="status-dot gray" id="python-env-dot"></div>
+                        <span id="python-env-text">Python Environment</span>
+                    </div>
+                    <div style="font-size: 0.8rem; color: #666; margin-left: 1.5rem;" id="python-env-details">
+                        Checking autogen_env...
+                    </div>
+                    <div class="env-progress" id="python-env-progress" style="display: none; margin-left: 1.5rem; margin-top: 0.5rem;">
+                        <div class="progress-bar small">
+                            <div class="progress-fill animated"></div>
+                        </div>
+                    </div>
+                </div>
+                <div>
+                    <div class="status-indicator">
+                        <div class="status-dot gray" id="dependencies-dot"></div>
+                        <span id="dependencies-text">Dependencies</span>
+                    </div>
+                    <div style="font-size: 0.8rem; color: #666; margin-left: 1.5rem;" id="dependencies-details">
+                        Checking packages...
+                    </div>
+                    <div class="env-progress" id="dependencies-progress" style="display: none; margin-left: 1.5rem; margin-top: 0.5rem;">
+                        <div class="progress-bar small">
+                            <div class="progress-fill animated"></div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 1rem; margin-top: 0.5rem;">
+                <div>
+                    <div class="status-indicator">
+                        <div class="status-dot gray" id="docker-daemon-dot"></div>
+                        <span id="docker-daemon-text">Docker Daemon</span>
+                    </div>
+                    <div style="font-size: 0.8rem; color: #666; margin-left: 1.5rem;" id="docker-daemon-details">
+                        Checking service...
+                    </div>
+                    <div class="env-progress" id="docker-daemon-progress" style="display: none; margin-left: 1.5rem; margin-top: 0.5rem;">
+                        <div class="progress-bar small">
+                            <div class="progress-fill animated"></div>
+                        </div>
+                    </div>
+                </div>
+                <div>
+                    <div class="status-indicator">
+                        <div class="status-dot gray" id="infrastructure-dot"></div>
+                        <span id="infrastructure-text">Infrastructure</span>
+                    </div>
+                    <div style="font-size: 0.8rem; color: #666; margin-left: 1.5rem;" id="infrastructure-details">
+                        Checking containers...
+                    </div>
+                    <div class="env-progress" id="infrastructure-progress" style="display: none; margin-left: 1.5rem; margin-top: 0.5rem;">
+                        <div class="progress-bar small">
+                            <div class="progress-fill animated"></div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+</div>
+
+<!-- Scraper Control -->
+<div class="card">
+    <h3><i class="fas fa-download"></i> Data Acquisition Control</h3>
+    <div class="grid grid-2">
+        <div>
+            <div class="form-group">
+                <label>Target Website URL:</label>
+                <input type="url" class="form-control" id="target-url" value="https://www.tileshop.com" placeholder="Enter website URL for data acquisition">
+                <div id="url-validation" style="margin-top: 0.5rem; font-size: 0.875rem;"></div>
+            </div>
+            <div class="form-group">
+                <label>Discovered Sitemap:</label>
+                <div id="sitemap-display" style="padding: 0.75rem; background: #f8f9fa; border: 1px solid #e5e7eb; border-radius: 6px; font-family: monospace; font-size: 0.875rem; min-height: 40px; display: flex; align-items: center;">
+                    <span id="sitemap-url" style="color: #6b7280;">Enter URL above to detect sitemap...</span>
+                    <button class="btn btn-xs btn-secondary" id="detect-sitemap-btn" onclick="detectSitemap()" style="margin-left: auto; display: none;">
+                        <i class="fas fa-search"></i> Detect
+                    </button>
+                </div>
+                <div id="sitemap-status" style="margin-top: 0.5rem; font-size: 0.875rem;"></div>
+            </div>
+            <div class="form-group">
+                <label>Sitemap Download Status:</label>
+                <div id="sitemap-download-container" style="padding: 0.75rem; background: #f8f9fa; border: 1px solid #e5e7eb; border-radius: 6px;">
+                    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 0.5rem;">
+                        <span id="sitemap-download-stage" style="font-weight: 500;">Ready</span>
+                        <span id="sitemap-download-progress-text" style="font-size: 0.875rem; color: #6b7280;">0%</span>
+                    </div>
+                    <div class="progress-bar" style="margin-bottom: 0.5rem;">
+                        <div class="progress-fill" id="sitemap-download-progress-bar" style="width: 0%; transition: width 0.3s ease;"></div>
+                    </div>
+                    <div id="sitemap-download-message" style="font-size: 0.875rem; color: #4b5563;">
+                        Click "Download Sitemap" to begin download and filtering process
+                    </div>
+                    <div id="sitemap-download-details" style="font-size: 0.8rem; color: #6b7280; margin-top: 0.5rem; display: none;">
+                    </div>
+                    <div style="margin-top: 0.75rem;">
+                        <button class="btn btn-primary btn-xs" id="download-sitemap-btn" onclick="downloadSitemap()" disabled>
+                            <i class="fas fa-download"></i> Download Sitemap
+                        </button>
+                    </div>
+                </div>
+            </div>
+            <div class="form-group">
+                <label>Sitemap Statistics:</label>
+                <div id="sitemap-stats-container" style="padding: 0.75rem; background: #f8f9fa; border: 1px solid #e5e7eb; border-radius: 6px;">
+                    <div style="display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 1rem; margin-bottom: 0.5rem;">
+                        <div style="text-align: center;">
+                            <div style="font-size: 1.2rem; font-weight: bold; color: #3b82f6;" id="sitemap-total-count">-</div>
+                            <div style="font-size: 0.8rem; color: #6b7280;">Total URLs</div>
+                        </div>
+                        <div style="text-align: center;">
+                            <div style="font-size: 1.2rem; font-weight: bold; color: #f59e0b;" id="sitemap-pending-count">-</div>
+                            <div style="font-size: 0.8rem; color: #6b7280;">Pending</div>
+                        </div>
+                        <div style="text-align: center;">
+                            <div style="font-size: 1.2rem; font-weight: bold; color: #10b981;" id="sitemap-completed-count">-</div>
+                            <div style="font-size: 0.8rem; color: #6b7280;">Completed</div>
+                        </div>
+                    </div>
+                    <div style="display: flex; justify-content: space-between; align-items: center; font-size: 0.875rem; color: #4b5563;">
+                        <span id="sitemap-status-message">No sitemap data available</span>
+                        <span id="sitemap-completion-rate" style="font-weight: 500;">0%</span>
+                    </div>
+                </div>
+            </div>
+            <div class="form-group">
+                <label>Current Filter Criteria:</label>
+                <div style="padding: 0.75rem; background: #f0f9ff; border: 1px solid #bae6fd; border-radius: 6px; font-family: monospace; font-size: 0.875rem;">
+                    <div style="margin-bottom: 0.5rem; font-weight: 600; color: #0c4a6e;">✅ Include URLs that contain:</div>
+                    <div style="margin-left: 1rem; color: #0369a1;">• <code>tileshop.com/products</code> (main product pages)</div>
+                    
+                    <div style="margin: 0.75rem 0 0.5rem 0; font-weight: 600; color: #991b1b;">❌ Exclude URLs that contain:</div>
+                    <div style="margin-left: 1rem; color: #dc2626;">
+                        • <code>tileshop.com/products/,-w-,</code> (special collection URLs)<br>
+                        • <code>sample</code> (sample pages)
+                    </div>
+                    
+                    <div style="margin-top: 0.75rem; padding-top: 0.5rem; border-top: 1px solid #bae6fd; font-size: 0.8rem; color: #0369a1;">
+                        <strong>Typical Result:</strong> ~775 product URLs from 4,700+ total sitemap entries (16.5% filtered)
+                    </div>
+                </div>
+            </div>
+            <div class="form-group">
+                <label>Acquisition Mode:</label>
+                <select class="form-control" id="scraper-mode">
+                    <option value="test">Test Mode (10 URLs)</option>
+                    <option value="sitemap">Full Data Intelligence Platform</option>
+                </select>
+            </div>
+            <div class="form-group">
+                <label>URL Limit:</label>
+                <input type="number" class="form-control" id="acquisition-limit" value="10" min="1" max="4775">
+            </div>
+            <div class="form-group">
+                <label>
+                    <input type="checkbox" id="acquisition-fresh"> Fresh start (ignore previous progress)
+                </label>
+            </div>
+        </div>
+        <div>
+            <div id="scraper-status">
+                <p><strong>Status:</strong> <span id="scraper-status-text">Idle</span></p>
+                <p><strong>Mode:</strong> <span id="scraper-mode-text">-</span></p>
+                <p><strong>Progress:</strong> <span id="scraper-progress">0%</span> 
+                   <span id="scraper-eta" style="color: #666; margin-left: 1rem;">ETA: --</span></p>
+                <div class="progress-bar">
+                    <div class="progress-fill" id="scraper-progress-bar" style="width: 0%"></div>
+                </div>
+                <div class="scraper-stats-grid">
+                    <p><strong>Processed:</strong> <span id="scraper-count">0</span> / <span id="scraper-total">0</span></p>
+                    <p><strong>Successful:</strong> <span id="scraper-success" style="color: #16a34a;">0</span></p>
+                    <p><strong>Errors:</strong> <span id="scraper-errors" style="color: #dc2626;">0</span></p>
+                </div>
+                <div style="margin: 0.5rem 0;">
+                    <p><strong>Speed:</strong> <span id="scraper-speed">-- pages/min</span> 
+                       <span style="margin-left: 1rem;"><strong>Runtime:</strong> <span id="scraper-runtime">--</span></span></p>
+                </div>
+                <p><strong>Current URL:</strong></p>
+                <div id="current-url-container" style="position: relative;">
+                    <div id="current-url" style="font-family: monospace; font-size: 0.8rem; background: #f3f4f6; padding: 0.5rem; border-radius: 4px; word-break: break-all; max-height: 60px; overflow-y: auto; transition: background-color 0.3s;">
+                        Waiting for data acquisition...
+                    </div>
+                    <div id="url-status-indicator" style="position: absolute; top: 0.5rem; right: 0.5rem; width: 8px; height: 8px; border-radius: 50%; background: #ccc; transition: background-color 0.3s;"></div>
+                </div>
+            </div>
+            <div style="margin-top: 1rem; display: flex; gap: 1rem; align-items: center;">
+                <button class="btn btn-success" id="start-scraper" onclick="startScraper()">
+                    <i class="fas fa-play"></i> Start Data Acquisition
+                </button>
+                <button class="btn btn-danger" id="stop-scraper" onclick="stopScraper()" disabled>
+                    <i class="fas fa-stop"></i> Stop
+                </button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Database Sync Control -->
+<div class="card">
+    <h3><i class="fas fa-sync"></i> Database Sync</h3>
+    <div class="grid grid-2">
+        <div>
+            <div id="sync-status">
+                <p><strong>Source (Postgres):</strong> <span id="source-status">Checking...</span></p>
+                <p><strong>Target (Supabase):</strong> <span id="target-status">Checking...</span></p>
+                <p><strong>Sync Status:</strong> <span id="sync-ready">-</span></p>
+                <p><strong>Last Sync:</strong> <span id="last-sync">Never</span></p>
+            </div>
+        </div>
+        <div>
+            <div class="form-group">
+                <label>
+                    <input type="checkbox" id="force-full-sync"> Force full sync (slower)
+                </label>
+            </div>
+            <div style="display: flex; flex-direction: column; gap: 0.5rem; align-items: flex-start;">
+                <button class="btn btn-success" id="sync-data-btn" onclick="syncData()">
+                    <i class="fas fa-sync"></i> Sync Data
+                </button>
+                <button class="btn btn-secondary" onclick="testSyncConnections()">
+                    <i class="fas fa-plug"></i> Test Connections
+                </button>
+                <button class="btn btn-info" onclick="showSyncComparison()">
+                    <i class="fas fa-balance-scale"></i> Compare Data
+                </button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Data Intelligence Analytics -->
+<div class="card">
+    <h3><i class="fas fa-chart-bar"></i> Data Intelligence Analytics</h3>
+    <div class="grid grid-4">
+        <div>
+            <h4 style="color: #3b82f6;">Total Acquired</h4>
+            <p style="font-size: 2rem; font-weight: bold;" id="total-products">-</p>
+        </div>
+        <div>
+            <h4 style="color: #10b981;">Success Rate</h4>
+            <p style="font-size: 2rem; font-weight: bold;" id="success-rate">-</p>
+        </div>
+        <div>
+            <h4 style="color: #f59e0b;">Avg Acquisition Time</h4>
+            <p style="font-size: 2rem; font-weight: bold;" id="avg-scrape-time">-</p>
+        </div>
+        <div>
+            <h4 style="color: #ef4444;">Recent (24h)</h4>
+            <p style="font-size: 2rem; font-weight: bold;" id="recent-products">-</p>
+        </div>
+    </div>
+    <div style="display: grid; grid-template-columns: repeat(3, 1fr); gap: 1rem; margin: 1rem 0; padding: 1rem; background: #f8fafc; border-radius: 6px;">
+        <div>
+            <h4 style="color: #6366f1; font-size: 0.9rem;">Total Processing Time</h4>
+            <p style="font-size: 1.5rem; font-weight: bold;" id="total-scrape-time">-</p>
+        </div>
+        <div>
+            <h4 style="color: #8b5cf6; font-size: 0.9rem;">Available URLs</h4>
+            <p style="font-size: 1.5rem; font-weight: bold;" id="available-urls">-</p>
+        </div>
+        <div>
+            <h4 style="color: #06b6d4; font-size: 0.9rem;">Coverage</h4>
+            <p style="font-size: 1.5rem; font-weight: bold;" id="url-coverage">-</p>
+        </div>
+    </div>
+    <div style="margin-top: 1rem; display: flex; gap: 1rem;">
+        <button class="btn btn-primary" onclick="viewProducts()">
+            <i class="fas fa-table"></i> View Products
+        </button>
+        <button class="btn btn-secondary" onclick="exportProducts()">
+            <i class="fas fa-download"></i> Export CSV
+        </button>
+    </div>
+</div>
+
+<!-- System Statistics -->
+<div class="card">
+    <h3><i class="fas fa-server"></i> System Statistics</h3>
+    <div class="grid grid-2" style="gap: 2rem;">
+        <div>
+            <h4 style="color: #3b82f6; margin-bottom: 1rem;"><i class="fas fa-microchip"></i> CPU Usage</h4>
+            <div style="margin-bottom: 0.5rem;">
+                <div style="display: flex; justify-content: space-between; align-items: center;">
+                    <span>Current:</span>
+                    <span id="cpu-usage" style="font-weight: bold;">-</span>
+                </div>
+                <div class="progress-bar" style="margin-top: 0.25rem;">
+                    <div class="progress-fill" id="cpu-progress" style="width: 0%; background: linear-gradient(90deg, #10b981, #059669);"></div>
+                </div>
+            </div>
+            <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 0.5rem; font-size: 0.9rem; color: #666;">
+                <div>Cores: <span id="cpu-cores">-</span></div>
+                <div>Load Avg: <span id="cpu-load">-</span></div>
+            </div>
+        </div>
+        <div>
+            <h4 style="color: #f59e0b; margin-bottom: 1rem;"><i class="fas fa-memory"></i> Memory Usage</h4>
+            <div style="margin-bottom: 0.5rem;">
+                <div style="display: flex; justify-content: space-between; align-items: center;">
+                    <span>Used:</span>
+                    <span id="memory-usage" style="font-weight: bold;">-</span>
+                </div>
+                <div class="progress-bar" style="margin-top: 0.25rem;">
+                    <div class="progress-fill" id="memory-progress" style="width: 0%; background: linear-gradient(90deg, #f59e0b, #d97706);"></div>
+                </div>
+            </div>
+            <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 0.5rem; font-size: 0.9rem; color: #666;">
+                <div>Total: <span id="memory-total">-</span></div>
+                <div>Available: <span id="memory-available">-</span></div>
+            </div>
+        </div>
+    </div>
+    <div style="display: grid; grid-template-columns: repeat(3, 1fr); gap: 1rem; margin-top: 1.5rem; padding: 1rem; background: #f8fafc; border-radius: 6px;">
+        <div>
+            <h4 style="color: #ef4444; font-size: 0.9rem;"><i class="fas fa-hdd"></i> Disk Usage</h4>
+            <p style="font-size: 1.3rem; font-weight: bold;" id="disk-usage">-</p>
+            <div class="progress-bar" style="margin-top: 0.25rem; height: 4px;">
+                <div class="progress-fill" id="disk-progress" style="width: 0%; background: linear-gradient(90deg, #ef4444, #dc2626);"></div>
+            </div>
+        </div>
+        <div>
+            <h4 style="color: #8b5cf6; font-size: 0.9rem;"><i class="fas fa-database"></i> DB Connections</h4>
+            <p style="font-size: 1.3rem; font-weight: bold;" id="db-connections">-</p>
+        </div>
+        <div>
+            <h4 style="color: #06b6d4; font-size: 0.9rem;"><i class="fas fa-clock"></i> Uptime</h4>
+            <p style="font-size: 1.3rem; font-weight: bold;" id="system-uptime">-</p>
+        </div>
+    </div>
+</div>
+
+<!-- Recent Logs -->
+<div class="card">
+    <h3><i class="fas fa-terminal"></i> Recent Activity</h3>
+    <div id="activity-log" style="background: #1f2937; color: #e5e7eb; padding: 1rem; border-radius: 6px; height: 200px; overflow-y: auto; font-family: monospace; font-size: 0.875rem;">
+        <div>Waiting for activity...</div>
+    </div>
+</div>
+
+<!-- Logs Modal -->
+<div class="modal" id="logs-modal">
+    <div class="modal-content" style="max-width: 800px;">
+        <div class="modal-header">
+            <h3 id="logs-title">Container Logs</h3>
+            <button class="modal-close" onclick="closeLogs()">&times;</button>
+        </div>
+        <div id="logs-content" style="background: #1f2937; color: #e5e7eb; padding: 1rem; border-radius: 6px; height: 400px; overflow-y: auto; font-family: monospace; font-size: 0.875rem; white-space: pre-wrap;">
+        </div>
+    </div>
+</div>
+
+<!-- AI Terminal Modal -->
+<div class="modal" id="ai-terminal-modal">
+    <div class="modal-content" style="max-width: 900px; height: 80vh;">
+        <div class="modal-header">
+            <h3><i class="fas fa-headset"></i> Customer Service Assistant</h3>
+            <button class="modal-close" onclick="closeAITerminal()">&times;</button>
+        </div>
+        <div style="display: flex; flex-direction: column; height: calc(100% - 60px);">
+            <!-- Chat History -->
+            <div id="ai-chat-history" style="flex: 1; background: #1f2937; color: #e5e7eb; padding: 1rem; border-radius: 6px; overflow-y: auto; font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; margin-bottom: 1rem;">
+                <div class="ai-message system">
+                    <strong>🤖 Customer Service Assistant:</strong> Hello! I'm here to help with your Tileshop scraper questions and issues. I can assist with:
+                    <br>• Troubleshooting scraping errors
+                    <br>• Product data questions and analysis
+                    <br>• Error log interpretation
+                    <br>• Usage guidance and support
+                    <br><br>How can I help you today?
+                </div>
+            </div>
+            
+            <!-- Input Area -->
+            <div style="display: flex; gap: 0.5rem;">
+                <input 
+                    type="text" 
+                    id="ai-input" 
+                    placeholder="Describe your issue or ask about product data..."
+                    style="flex: 1; padding: 0.75rem; border: 1px solid #d1d5db; border-radius: 6px; font-size: 0.9rem;"
+                    onkeypress="if(event.key==='Enter') sendAIMessage()"
+                />
+                <button class="btn btn-primary" onclick="sendAIMessage()">
+                    <i class="fas fa-paper-plane"></i> Send
+                </button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Products Modal -->
+<div class="modal" id="products-modal">
+    <div class="modal-content" style="max-width: 1000px;">
+        <div class="modal-header">
+            <h3>Product Database</h3>
+            <button class="modal-close" onclick="closeProducts()">&times;</button>
+        </div>
+        <div id="products-content">
+            <div class="form-group">
+                <input type="text" class="form-control" id="product-search" placeholder="Search products..." onkeyup="searchProducts()">
+            </div>
+            <div id="products-table" style="max-height: 500px; overflow-y: auto;">
+                Loading products...
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Health Check Modal -->
+<div class="modal" id="health-check-modal">
+    <div class="modal-content" style="max-width: 700px;">
+        <div class="modal-header">
+            <h3><i class="fas fa-heartbeat"></i> System Health Check</h3>
+            <div style="display: flex; gap: 0.5rem; align-items: center;">
+                <button class="btn btn-xs btn-secondary" onclick="copyHealthResults()" title="Copy to clipboard">
+                    <i class="fas fa-copy"></i>
+                </button>
+                <button class="modal-close" onclick="closeHealthCheck()">&times;</button>
+            </div>
+        </div>
+        <div id="health-check-content" style="background: #f8f9fa; padding: 1rem; border-radius: 6px; font-family: monospace; font-size: 0.9rem; white-space: pre-wrap; max-height: 500px; overflow-y: auto;">
+            Loading health check results...
+        </div>
+        <div style="margin-top: 1rem; padding-top: 1rem; border-top: 1px solid #e9ecef; text-align: center; color: #6c757d; font-size: 0.8rem;">
+            Health check will remain open until closed manually
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+    let scraperRunning = false;
+    let globalSitemapStats = null;
+    
+    function initPage() {
+        // Initial load and start periodic refresh
+        loadDashboardData();
+        setInterval(loadDashboardData, 30000); // Refresh every 30 seconds
+        
+        // Initialize sitemap detection on page load
+        detectSitemapOnLoad();
+        
+        // Add URL input listener for automatic sitemap detection
+        const urlInput = document.getElementById('target-url');
+        if (urlInput) {
+            urlInput.addEventListener('input', debounce(detectSitemap, 1000));
+        }
+        
+        // Add scraper mode dropdown listener to update limit
+        const scraperModeSelect = document.getElementById('scraper-mode');
+        if (scraperModeSelect) {
+            scraperModeSelect.addEventListener('change', function() {
+                const limitInput = document.getElementById('scraper-limit');
+                if (this.value === 'sitemap') {
+                    // Use real total URL count from sitemap stats, fallback to 4775 if not available
+                    const totalUrls = globalSitemapStats ? globalSitemapStats.total_urls : 4775;
+                    limitInput.value = totalUrls;
+                } else if (this.value === 'test') {
+                    limitInput.value = 10;
+                }
+            });
+        }
+    }
+    
+    
+    function setServiceStatus(serviceId, status, text) {
+        // Hide progress bar when status is determined
+        hideServiceProgress(serviceId);
+        
+        // Update status text and dot
+        const statusElement = document.getElementById(serviceId + '-text');
+        const dotElement = document.getElementById(serviceId + '-dot');
+        
+        if (statusElement) {
+            statusElement.textContent = text;
+        }
+        
+        if (dotElement) {
+            dotElement.className = 'status-dot ' + (status === 'running' ? 'green' : status === 'pending' ? 'yellow' : 'red');
+        }
+        
+        // Show progress bar for pending states
+        if (status === 'pending' || status === 'checking') {
+            showServiceProgress(serviceId);
+        }
+    }
+    
+    function setEnvironmentStatus(envId, status, text, details) {
+        // Hide progress bar when status is determined
+        hideEnvironmentProgress(envId);
+        
+        // Update status elements
+        const statusElement = document.getElementById(envId + '-text');
+        const dotElement = document.getElementById(envId + '-dot');
+        const detailsElement = document.getElementById(envId + '-details');
+        
+        if (statusElement) {
+            statusElement.textContent = text;
+        }
+        
+        if (dotElement) {
+            dotElement.className = 'status-dot ' + (status === 'healthy' ? 'green' : status === 'warning' ? 'yellow' : 'red');
+        }
+        
+        if (detailsElement && details) {
+            detailsElement.textContent = details;
+        }
+        
+        // Show progress bar for pending/checking states
+        if (status === 'checking' || text.includes('Checking') || text.includes('...')) {
+            showEnvironmentProgress(envId);
+        }
+    }
+    
+    // Sitemap Detection Functions
+    async function detectSitemapOnLoad() {
+        const urlInput = document.getElementById('target-url');
+        if (urlInput && urlInput.value) {
+            await detectSitemap();
+        }
+    }
+    
+    async function detectSitemap() {
+        const urlInput = document.getElementById('target-url');
+        const sitemapDisplay = document.getElementById('sitemap-url');
+        const sitemapStatus = document.getElementById('sitemap-status');
+        const detectBtn = document.getElementById('detect-sitemap-btn');
+        
+        if (!urlInput || !urlInput.value) {
+            sitemapDisplay.textContent = 'Enter URL above to detect sitemap...';
+            sitemapDisplay.style.color = '#6b7280';
+            sitemapStatus.textContent = '';
+            detectBtn.style.display = 'none';
+            return;
+        }
+        
+        const url = urlInput.value.trim();
+        if (!url.match(/^https?:\/\/.+/)) {
+            sitemapDisplay.textContent = 'Please enter a valid HTTP/HTTPS URL';
+            sitemapDisplay.style.color = '#ef4444';
+            sitemapStatus.textContent = '';
+            detectBtn.style.display = 'none';
+            return;
+        }
+        
+        // Show loading state
+        sitemapDisplay.textContent = 'Detecting sitemap...';
+        sitemapDisplay.style.color = '#3b82f6';
+        sitemapStatus.textContent = '';
+        detectBtn.style.display = 'none';
+        
+        try {
+            const response = await fetch('/api/scraper/detect-sitemap', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ url: url })
+            });
+            
+            const result = await response.json();
+            
+            if (result.success && result.sitemap_url) {
+                sitemapDisplay.textContent = result.sitemap_url;
+                sitemapDisplay.style.color = '#10b981';
+                sitemapStatus.innerHTML = `<span style="color: #10b981;">✓ Sitemap found</span>`;
+                
+                // Enable download button when sitemap is found
+                const downloadBtn = document.getElementById('download-sitemap-btn');
+                if (downloadBtn) {
+                    downloadBtn.disabled = false;
+                }
+            } else {
+                sitemapDisplay.textContent = 'No sitemap found';
+                sitemapDisplay.style.color = '#f59e0b';
+                sitemapStatus.innerHTML = `<span style="color: #f59e0b;">⚠ ${result.message || 'Sitemap not detected'}</span>`;
+                detectBtn.style.display = 'inline-block';
+                
+                // Disable download button when sitemap not found
+                const downloadBtn = document.getElementById('download-sitemap-btn');
+                if (downloadBtn) {
+                    downloadBtn.disabled = true;
+                }
+            }
+        } catch (error) {
+            sitemapDisplay.textContent = 'Error detecting sitemap';
+            sitemapDisplay.style.color = '#ef4444';
+            sitemapStatus.innerHTML = `<span style="color: #ef4444;">❌ ${error.message}</span>`;
+            detectBtn.style.display = 'inline-block';
+        }
+    }
+    
+    // Debounce function to limit API calls
+    function debounce(func, wait) {
+        let timeout;
+        return function executedFunction(...args) {
+            const later = () => {
+                clearTimeout(timeout);
+                func(...args);
+            };
+            clearTimeout(timeout);
+            timeout = setTimeout(later, wait);
+        };
+    }
+    
+    async function loadDashboardData() {
+        // Load Docker status
+        const dockerStatus = await apiCall('/api/docker/status');
+        if (dockerStatus.success) {
+            updateDockerStatus(dockerStatus.containers);
+        }
+        
+        // Load sync status
+        const syncStatus = await apiCall('/api/sync/status');
+        if (syncStatus.success) {
+            updateSyncStatus(syncStatus.status);
+        }
+        
+        // Load database stats
+        const dbStats = await apiCall('/api/database/stats');
+        if (dbStats.success && dbStats.stats.table_exists) {
+            updateDatabaseStats(dbStats.stats);
+        }
+        
+        // Load scraper status
+        const scraperStatus = await apiCall('/api/scraper/status');
+        if (scraperStatus.success) {
+            updateScraperStatus(scraperStatus.status);
+        }
+        
+        // Load system stats
+        const systemStats = await apiCall('/api/system/stats');
+        if (systemStats.success) {
+            updateSystemStats(systemStats.stats);
+        }
+        
+        // Load sitemap status
+        const sitemapStatus = await apiCall('/api/scraper/sitemap-status');
+        if (sitemapStatus.success) {
+            updateSitemapStats(sitemapStatus);
+        }
+    }
+    
+    function updateDockerStatus(containers) {
+        const containerMap = {
+            'postgres': 'postgres',
+            'supabase': 'supabase',
+            'crawl4ai': 'crawl4ai'
+        };
+        
+        let allRunning = true;
+        let anyRunning = false;
+        let runningCount = 0;
+        let totalContainers = Object.keys(containerMap).length;
+        
+        Object.entries(containerMap).forEach(([containerName, prefix]) => {
+            const container = containers[containerName];
+            const dot = document.getElementById(prefix + '-dot');
+            const text = document.getElementById(prefix + '-text');
+            const info = document.getElementById(prefix + '-info');
+            
+            if (container) {
+                if (container.status === 'running') {
+                    dot.className = 'status-dot green';
+                    text.textContent = 'Running';
+                    anyRunning = true;
+                    runningCount++;
+                    
+                    // Update service info with stats when running
+                    if (info && container.stats) {
+                        const memoryMB = Math.round(container.stats.memory_usage_mb || 0);
+                        const cpuPercent = (container.stats.cpu_percent || 0).toFixed(1);
+                        info.textContent = `Memory: ${memoryMB}MB, CPU: ${cpuPercent}%`;
+                    } else if (info) {
+                        info.textContent = 'Running - Stats loading...';
+                    }
+                } else if (container.status === 'exited') {
+                    dot.className = 'status-dot red';
+                    text.textContent = 'Stopped';
+                    allRunning = false;
+                    
+                    // Restore original description when stopped
+                    if (info) {
+                        const descriptions = {
+                            'postgres': 'Main PostgreSQL database for product data',
+                            'supabase': 'Supabase PostgreSQL with vector extensions',
+                            'crawl4ai': 'AI-powered web scraping service'
+                        };
+                        info.textContent = descriptions[prefix] || 'Service stopped';
+                    }
+                } else {
+                    dot.className = 'status-dot yellow';
+                    text.textContent = container.status;
+                    allRunning = false;
+                    
+                    if (info) {
+                        info.textContent = `Status: ${container.status}`;
+                    }
+                }
+            } else {
+                dot.className = 'status-dot gray';
+                text.textContent = 'Not Found';
+                allRunning = false;
+                
+                if (info) {
+                    info.textContent = 'Container not found';
+                }
+            }
+            
+            // Individual start buttons have been permanently removed
+            // Services can only be started via "Start All Services" button
+        });
+        
+        // Calculate if all services are running
+        allRunning = (runningCount === totalContainers);
+        console.log(`All running status: ${runningCount}/${totalContainers} containers running, allRunning=${allRunning}`);
+        
+        // Update toggle switch state based on service status
+        updateServicesToggle(allRunning, anyRunning);
+    }
+    
+    function updateDatabaseStats(stats) {
+        // Main metrics
+        document.getElementById('total-products').textContent = stats.total_products || 0;
+        
+        // Calculate success rate
+        const successRate = stats.total_products > 0 && stats.failed_products !== undefined 
+            ? (((stats.total_products - (stats.failed_products || 0)) / stats.total_products) * 100).toFixed(1) + '%'
+            : '-';
+        document.getElementById('success-rate').textContent = successRate;
+        
+        // Average scrape time
+        const avgTime = stats.average_scrape_time 
+            ? formatScrapeDuration(stats.average_scrape_time)
+            : '-';
+        document.getElementById('avg-scrape-time').textContent = avgTime;
+        
+        document.getElementById('recent-products').textContent = stats.recent_additions_24h || 0;
+        
+        // Extended metrics
+        const totalScrapeTime = stats.total_scrape_time 
+            ? formatScrapeDuration(stats.total_scrape_time)
+            : '-';
+        document.getElementById('total-scrape-time').textContent = totalScrapeTime;
+        
+        document.getElementById('available-urls').textContent = stats.available_urls || '-';
+        
+        // Coverage percentage
+        const coverage = stats.total_products > 0 && stats.available_urls > 0
+            ? ((stats.total_products / stats.available_urls) * 100).toFixed(1) + '%'
+            : '-';
+        document.getElementById('url-coverage').textContent = coverage;
+    }
+    
+    function formatScrapeDuration(seconds) {
+        if (seconds < 1) return Math.round(seconds * 1000) + 'ms';
+        if (seconds < 60) return seconds.toFixed(1) + 's';
+        const minutes = Math.floor(seconds / 60);
+        const remainingSeconds = Math.round(seconds % 60);
+        if (minutes < 60) return minutes + 'm ' + remainingSeconds + 's';
+        const hours = Math.floor(minutes / 60);
+        const remainingMinutes = minutes % 60;
+        return hours + 'h ' + remainingMinutes + 'm';
+    }
+    
+    function updateSystemStats(stats) {
+        if (!stats) return;
+        
+        // CPU Usage with smooth transitions
+        const cpuPercent = Math.min(100, Math.max(0, stats.cpu_percent || 0));
+        document.getElementById('cpu-usage').textContent = cpuPercent.toFixed(1) + '%';
+        updateProgressBarSmoothly('cpu-progress', cpuPercent);
+        document.getElementById('cpu-cores').textContent = stats.cpu_cores || '-';
+        document.getElementById('cpu-load').textContent = stats.cpu_load_avg || '-';
+        
+        // Memory Usage with smooth transitions
+        if (stats.memory) {
+            const memoryPercent = Math.min(100, Math.max(0, stats.memory.percent || 0));
+            const memoryUsed = formatBytes(stats.memory.total - stats.memory.available);
+            const memoryTotal = formatBytes(stats.memory.total);
+            const memoryAvailable = formatBytes(stats.memory.available);
+            
+            document.getElementById('memory-usage').textContent = memoryUsed + ' (' + memoryPercent.toFixed(1) + '%)';
+            updateProgressBarSmoothly('memory-progress', memoryPercent);
+            document.getElementById('memory-total').textContent = memoryTotal;
+            document.getElementById('memory-available').textContent = memoryAvailable;
+        }
+        
+        // Disk Usage with smooth transitions
+        if (stats.disk) {
+            const diskPercent = Math.min(100, Math.max(0, stats.disk.percent || 0));
+            document.getElementById('disk-usage').textContent = diskPercent.toFixed(1) + '%';
+            updateProgressBarSmoothly('disk-progress', diskPercent);
+        }
+        
+        // Additional metrics
+        document.getElementById('db-connections').textContent = stats.db_connections || '-';
+        document.getElementById('system-uptime').textContent = stats.uptime ? formatDuration(stats.uptime) : '-';
+    }
+    
+    function formatBytes(bytes) {
+        if (bytes === 0) return '0 B';
+        const k = 1024;
+        const sizes = ['B', 'KB', 'MB', 'GB', 'TB'];
+        const i = Math.floor(Math.log(bytes) / Math.log(k));
+        return parseFloat((bytes / Math.pow(k, i)).toFixed(1)) + ' ' + sizes[i];
+    }
+    
+    function updateProgressBarSmoothly(elementId, newPercent) {
+        const progressBar = document.getElementById(elementId);
+        if (!progressBar) return;
+        
+        const currentWidth = parseFloat(progressBar.style.width) || 0;
+        const targetWidth = Math.min(100, Math.max(0, newPercent));
+        
+        // Only update if change is significant (prevents micro-jumps)
+        if (Math.abs(targetWidth - currentWidth) > 0.5) {
+            progressBar.style.width = targetWidth + '%';
+        }
+    }
+    
+    function updateSitemapStats(sitemapData) {
+        const totalEl = document.getElementById('sitemap-total-count');
+        const pendingEl = document.getElementById('sitemap-pending-count');
+        const completedEl = document.getElementById('sitemap-completed-count');
+        const messageEl = document.getElementById('sitemap-status-message');
+        const completionRateEl = document.getElementById('sitemap-completion-rate');
+        
+        if (!sitemapData.success) {
+            if (totalEl) totalEl.textContent = '-';
+            if (pendingEl) pendingEl.textContent = '-';
+            if (completedEl) completedEl.textContent = '-';
+            if (messageEl) messageEl.textContent = 'Error loading sitemap data';
+            if (completionRateEl) completionRateEl.textContent = '0%';
+            return;
+        }
+        
+        const stats = sitemapData.stats;
+        
+        // Store stats globally for use by other functions
+        globalSitemapStats = stats;
+        
+        // Update counts
+        if (totalEl) totalEl.textContent = stats.total_urls.toLocaleString();
+        if (pendingEl) pendingEl.textContent = stats.pending.toLocaleString();
+        if (completedEl) completedEl.textContent = stats.completed.toLocaleString();
+        
+        // Update message
+        if (messageEl) {
+            if (sitemapData.status === 'not_found') {
+                messageEl.textContent = 'No sitemap downloaded - click "Download Sitemap" first';
+            } else if (sitemapData.status === 'empty') {
+                messageEl.textContent = 'Sitemap downloaded but contains no product URLs';
+            } else {
+                messageEl.textContent = sitemapData.message || 'Sitemap ready for scraping';
+            }
+        }
+        
+        // Update completion rate
+        if (completionRateEl) {
+            completionRateEl.textContent = stats.completion_rate + '%';
+            
+            // Color code the completion rate
+            if (stats.completion_rate === 0) {
+                completionRateEl.style.color = '#6b7280';
+            } else if (stats.completion_rate < 50) {
+                completionRateEl.style.color = '#f59e0b';
+            } else if (stats.completion_rate < 100) {
+                completionRateEl.style.color = '#3b82f6';
+            } else {
+                completionRateEl.style.color = '#10b981';
+            }
+        }
+        
+        // Update the "Start Scraping" button state based on sitemap availability
+        const startScraperBtn = document.getElementById('start-scraper');
+        if (startScraperBtn && sitemapData.status === 'not_found') {
+            startScraperBtn.title = 'Download a sitemap first to enable scraping';
+        } else if (startScraperBtn) {
+            startScraperBtn.title = '';
+        }
+    }
+    
+    // Global variables for tracking
+    let scraperStartTime = null;
+    let lastUrlChange = null;
+    let urlProcessingTimes = [];
+    let etaInterval = null;
+    
+    function updateScraperStatus(status) {
+        scraperRunning = status.is_running;
+        
+        // Initialize start time if scraper just started
+        if (status.is_running && !scraperStartTime) {
+            scraperStartTime = status.start_time ? new Date(status.start_time) : new Date();
+        } else if (!status.is_running) {
+            scraperStartTime = null;
+            if (etaInterval) {
+                clearInterval(etaInterval);
+                etaInterval = null;
+            }
+        }
+        
+        document.getElementById('scraper-status-text').textContent = 
+            status.is_running ? 'Running' : 'Idle';
+        
+        document.getElementById('scraper-mode-text').textContent = 
+            status.mode || '-';
+        
+        // Stabilize progress percentage to prevent jumping
+        const currentProgress = parseFloat(status.stats.progress_percent || 0);
+        const displayProgress = Math.min(100, Math.max(0, currentProgress)); // Clamp between 0-100
+        
+        document.getElementById('scraper-progress').textContent = 
+            displayProgress.toFixed(1) + '%';
+        
+        // Smooth progress bar transitions
+        const progressBar = document.getElementById('scraper-progress-bar');
+        if (progressBar) {
+            const currentWidth = parseFloat(progressBar.style.width) || 0;
+            const newWidth = displayProgress;
+            
+            // Only update if change is significant (prevents micro-jumps)
+            if (Math.abs(newWidth - currentWidth) > 0.1) {
+                progressBar.style.width = newWidth + '%';
+            }
+        }
+        
+        document.getElementById('scraper-count').textContent = 
+            status.stats.products_processed || 0;
+        
+        document.getElementById('scraper-total').textContent = 
+            status.stats.estimated_total || 0;
+        
+        document.getElementById('scraper-success').textContent = 
+            status.stats.success_count || 0;
+        
+        document.getElementById('scraper-errors').textContent = 
+            status.stats.error_count || 0;
+        
+        // Calculate and display runtime
+        if (status.is_running) {
+            let runtime = 0;
+            
+            if (scraperStartTime) {
+                runtime = Math.floor((new Date() - scraperStartTime) / 1000);
+            } else if (status.runtime_seconds) {
+                runtime = Math.floor(status.runtime_seconds);
+            }
+            
+            if (runtime > 0) {
+                document.getElementById('scraper-runtime').textContent = formatDuration(runtime);
+                
+                // Calculate speed (pages per minute) - use success_count for more accurate speed
+                const successful = status.stats.success_count || 0;
+                const processed = status.stats.products_processed || 0;
+                
+                if (successful > 0 && runtime > 0) {
+                    const pagesPerMin = Math.round((successful / runtime) * 60);
+                    document.getElementById('scraper-speed').textContent = pagesPerMin + ' pages/min';
+                    
+                    // Calculate ETA based on remaining items to process
+                    const remaining = (status.stats.estimated_total || 0) - successful;
+                    if (remaining > 0 && pagesPerMin > 0) {
+                        const etaMinutes = Math.ceil(remaining / pagesPerMin);
+                        document.getElementById('scraper-eta').textContent = 'ETA: ' + formatDuration(etaMinutes * 60);
+                    } else if (remaining <= 0) {
+                        document.getElementById('scraper-eta').textContent = 'ETA: Complete';
+                    } else {
+                        document.getElementById('scraper-eta').textContent = 'ETA: Calculating...';
+                    }
+                } else if (processed > 0 && runtime > 0) {
+                    // Fallback to processing speed if no successes yet
+                    const pagesPerMin = Math.round((processed / runtime) * 60);
+                    document.getElementById('scraper-speed').textContent = pagesPerMin + ' pages/min (processing)';
+                    document.getElementById('scraper-eta').textContent = 'ETA: Calculating...';
+                } else {
+                    document.getElementById('scraper-speed').textContent = 'Starting...';
+                    document.getElementById('scraper-eta').textContent = 'ETA: Calculating...';
+                }
+            } else {
+                document.getElementById('scraper-runtime').textContent = 'Starting...';
+                document.getElementById('scraper-speed').textContent = 'Starting...';
+                document.getElementById('scraper-eta').textContent = 'ETA: Calculating...';
+            }
+        } else {
+            document.getElementById('scraper-runtime').textContent = '--';
+            document.getElementById('scraper-speed').textContent = '-- pages/min';
+            document.getElementById('scraper-eta').textContent = 'ETA: --';
+        }
+        
+        // Update current URL with visual feedback
+        const currentUrlDiv = document.getElementById('current-url');
+        const urlIndicator = document.getElementById('url-status-indicator');
+        const previousUrl = currentUrlDiv.textContent;
+        
+        if (status.stats.current_url) {
+            currentUrlDiv.textContent = status.stats.current_url;
+            
+            // Highlight URL change
+            if (previousUrl !== status.stats.current_url && status.stats.current_url !== 'Starting scraper...') {
+                currentUrlDiv.style.backgroundColor = '#e3f2fd';
+                urlIndicator.style.backgroundColor = '#4caf50';
+                lastUrlChange = new Date();
+                
+                // Reset highlight after 2 seconds
+                setTimeout(() => {
+                    currentUrlDiv.style.backgroundColor = '#f3f4f6';
+                    urlIndicator.style.backgroundColor = '#2196f3';
+                }, 2000);
+                
+                // Track URL processing time for better ETA calculation
+                if (urlProcessingTimes.length > 0) {
+                    const processingTime = (new Date() - lastUrlChange) / 1000;
+                    urlProcessingTimes.push(processingTime);
+                    // Keep only last 10 measurements
+                    if (urlProcessingTimes.length > 10) {
+                        urlProcessingTimes = urlProcessingTimes.slice(-10);
+                    }
+                }
+            }
+        } else if (status.is_running) {
+            currentUrlDiv.textContent = 'Starting scraper...';
+            urlIndicator.style.backgroundColor = '#ff9800';
+        } else {
+            // Check if sitemap is ready by looking at estimated_total
+            if (status.stats.estimated_total && status.stats.estimated_total > 0) {
+                currentUrlDiv.textContent = 'Ready to scrape';
+                urlIndicator.style.backgroundColor = '#4caf50';
+            } else {
+                currentUrlDiv.textContent = 'Waiting for scraper...';
+                urlIndicator.style.backgroundColor = '#ccc';
+            }
+        }
+        
+        // Update buttons
+        const startButton = document.getElementById('start-scraper');
+        const stopButton = document.getElementById('stop-scraper');
+        
+        if (startButton) {
+            startButton.disabled = status.is_running;
+        }
+        if (stopButton) {
+            stopButton.disabled = !status.is_running;
+        }
+        
+        // Update activity log
+        if (status.recent_logs && status.recent_logs.length > 0) {
+            updateActivityLog(status.recent_logs);
+        }
+        
+        // Start ETA update interval if not already running
+        if (status.is_running && !etaInterval) {
+            etaInterval = setInterval(() => {
+                if (scraperStartTime) {
+                    const runtime = Math.floor((new Date() - scraperStartTime) / 1000);
+                    document.getElementById('scraper-runtime').textContent = formatDuration(runtime);
+                }
+            }, 1000);
+        }
+    }
+    
+    function formatDuration(seconds) {
+        if (seconds < 60) return seconds + 's';
+        const minutes = Math.floor(seconds / 60);
+        const remainingSeconds = seconds % 60;
+        if (minutes < 60) return minutes + 'm ' + remainingSeconds + 's';
+        const hours = Math.floor(minutes / 60);
+        const remainingMinutes = minutes % 60;
+        return hours + 'h ' + remainingMinutes + 'm';
+    }
+    
+    function updateActivityLog(logs) {
+        const logDiv = document.getElementById('activity-log');
+        const logLines = logs.map(log => 
+            `[${new Date(log.timestamp).toLocaleTimeString()}] ${log.message}`
+        ).join('\n');
+        
+        logDiv.textContent = logLines;
+        logDiv.scrollTop = logDiv.scrollHeight;
+    }
+    
+    async function startContainer(name) {
+        showLoading(`Starting ${name}...`);
+        const result = await apiCall(`/api/docker/start/${name}`, 'POST');
+        hideLoading();
+        
+        if (result.success) {
+            showAlert(result.message, 'success');
+        } else {
+            showAlert(result.error, 'error');
+        }
+        
+        setTimeout(loadDashboardData, 2000);
+    }
+    
+    async function stopContainer(name) {
+        if (!confirm(`Are you sure you want to stop ${name}?`)) return;
+        
+        showLoading(`Stopping ${name}...`);
+        const result = await apiCall(`/api/docker/stop/${name}`, 'POST');
+        hideLoading();
+        
+        if (result.success) {
+            showAlert(result.message, 'success');
+        } else {
+            showAlert(result.error, 'error');
+        }
+        
+        setTimeout(loadDashboardData, 2000);
+    }
+    
+    async function startAllContainers() {
+        showLoading('Starting all containers...');
+        const result = await apiCall('/api/docker/start-all', 'POST');
+        hideLoading();
+        
+        if (result.success) {
+            showAlert(result.message, 'success');
+        } else {
+            showAlert(result.error, 'error');
+        }
+        
+        setTimeout(loadDashboardData, 3000);
+    }
+    
+    async function stopAllContainers() {
+        if (!confirm('Are you sure you want to stop all containers?')) return;
+        
+        showLoading('Stopping all containers...');
+        const result = await apiCall('/api/docker/stop-all', 'POST');
+        hideLoading();
+        
+        if (result.success) {
+            showAlert(result.message, 'success');
+        } else {
+            showAlert(result.error, 'error');
+        }
+        
+        setTimeout(loadDashboardData, 3000);
+    }
+    
+    async function startScraper() {
+        const mode = document.getElementById('scraper-mode').value;
+        const limit = document.getElementById('scraper-limit').value;
+        const fresh = document.getElementById('scraper-fresh').checked;
+        
+        const data = { mode, fresh };
+        if (mode === 'test' && limit) {
+            data.limit = parseInt(limit);
+        }
+        
+        const result = await apiCall('/api/scraper/start', 'POST', data);
+        
+        if (result.success) {
+            showAlert(result.message, 'success');
+        } else {
+            showAlert(result.error, 'error');
+        }
+        
+        setTimeout(loadDashboardData, 1000);
+    }
+    
+    async function stopScraper() {
+        if (!confirm('Are you sure you want to stop the scraper?')) return;
+        
+        const result = await apiCall('/api/scraper/stop', 'POST');
+        
+        if (result.success) {
+            showAlert(result.message, 'success');
+        } else {
+            showAlert(result.error, 'error');
+        }
+        
+        setTimeout(loadDashboardData, 1000);
+    }
+    
+    async function showLogs(containerName) {
+        document.getElementById('logs-title').textContent = `${containerName} Logs`;
+        document.getElementById('logs-modal').classList.add('active');
+        document.getElementById('logs-content').textContent = 'Loading logs...';
+        
+        const result = await apiCall(`/api/docker/logs/${containerName}`);
+        
+        if (result.success) {
+            document.getElementById('logs-content').textContent = result.logs;
+        } else {
+            document.getElementById('logs-content').textContent = 'Error loading logs: ' + result.error;
+        }
+    }
+    
+    function closeLogs() {
+        document.getElementById('logs-modal').classList.remove('active');
+    }
+    
+    async function viewProducts() {
+        document.getElementById('products-modal').classList.add('active');
+        loadProductsTable();
+    }
+    
+    async function loadProductsTable() {
+        document.getElementById('products-table').innerHTML = 'Loading products...';
+        
+        const result = await apiCall('/api/database/products?limit=50');
+        
+        if (result.success) {
+            let html = '<table style="width: 100%; border-collapse: collapse;">';
+            html += '<tr style="background: #f3f4f6;">';
+            html += '<th style="padding: 0.5rem; border: 1px solid #d1d5db;">SKU</th>';
+            html += '<th style="padding: 0.5rem; border: 1px solid #d1d5db;">Title</th>';
+            html += '<th style="padding: 0.5rem; border: 1px solid #d1d5db;">Price/Sq Ft</th>';
+            html += '<th style="padding: 0.5rem; border: 1px solid #d1d5db;">Scraped Date & Time</th>';
+            html += '</tr>';
+            
+            result.products.forEach(product => {
+                html += '<tr>';
+                html += `<td style="padding: 0.5rem; border: 1px solid #d1d5db;">${product.sku || ''}</td>`;
+                html += `<td style="padding: 0.5rem; border: 1px solid #d1d5db;">${(product.title || '').substring(0, 50)}...</td>`;
+                html += `<td style="padding: 0.5rem; border: 1px solid #d1d5db;">$${product.price_per_sqft || 'N/A'}</td>`;
+                html += `<td style="padding: 0.5rem; border: 1px solid #d1d5db;">${product.scraped_at ? new Date(product.scraped_at).toLocaleString() : ''}</td>`;
+                html += '</tr>';
+            });
+            
+            html += '</table>';
+            document.getElementById('products-table').innerHTML = html;
+        } else {
+            document.getElementById('products-table').innerHTML = 'Error loading products: ' + result.error;
+        }
+    }
+    
+    function closeProducts() {
+        document.getElementById('products-modal').classList.remove('active');
+    }
+    
+    async function exportProducts() {
+        showLoading('Exporting products...');
+        window.location.href = '/api/database/export?format=csv';
+        hideLoading();
+    }
+    
+    function refreshStatus() {
+        loadDashboardData();
+        showAlert('Status refreshed', 'success');
+    }
+    
+    // Services Toggle Functions
+    function updateServicesToggle(allRunning, anyRunning) {
+        const toggleSwitch = document.querySelector('.toggle-switch');
+        if (!toggleSwitch) return;
+        
+        // Update toggle state
+        if (allRunning) {
+            toggleSwitch.classList.add('on');
+            toggleSwitch.classList.remove('disabled');
+        } else if (anyRunning) {
+            // Some services running - show as disabled/mixed state
+            toggleSwitch.classList.remove('on');
+            toggleSwitch.classList.add('disabled');
+        } else {
+            // All services stopped
+            toggleSwitch.classList.remove('on', 'disabled');
+        }
+    }
+    
+    async function toggleAllServices() {
+        const toggleSwitch = document.querySelector('.toggle-switch');
+        if (toggleSwitch.classList.contains('disabled')) {
+            // Don't allow toggle when in mixed state
+            showAlert('Please wait for all services to finish starting or stopping', 'warning');
+            return;
+        }
+        
+        const isCurrentlyOn = toggleSwitch.classList.contains('on');
+        
+        if (isCurrentlyOn) {
+            // Turn OFF - stop all services
+            await stopAllServices();
+        } else {
+            // Turn ON - start all services  
+            await startAllServices();
+        }
+    }
+    
+    // Sync Management Functions
+    function updateSyncStatus(status) {
+        const sourceStatus = document.getElementById('source-status');
+        const targetStatus = document.getElementById('target-status');
+        const syncReady = document.getElementById('sync-ready');
+        const lastSync = document.getElementById('last-sync');
+        
+        if (status.connections) {
+            const source = status.connections.source;
+            const target = status.connections.target;
+            
+            sourceStatus.textContent = source ? 
+                (source.connected ? `✓ Connected (${source.product_count} products)` : `✗ ${source.message}`) :
+                'Unknown';
+                
+            targetStatus.textContent = target ? 
+                (target.connected ? `✓ Connected (${target.product_count} products)` : `✗ ${target.message}`) :
+                'Unknown';
+                
+            syncReady.textContent = status.ready_to_sync ? '✓ Ready' : '✗ Not Ready';
+        }
+        
+        if (status.stats && status.stats.last_sync_time) {
+            lastSync.textContent = new Date(status.stats.last_sync_time).toLocaleString();
+        } else {
+            lastSync.textContent = 'Never';
+        }
+    }
+    
+    async function testSyncConnections() {
+        showLoading('Testing connections...');
+        const result = await apiCall('/api/sync/test-connections');
+        hideLoading();
+        
+        if (result.success) {
+            updateSyncStatus({ connections: result.connections, ready_to_sync: 
+                result.connections.source?.connected && result.connections.target?.connected });
+            showAlert('Connection test completed', 'success');
+        } else {
+            showAlert('Connection test failed: ' + result.error, 'error');
+        }
+    }
+    
+    async function syncData() {
+        if (!confirm('Sync data from Postgres to Supabase? This may take a few minutes.')) {
+            return;
+        }
+        
+        const forceFullSync = document.getElementById('force-full-sync').checked;
+        
+        showLoading('Syncing data...');
+        const result = await apiCall('/api/sync/sync-data', 'POST', { 
+            force_full_sync: forceFullSync 
+        });
+        hideLoading();
+        
+        if (result.success) {
+            showAlert(`Sync completed: ${result.synced_count} new, ${result.updated_count} updated`, 'success');
+            loadDashboardData(); // Refresh stats
+        } else {
+            showAlert('Sync failed: ' + result.error, 'error');
+        }
+    }
+    
+    async function showSyncComparison() {
+        const result = await apiCall('/api/sync/comparison');
+        
+        if (result.success) {
+            const comp = result.comparison;
+            const message = `Data Comparison:
+Source: ${comp.source_count} products
+Target: ${comp.target_count} products
+Sync: ${comp.sync_percentage}% (${comp.missing_count} missing)
+Status: ${comp.is_in_sync ? 'In Sync' : 'Out of Sync'}`;
+            
+            alert(message);
+        } else {
+            showAlert('Comparison failed: ' + result.error, 'error');
+        }
+    }
+    
+    // Handle real-time updates from WebSocket
+    function handlePageStatusUpdate(data) {
+        if (data.docker) {
+            updateDockerStatus(data.docker);
+        }
+        if (data.scraper) {
+            updateScraperStatus(data.scraper);
+        }
+    }
+    
+    // Handle scraper progress updates
+    if (socket) {
+        socket.on('scraper_progress', function(data) {
+            if (data.type === 'log') {
+                const logDiv = document.getElementById('activity-log');
+                logDiv.innerHTML += `\n[${new Date().toLocaleTimeString()}] ${data.data.line}`;
+                logDiv.scrollTop = logDiv.scrollHeight;
+                
+                // Update scraper status directly from WebSocket data if available
+                if (data.data && data.data.stats) {
+                    // Create enhanced status object for real-time updates
+                    const enhancedStatus = {
+                        is_running: true, // We know it's running if we're getting logs
+                        stats: data.data.stats
+                    };
+                    updateScraperStatus(enhancedStatus);
+                }
+                
+                // Also trigger sitemap status refresh
+                loadSitemapStatus();
+            } else if (data.type === 'completed') {
+                loadDashboardData();
+                showAlert('Scraping completed', 'success');
+                
+                // Refresh all status after completion
+                loadScraperStatus();
+                loadSitemapStatus();
+            }
+        });
+    }
+    
+    // Environment Management Functions
+    async function updateEnvironmentStatus() {
+        try {
+            // Check environment status
+            const envStatus = await apiCall('/api/environment/status');
+            
+            if (envStatus.success) {
+                const status = envStatus.status;
+                
+                // Python Environment
+                updateStatusIndicator('python-env', status.python_env.status, 
+                    status.python_env.message, status.python_env.details);
+                
+                // Dependencies
+                updateStatusIndicator('dependencies', status.dependencies.status,
+                    status.dependencies.message, status.dependencies.details);
+                
+                // Docker Daemon
+                updateStatusIndicator('docker-daemon', status.docker_daemon.status,
+                    status.docker_daemon.message, status.docker_daemon.details);
+                
+                // Infrastructure (containers)
+                updateStatusIndicator('infrastructure', status.infrastructure.status,
+                    status.infrastructure.message, status.infrastructure.details);
+            }
+        } catch (error) {
+            console.error('Error checking environment status:', error);
+            // Hide progress bars on error
+            ['python-env', 'dependencies', 'docker-daemon', 'infrastructure'].forEach(envId => {
+                hideEnvironmentProgress(envId);
+            });
+        }
+    }
+    
+    function updateStatusIndicator(prefix, status, message, details) {
+        const dot = document.getElementById(prefix + '-dot');
+        const text = document.getElementById(prefix + '-text');
+        const detailsEl = document.getElementById(prefix + '-details');
+        
+        // Update status dot color
+        if (dot) {
+            dot.className = 'status-dot ' + (status === 'healthy' ? 'green' : 
+                                           status === 'warning' ? 'yellow' : 
+                                           status === 'running' ? 'green' :
+                                           status === 'partial' ? 'yellow' : 'red');
+        }
+        
+        // Update text and details
+        if (text) text.textContent = message;
+        if (detailsEl) detailsEl.textContent = details;
+        
+        console.log(`Updated ${prefix}: status=${status}, message=${message}`);
+    }
+    
+    async function startAllInfrastructure() {
+        showLoading('Setting up complete infrastructure...');
+        
+        try {
+            // Step 1: Setup environment
+            const envResult = await apiCall('/api/environment/setup', 'POST');
+            if (!envResult.success) {
+                throw new Error('Environment setup failed: ' + envResult.error);
+            }
+            
+            // Step 2: Start Docker containers
+            const dockerResult = await apiCall('/api/docker/start-all', 'POST');
+            if (!dockerResult.success) {
+                throw new Error('Container startup failed: ' + dockerResult.error);
+            }
+            
+            // Step 3: Verify all services
+            await new Promise(resolve => setTimeout(resolve, 5000)); // Wait for services to start
+            
+            showAlert('Infrastructure started successfully!', 'success');
+            
+        } catch (error) {
+            showAlert(error.message, 'error');
+        } finally {
+            hideLoading();
+            setTimeout(loadDashboardData, 2000);
+            setTimeout(updateEnvironmentStatus, 2000);
+        }
+    }
+    
+    async function setupEnvironment() {
+        showLoading('Setting up Python environment and dependencies...');
+        
+        try {
+            const result = await apiCall('/api/environment/setup', 'POST');
+            
+            if (result.success) {
+                showAlert('Environment setup completed successfully!', 'success');
+            } else {
+                showAlert('Environment setup failed: ' + result.error, 'error');
+            }
+        } catch (error) {
+            showAlert('Error setting up environment: ' + error.message, 'error');
+        } finally {
+            hideLoading();
+            setTimeout(updateEnvironmentStatus, 2000);
+        }
+    }
+    
+    // Update loadDashboardData to include environment status
+    const originalLoadDashboardData = loadDashboardData;
+    loadDashboardData = async function() {
+        await originalLoadDashboardData();
+        await updateEnvironmentStatus();
+    };
+    
+    // Unified Service Management Functions
+    async function startAllServices() {
+        setBulkOperationStatus('Starting all services...', 'info');
+        
+        try {
+            const containers = ['postgres', 'supabase', 'crawl4ai'];
+            const results = [];
+            
+            for (const container of containers) {
+                try {
+                    const result = await apiCall(`/api/docker/start/${container}`, 'POST');
+                    results.push({ container, success: result.success, message: result.message });
+                } catch (error) {
+                    results.push({ container, success: false, message: error.message });
+                }
+            }
+            
+            const successCount = results.filter(r => r.success).length;
+            const message = `Started ${successCount}/${containers.length} services successfully`;
+            
+            setBulkOperationStatus(message, successCount === containers.length ? 'success' : 'warning');
+            setTimeout(() => setBulkOperationStatus('', ''), 3000);
+            
+        } catch (error) {
+            setBulkOperationStatus('Failed to start services', 'error');
+            setTimeout(() => setBulkOperationStatus('', ''), 3000);
+        }
+        
+        setTimeout(loadDashboardData, 2000);
+    }
+    
+    async function stopAllServices() {
+        if (!confirm('Are you sure you want to stop all services?')) return;
+        
+        setBulkOperationStatus('Stopping all services...', 'info');
+        
+        try {
+            const containers = ['postgres', 'supabase', 'crawl4ai'];
+            const results = [];
+            
+            for (const container of containers) {
+                try {
+                    const result = await apiCall(`/api/docker/stop/${container}`, 'POST');
+                    results.push({ container, success: result.success, message: result.message });
+                } catch (error) {
+                    results.push({ container, success: false, message: error.message });
+                }
+            }
+            
+            const successCount = results.filter(r => r.success).length;
+            const message = `Stopped ${successCount}/${containers.length} services successfully`;
+            
+            setBulkOperationStatus(message, successCount === containers.length ? 'success' : 'warning');
+            setTimeout(() => setBulkOperationStatus('', ''), 3000);
+            
+        } catch (error) {
+            setBulkOperationStatus('Failed to stop services', 'error');
+            setTimeout(() => setBulkOperationStatus('', ''), 3000);
+        }
+        
+        setTimeout(loadDashboardData, 2000);
+    }
+    
+    async function restartAllServices() {
+        if (!confirm('Are you sure you want to restart all services?')) return;
+        
+        setBulkOperationStatus('Restarting all services...', 'info');
+        
+        try {
+            const containers = ['postgres', 'supabase', 'crawl4ai'];
+            const results = [];
+            
+            for (const container of containers) {
+                try {
+                    const result = await apiCall(`/api/docker/restart/${container}`, 'POST');
+                    results.push({ container, success: result.success, message: result.message });
+                } catch (error) {
+                    results.push({ container, success: false, message: error.message });
+                }
+            }
+            
+            const successCount = results.filter(r => r.success).length;
+            const message = `Restarted ${successCount}/${containers.length} services successfully`;
+            
+            setBulkOperationStatus(message, successCount === containers.length ? 'success' : 'warning');
+            setTimeout(() => setBulkOperationStatus('', ''), 3000);
+            
+        } catch (error) {
+            setBulkOperationStatus('Failed to restart services', 'error');
+            setTimeout(() => setBulkOperationStatus('', ''), 3000);
+        }
+        
+        setTimeout(loadDashboardData, 2000);
+    }
+    
+    async function refreshAllStatus() {
+        setBulkOperationStatus('Refreshing all status...', 'info');
+        await loadDashboardData();
+        setBulkOperationStatus('Status refreshed', 'success');
+        setTimeout(() => setBulkOperationStatus('', ''), 2000);
+    }
+    
+    function setBulkOperationStatus(message, type) {
+        const statusEl = document.getElementById('bulk-operation-status');
+        statusEl.textContent = message;
+        statusEl.className = '';
+        
+        if (type === 'success') {
+            statusEl.style.color = '#16a34a';
+        } else if (type === 'error') {
+            statusEl.style.color = '#dc2626';
+        } else if (type === 'warning') {
+            statusEl.style.color = '#ea580c';
+        } else {
+            statusEl.style.color = '#3b82f6';
+        }
+    }
+    
+    async function checkEnvironmentStatus() {
+        setBulkOperationStatus('Checking environment...', 'info');
+        await updateEnvironmentStatus();
+        setBulkOperationStatus('Environment checked', 'success');
+        setTimeout(() => setBulkOperationStatus('', ''), 2000);
+    }
+    
+    async function runHealthCheck() {
+        setBulkOperationStatus('Running comprehensive health check...', 'info');
+        
+        try {
+            const result = await apiCall('/api/health-check');
+            
+            if (result.success && result.health) {
+                const health = result.health;
+                setBulkOperationStatus(health.summary, 
+                    health.overall_status === 'healthy' ? 'success' :
+                    health.overall_status === 'warning' ? 'warning' : 'error');
+                
+                // Show detailed health results in persistent modal
+                showHealthCheckModal(health);
+                
+                setTimeout(() => setBulkOperationStatus('', ''), 5000);
+            } else {
+                setBulkOperationStatus('Health check failed: ' + (result.error || 'Unknown error'), 'error');
+                setTimeout(() => setBulkOperationStatus('', ''), 3000);
+            }
+        } catch (error) {
+            setBulkOperationStatus('Health check error: ' + error.message, 'error');
+            setTimeout(() => setBulkOperationStatus('', ''), 3000);
+        }
+    }
+    
+    let currentHealthResults = '';
+    
+    function showHealthCheckModal(health) {
+        let message = `Health Check Results (${health.timestamp})\n\n`;
+        message += `Overall Status: ${health.summary}\n\n`;
+        
+        Object.entries(health.checks).forEach(([category, check]) => {
+            const statusIcon = check.status === 'healthy' ? '✅' : 
+                             check.status === 'warning' ? '⚠️' : '❌';
+            message += `${statusIcon} ${category.toUpperCase()}: ${check.status}\n`;
+            if (check.details) message += `   ${check.details}\n`;
+            if (check.error) message += `   Error: ${check.error}\n`;
+            message += '\n';
+        });
+        
+        currentHealthResults = message;
+        document.getElementById('health-check-content').textContent = message;
+        document.getElementById('health-check-modal').style.display = 'flex';
+    }
+    
+    function closeHealthCheck() {
+        document.getElementById('health-check-modal').style.display = 'none';
+    }
+    
+    function copyHealthResults() {
+        if (currentHealthResults) {
+            navigator.clipboard.writeText(currentHealthResults).then(() => {
+                showAlert('Health check results copied to clipboard!', 'success');
+            }).catch(err => {
+                showAlert('Failed to copy to clipboard', 'error');
+            });
+        }
+    }
+    
+    
+    // Enhanced updateDockerStatus function to include environment indicator
+    const originalUpdateDockerStatus = updateDockerStatus;
+    updateDockerStatus = function(containers) {
+        originalUpdateDockerStatus(containers);
+        
+        // Update environment status dot based on overall container health
+        const runningCount = Object.values(containers).filter(c => c.status === 'running').length;
+        const totalCount = Object.keys(containers).length;
+        
+        const envDot = document.getElementById('environment-dot');
+        const envText = document.getElementById('environment-text');
+        const envInfo = document.getElementById('environment-info');
+        
+        if (runningCount === totalCount) {
+            envDot.className = 'status-dot green';
+            envText.textContent = 'All Services Running';
+            envInfo.textContent = `${runningCount}/${totalCount} containers healthy`;
+        } else if (runningCount > 0) {
+            envDot.className = 'status-dot yellow';
+            envText.textContent = 'Partial Services';
+            envInfo.textContent = `${runningCount}/${totalCount} containers running`;
+        } else {
+            envDot.className = 'status-dot red';
+            envText.textContent = 'Services Down';
+            envInfo.textContent = 'No containers running';
+        }
+    };
+    
+    // AI Terminal Functions
+    function openAITerminal() {
+        document.getElementById('ai-terminal-modal').classList.add('active');
+        document.getElementById('ai-input').focus();
+    }
+    
+    function closeAITerminal() {
+        document.getElementById('ai-terminal-modal').classList.remove('active');
+    }
+    
+    async function sendAIMessage() {
+        const input = document.getElementById('ai-input');
+        const message = input.value.trim();
+        
+        if (!message) return;
+        
+        // Add user message
+        addAIMessage(message, 'user');
+        input.value = '';
+        
+        // Show typing indicator
+        const typingId = addTypingIndicator();
+        
+        try {
+            // Call AI assistant API
+            const response = await fetch('/api/ai-assistant', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify({ message: message })
+            });
+            
+            const result = await response.json();
+            
+            // Remove typing indicator
+            removeTypingIndicator(typingId);
+            
+            if (result.success) {
+                addAIMessage(result.response, 'assistant');
+            } else {
+                addAIMessage('Sorry, I encountered an error: ' + (result.error || 'Unknown error'), 'error');
+            }
+        } catch (error) {
+            removeTypingIndicator(typingId);
+            addAIMessage('Sorry, I couldn\'t process your request: ' + error.message, 'error');
+        }
+    }
+    
+    function addAIMessage(message, type) {
+        const chatHistory = document.getElementById('ai-chat-history');
+        const messageDiv = document.createElement('div');
+        messageDiv.className = `ai-message ${type}`;
+        
+        const icon = type === 'user' ? '👤' : type === 'assistant' ? '🤖' : type === 'error' ? '❌' : '💡';
+        const label = type === 'user' ? 'You' : type === 'assistant' ? 'AI Assistant' : type === 'error' ? 'Error' : 'System';
+        
+        messageDiv.innerHTML = `<strong>${icon} ${label}:</strong> ${message.replace(/\n/g, '<br>')}`;
+        
+        chatHistory.appendChild(messageDiv);
+        chatHistory.scrollTop = chatHistory.scrollHeight;
+    }
+    
+    function addTypingIndicator() {
+        const chatHistory = document.getElementById('ai-chat-history');
+        const typingDiv = document.createElement('div');
+        const typingId = 'typing-' + Date.now();
+        typingDiv.id = typingId;
+        typingDiv.className = 'ai-message assistant';
+        typingDiv.innerHTML = `
+            <strong>🤖 AI Assistant:</strong> 
+            <span class="ai-typing"></span>
+            <span class="ai-typing"></span>
+            <span class="ai-typing"></span>
+        `;
+        
+        chatHistory.appendChild(typingDiv);
+        chatHistory.scrollTop = chatHistory.scrollHeight;
+        return typingId;
+    }
+    
+    function removeTypingIndicator(typingId) {
+        const typingDiv = document.getElementById(typingId);
+        if (typingDiv) {
+            typingDiv.remove();
+        }
+    }
+    
+    // Sitemap Download Functions
+    async function downloadSitemap() {
+        const sitemapUrl = document.getElementById('sitemap-url').textContent;
+        
+        if (!sitemapUrl || sitemapUrl === 'Enter URL above to detect sitemap...' || sitemapUrl === 'No sitemap found') {
+            showAlert('Please detect a valid sitemap first', 'warning');
+            return;
+        }
+        
+        try {
+            // Reset progress display
+            updateSitemapProgress('preparing', 0, 'Preparing download...');
+            
+            const response = await fetch('/api/scraper/download-sitemap', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ sitemap_url: sitemapUrl })
+            });
+            
+            const result = await response.json();
+            
+            if (result.success) {
+                updateSitemapProgress('waiting', 0, 'Download started - watch for progress updates');
+                
+                // Disable download button during download
+                const downloadBtn = document.getElementById('download-sitemap-btn');
+                if (downloadBtn) {
+                    downloadBtn.disabled = true;
+                    downloadBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Downloading...';
+                }
+                
+                showAlert('Sitemap download started', 'success');
+            } else {
+                updateSitemapProgress('error', 0, result.message || 'Download failed');
+                showAlert('Failed to start download: ' + (result.message || 'Unknown error'), 'error');
+            }
+        } catch (error) {
+            updateSitemapProgress('error', 0, 'Download request failed: ' + error.message);
+            showAlert('Error starting download: ' + error.message, 'error');
+        }
+    }
+    
+    function updateSitemapProgress(stage, progress, message, details) {
+        const stageEl = document.getElementById('sitemap-download-stage');
+        const progressTextEl = document.getElementById('sitemap-download-progress-text');
+        const progressBarEl = document.getElementById('sitemap-download-progress-bar');
+        const messageEl = document.getElementById('sitemap-download-message');
+        const detailsEl = document.getElementById('sitemap-download-details');
+        
+        // Update stage text with appropriate styling
+        const stageColors = {
+            'preparing': '#3b82f6',
+            'waiting': '#3b82f6',
+            'downloading': '#f59e0b',
+            'parsing': '#8b5cf6',
+            'extracting': '#06b6d4',
+            'filtering': '#10b981',
+            'saving': '#6366f1',
+            'completed': '#16a34a',
+            'error': '#ef4444'
+        };
+        
+        const stageLabels = {
+            'preparing': 'Preparing',
+            'waiting': 'Starting',
+            'downloading': 'Downloading',
+            'parsing': 'Parsing XML',
+            'extracting': 'Extracting URLs',
+            'filtering': 'Filtering Products',
+            'saving': 'Saving Results',
+            'completed': 'Complete',
+            'error': 'Error'
+        };
+        
+        if (stageEl) {
+            stageEl.textContent = stageLabels[stage] || stage;
+            stageEl.style.color = stageColors[stage] || '#4b5563';
+        }
+        
+        // Update progress
+        const progressPercent = Math.min(100, Math.max(0, progress));
+        if (progressTextEl) {
+            progressTextEl.textContent = progressPercent.toFixed(1) + '%';
+        }
+        if (progressBarEl) {
+            progressBarEl.style.width = progressPercent + '%';
+            
+            // Change progress bar color based on stage
+            if (stage === 'completed') {
+                progressBarEl.style.background = 'linear-gradient(90deg, #10b981, #059669)';
+            } else if (stage === 'error') {
+                progressBarEl.style.background = 'linear-gradient(90deg, #ef4444, #dc2626)';
+            } else {
+                progressBarEl.style.background = 'linear-gradient(90deg, #3b82f6, #1d4ed8)';
+            }
+        }
+        
+        // Update message
+        if (messageEl) {
+            messageEl.textContent = message;
+        }
+        
+        // Update details if provided
+        if (details && detailsEl) {
+            let detailText = '';
+            if (details.total_urls && details.filtered_urls) {
+                detailText = `Total URLs: ${details.total_urls.toLocaleString()}, `;
+                detailText += `Filtered: ${details.filtered_urls.toLocaleString()} `;
+                detailText += `(${details.filter_percentage.toFixed(1)}%)`;
+            }
+            if (details.file_saved) {
+                detailText += detailText ? ` • Saved to: ${details.file_saved}` : `Saved to: ${details.file_saved}`;
+            }
+            
+            if (detailText) {
+                detailsEl.textContent = detailText;
+                detailsEl.style.display = 'block';
+            }
+        }
+        
+        // Re-enable download button when complete or error
+        if (stage === 'completed' || stage === 'error') {
+            const downloadBtn = document.getElementById('download-sitemap-btn');
+            if (downloadBtn) {
+                downloadBtn.disabled = false;
+                downloadBtn.innerHTML = '<i class="fas fa-download"></i> Download Sitemap';
+            }
+        }
+    }
+    
+    // Handle sitemap progress updates via WebSocket
+    if (socket) {
+        socket.on('sitemap_progress', function(data) {
+            updateSitemapProgress(data.stage, data.progress, data.message, data.details);
+            
+            // Show completion alert and refresh stats
+            if (data.stage === 'completed') {
+                showAlert('Sitemap download completed successfully!', 'success');
+                // Refresh sitemap statistics after completion
+                setTimeout(async () => {
+                    const sitemapStatus = await apiCall('/api/scraper/sitemap-status');
+                    if (sitemapStatus.success) {
+                        updateSitemapStats(sitemapStatus);
+                    }
+                }, 1000);
+            } else if (data.stage === 'error') {
+                showAlert('Sitemap download failed: ' + data.message, 'error');
+            }
+        });
+    }
+</script>
+{% endblock %}

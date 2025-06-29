@@ -1,0 +1,27 @@
+[tool.poetry]
+name = "tileshop-scraper"
+version = "1.0.0"
+description = "AI-powered Tileshop.com scraper with admin dashboard and RAG chat"
+authors = ["Robert Sher <robert@example.com>"]
+readme = "README.md"
+
+[tool.poetry.dependencies]
+python = ">=3.11,<4.0"
+flask = ">=3.0.0"
+flask-socketio = ">=5.5.0"
+psycopg2-binary = ">=2.9.10"
+requests = ">=2.32.3"
+docker = ">=7.0.0"
+psutil = ">=6.0.0"
+lxml = "*"
+beautifulsoup4 = "*"
+anthropic = ">=0.20.0"
+gunicorn = "*"
+python-dotenv = ">=1.0.0"
+
+[tool.poetry.group.dev.dependencies]
+pytest = ">=8.0.0"
+
+[build-system]
+requires = ["poetry-core"]
+build-backend = "poetry.core.masonry.api"
