@@ -76,6 +76,15 @@ A comprehensive e-commerce intelligence platform and AI-powered product discover
 - **Component Status Display**: Real-time monitoring of initialization progress
 - **Automatic Recovery**: System handles pre-warming failures gracefully
 
+### **📱 Visual Pre-warming Display**
+- **Location**: AI Learning section, below Start Learning button
+- **Shows When**: System not fully ready (components failed/missing) OR actively pre-warming
+- **Display Elements**:
+  - Overall status: "Partially Ready (X/4)" or "Pre-warming..." or "Ready"
+  - Component indicators: Green ✓ (working) or Red ✗ (failed) status dots
+  - Progress bar during active pre-warming operations
+- **Real-time Updates**: Status refreshes automatically via WebSocket
+
 ---
 
 ## 🆕 **Previous Enhancements (June 29, 2025 - 3:50 PM)**

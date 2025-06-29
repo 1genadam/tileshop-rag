@@ -1930,28 +1930,28 @@ Status: ${comp.is_in_sync ? 'In Sync' : 'Out of Sync'}`;
             const prewarmStatus = await apiCall('/api/acquisition/prewarm-status');
             
             if (prewarmStatus.success) {
-                const status = prewarmStatus.status;
                 const container = document.getElementById('prewarm-status-container');
                 
-                // Show/hide the pre-warming container based on whether we're pre-warming or have status to show
-                if (status.is_prewarming || status.overall_status !== 'ready') {
+                // Show/hide the pre-warming container based on whether we're pre-warming or system not ready
+                if (prewarmStatus.prewarm_in_progress || !prewarmStatus.is_prewarmed) {
                     container.style.display = 'block';
                 } else {
                     container.style.display = 'none';
                 }
                 
                 // Update overall status
-                updatePrewarmOverallStatus(status);
+                updatePrewarmOverallStatus(prewarmStatus);
                 
                 // Update individual component status
-                updatePrewarmComponent('subprocess', status.components.subprocess);
-                updatePrewarmComponent('database', status.components.database);
-                updatePrewarmComponent('sitemap', status.components.sitemap);
-                updatePrewarmComponent('crawl4ai', status.components.crawl4ai);
+                updatePrewarmComponent('subprocess', prewarmStatus.prewarm_status.virtual_env);
+                updatePrewarmComponent('database', prewarmStatus.prewarm_status.database_connection);
+                updatePrewarmComponent('sitemap', prewarmStatus.prewarm_status.sitemap_validation);
+                updatePrewarmComponent('crawl4ai', prewarmStatus.prewarm_status.crawl4ai_service);
                 
                 // Update progress if pre-warming is active
-                if (status.is_prewarming) {
-                    updatePrewarmProgress(status.progress);
+                if (prewarmStatus.prewarm_in_progress) {
+                    // Show progress during active pre-warming
+                    updatePrewarmProgress(50); // Approximate progress
                     
                     // Start interval for updates if not already running
                     if (!prewarmInterval) {
@@ -1980,18 +1980,25 @@ Status: ${comp.is_in_sync ? 'In Sync' : 'Out of Sync'}`;
         const overallStatusEl = document.getElementById('prewarm-overall-status');
         if (!overallStatusEl) return;
         
-        if (status.is_prewarming) {
+        if (status.prewarm_in_progress) {
             overallStatusEl.textContent = 'Pre-warming...';
             overallStatusEl.style.color = '#f59e0b';
-        } else if (status.overall_status === 'ready') {
+        } else if (status.is_prewarmed) {
             overallStatusEl.textContent = 'Ready';
             overallStatusEl.style.color = '#10b981';
-        } else if (status.overall_status === 'partial') {
-            overallStatusEl.textContent = 'Partially Ready';
-            overallStatusEl.style.color = '#f59e0b';
         } else {
-            overallStatusEl.textContent = 'Not Ready';
-            overallStatusEl.style.color = '#ef4444';
+            // Check how many components are ready
+            const components = status.prewarm_status;
+            const readyCount = Object.values(components).filter(Boolean).length;
+            const totalCount = Object.keys(components).length;
+            
+            if (readyCount > 0) {
+                overallStatusEl.textContent = `Partially Ready (${readyCount}/${totalCount})`;
+                overallStatusEl.style.color = '#f59e0b';
+            } else {
+                overallStatusEl.textContent = 'Not Ready';
+                overallStatusEl.style.color = '#ef4444';
+            }
         }
     }
     
@@ -2001,18 +2008,12 @@ Status: ${comp.is_in_sync ? 'In Sync' : 'Out of Sync'}`;
         
         if (!dot || !text) return;
         
-        // Update status dot color
-        dot.className = 'status-dot ' + (componentStatus.status === 'ready' ? 'green' : 
-                                       componentStatus.status === 'initializing' ? 'yellow' : 
-                                       componentStatus.status === 'error' ? 'red' : 'gray');
+        // Update status dot color based on boolean status
+        dot.className = 'status-dot ' + (componentStatus ? 'green' : 'red');
         
-        // Update text with details if available
+        // Update text
         const baseText = getComponentDisplayName(componentName);
-        if (componentStatus.details) {
-            text.textContent = `${baseText} - ${componentStatus.details}`;
-        } else {
-            text.textContent = baseText;
-        }
+        text.textContent = baseText + (componentStatus ? ' ✓' : ' ✗');
     }
     
     function getComponentDisplayName(componentName) {
@@ -2025,15 +2026,15 @@ Status: ${comp.is_in_sync ? 'In Sync' : 'Out of Sync'}`;
         return names[componentName] || componentName;
     }
     
-    function updatePrewarmProgress(progress) {
+    function updatePrewarmProgress(percentage) {
         const progressContainer = document.getElementById('prewarm-progress-container');
         const progressBar = document.getElementById('prewarm-progress-bar');
         const progressText = document.getElementById('prewarm-progress-text');
         
         if (progressContainer && progressBar && progressText) {
             progressContainer.style.display = 'block';
-            progressBar.style.width = `${progress.percentage}%`;
-            progressText.textContent = `${progress.percentage}%`;
+            progressBar.style.width = `${percentage}%`;
+            progressText.textContent = `${percentage}%`;
         }
     }
     
