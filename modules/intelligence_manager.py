@@ -114,13 +114,13 @@ class ScraperManager:
             scraper_dir = os.path.dirname(os.path.abspath(__file__)).replace('/modules', '')
             
             # Activate virtual environment and run
-            venv_python = '/Users/robertsher/Projects/autogen_env/bin/python'
+            venv_python = '/Users/robertsher/Projects/autogen_env/bin/python'  # Sandbox environment
             if os.path.exists(venv_python):
                 args[0] = venv_python
             
             # Set up environment for virtual environment
             env = os.environ.copy()
-            venv_dir = '/Users/robertsher/Projects/autogen_env'
+            venv_dir = '/Users/robertsher/Projects/autogen_env'  # Sandbox directory
             if os.path.exists(venv_dir):
                 env['VIRTUAL_ENV'] = venv_dir
                 env['PATH'] = f"{venv_dir}/bin:{env.get('PATH', '')}"
@@ -488,7 +488,7 @@ class ScraperManager:
         
         try:
             # Check if virtual environment exists
-            venv_python = '/Users/robertsher/Projects/autogen_env/bin/python'
+            venv_python = '/Users/robertsher/Projects/autogen_env/bin/python'  # Sandbox environment
             if os.path.exists(venv_python):
                 dependencies['python_environment'] = True
             

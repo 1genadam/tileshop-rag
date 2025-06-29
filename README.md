@@ -80,9 +80,9 @@ User has the following containerized services running on `app-network`:
 - **PostgreSQL**: Direct access via docker exec or localhost:5432
 
 ### Development Environment
-- **Python**: Uses `autogen_env` virtual environment in `/Users/robertsher/Projects/`
+- **Python**: Uses `sandbox_env` virtual environment in `/Users/robertsher/Projects/`
 - **Working Directory**: `/Users/robertsher/Projects/tileshop_scraper/`
-- **Activation**: `source autogen_env/bin/activate`
+- **Activation**: `source sandbox_env/bin/activate`
 
 ## Technical Issues Resolved
 
@@ -111,7 +111,7 @@ docker run -d \
 - Use multiple URL variants with fragments
 
 ### 3. Virtual Environment Management
-**Issue**: User prefers `autogen_env` but packages were being installed globally
+**Issue**: User prefers `sandbox_env` but packages were being installed globally
 **Solution**: 
 - Cleaned up global package installations
 - Used virtual environment Python executable directly
@@ -130,7 +130,7 @@ docker run -d \
 1. **Activate virtual environment:**
    ```bash
    cd /Users/robertsher/Projects
-   source autogen_env/bin/activate
+   source sandbox_env/bin/activate
    ```
 
 2. **Install dependencies (Poetry - Recommended):**
