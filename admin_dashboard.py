@@ -173,6 +173,11 @@ def scraper_status():
     """Get scraper status"""
     try:
         status = acquisition_manager.get_status()
+        prewarm_status = acquisition_manager.get_prewarm_status()
+        
+        # Combine status with pre-warming information
+        status['prewarm'] = prewarm_status
+        
         return jsonify({'success': True, 'status': status})
     except Exception as e:
         return jsonify({'success': False, 'error': str(e)})
@@ -197,6 +202,24 @@ def stop_scraper():
     try:
         result = acquisition_manager.stop_acquisition()
         return jsonify(result)
+    except Exception as e:
+        return jsonify({'success': False, 'error': str(e)})
+
+@app.route('/api/acquisition/prewarm', methods=['POST'])
+def start_prewarm():
+    """Start pre-warming initialization"""
+    try:
+        result = acquisition_manager.start_prewarm()
+        return jsonify(result)
+    except Exception as e:
+        return jsonify({'success': False, 'error': str(e)})
+
+@app.route('/api/acquisition/prewarm-status')
+def prewarm_status():
+    """Get pre-warming status"""
+    try:
+        status = acquisition_manager.get_prewarm_status()
+        return jsonify({'success': True, **status})
     except Exception as e:
         return jsonify({'success': False, 'error': str(e)})
 
@@ -566,10 +589,16 @@ def get_sitemap_status():
         inserted = 0
         try:
             # Get current database count to calculate inserted
-            db_stats = db_manager.get_product_stats('relational_db')
+            db_stats = db_manager.get_product_stats('supabase')
             db_count = db_stats.get('total_products', 0) if db_stats else 0
-            # Inserted = Database products - Learned from sitemap
-            inserted = max(0, db_count - completed)
+            # Inserted = Database products - Learned from sitemap (only if DB has more than learned)
+            # This represents products from previous sessions, manual imports, etc.
+            if db_count > completed:
+                inserted = db_count - completed
+            else:
+                # If DB has same or fewer products than learned, inserted = 0
+                # (some learned products may have failed to insert)
+                inserted = 0
         except Exception as e:
             logger.warning(f"Could not calculate inserted count: {e}")
             inserted = 0  # Default to 0 if calculation fails
@@ -1728,6 +1757,10 @@ if __name__ == '__main__':
     # Start background status updates
     update_thread = threading.Thread(target=background_status_updates, daemon=True)
     update_thread.start()
+    
+    # Start pre-warming initialization for instant learning
+    logger.info("Starting pre-warming initialization for learning system...")
+    acquisition_manager.start_prewarm()
     
     logger.info("Starting Tileshop Admin Dashboard on http://localhost:8080")
     

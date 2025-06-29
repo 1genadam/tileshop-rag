@@ -52,6 +52,103 @@ class ScraperManager:
         self.log_lines = []
         self.max_log_lines = 100
         
+        # Pre-warming state
+        self.is_prewarmed = False
+        self.prewarm_status = {
+            'virtual_env': False,
+            'database_connection': False,
+            'sitemap_validation': False,
+            'crawl4ai_service': False
+        }
+        self.prewarm_thread = None
+        
+    def start_prewarm(self):
+        """Start pre-warming initialization in background"""
+        if self.prewarm_thread and self.prewarm_thread.is_alive():
+            return {'success': True, 'message': 'Pre-warming already in progress'}
+            
+        if self.is_prewarmed:
+            return {'success': True, 'message': 'System already pre-warmed'}
+            
+        logger.info("Starting pre-warming initialization...")
+        self.prewarm_thread = threading.Thread(target=self._prewarm_initialization)
+        self.prewarm_thread.daemon = True
+        self.prewarm_thread.start()
+        
+        return {'success': True, 'message': 'Pre-warming started'}
+    
+    def _prewarm_initialization(self):
+        """Pre-warm all initialization components"""
+        try:
+            logger.info("Pre-warming: Checking virtual environment...")
+            # Check virtual environment
+            venv_python = '/Users/robertsher/Projects/sandbox_env/bin/python'
+            if os.path.exists(venv_python):
+                self.prewarm_status['virtual_env'] = True
+                logger.info("Pre-warming: Virtual environment OK")
+            
+            logger.info("Pre-warming: Testing database connection...")
+            # Test database connection
+            try:
+                import psycopg2
+                conn = psycopg2.connect(
+                    host='localhost',
+                    port=5432,
+                    database='postgres',
+                    user='postgres',
+                    password='postgres'
+                )
+                conn.close()
+                self.prewarm_status['database_connection'] = True
+                logger.info("Pre-warming: Database connection OK")
+            except Exception as e:
+                logger.warning(f"Pre-warming: Database connection failed: {e}")
+            
+            logger.info("Pre-warming: Validating sitemap...")
+            # Validate sitemap existence
+            try:
+                sitemap_file = os.path.join(
+                    os.path.dirname(os.path.dirname(os.path.abspath(__file__))),
+                    'tileshop_sitemap.json'
+                )
+                if os.path.exists(sitemap_file):
+                    self.prewarm_status['sitemap_validation'] = True
+                    logger.info("Pre-warming: Sitemap validation OK")
+            except Exception as e:
+                logger.warning(f"Pre-warming: Sitemap validation failed: {e}")
+            
+            logger.info("Pre-warming: Testing Crawl4AI service...")
+            # Test Crawl4AI service
+            try:
+                import requests
+                response = requests.get('http://localhost:11235/health', timeout=5)
+                if response.status_code == 200:
+                    self.prewarm_status['crawl4ai_service'] = True
+                    logger.info("Pre-warming: Crawl4AI service OK")
+            except Exception as e:
+                logger.warning(f"Pre-warming: Crawl4AI service check failed: {e}")
+            
+            # Check if all components are ready
+            all_ready = all(self.prewarm_status.values())
+            self.is_prewarmed = all_ready
+            
+            if all_ready:
+                logger.info("Pre-warming completed successfully - system ready for instant learning")
+            else:
+                failed_components = [k for k, v in self.prewarm_status.items() if not v]
+                logger.warning(f"Pre-warming completed with issues: {failed_components}")
+                
+        except Exception as e:
+            logger.error(f"Pre-warming initialization failed: {e}")
+    
+    def get_prewarm_status(self) -> Dict[str, Any]:
+        """Get current pre-warming status"""
+        return {
+            'is_prewarmed': self.is_prewarmed,
+            'prewarm_status': self.prewarm_status.copy(),
+            'prewarm_in_progress': self.prewarm_thread and self.prewarm_thread.is_alive()
+        }
+        
     def start_acquisition(self, mode: str, limit: Optional[int] = None, fresh: bool = False) -> Dict[str, Any]:
         """Start data acquisition in specified mode"""
         if self.is_running:

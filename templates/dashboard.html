@@ -406,6 +406,48 @@
                     <div id="url-status-indicator" style="position: absolute; top: 0.5rem; right: 0.5rem; width: 8px; height: 8px; border-radius: 50%; background: #ccc; transition: background-color 0.3s;"></div>
                 </div>
             </div>
+            
+            <!-- Pre-warming Status Display -->
+            <div id="prewarm-status-container" style="margin-top: 1rem; padding: 0.75rem; background: #f8f9fa; border: 1px solid #e5e7eb; border-radius: 6px; display: none;">
+                <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 0.75rem;">
+                    <p style="margin: 0; font-weight: 600; color: #374151;"><i class="fas fa-cog"></i> System Pre-warming</p>
+                    <span id="prewarm-overall-status" style="font-size: 0.875rem; color: #6b7280;">Checking...</span>
+                </div>
+                
+                <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 0.75rem;">
+                    <div>
+                        <div class="status-indicator" style="margin-bottom: 0.5rem;">
+                            <div class="status-dot gray" id="prewarm-subprocess-dot"></div>
+                            <span id="prewarm-subprocess-text" style="font-size: 0.875rem;">Python subprocess startup</span>
+                        </div>
+                        <div class="status-indicator" style="margin-bottom: 0.5rem;">
+                            <div class="status-dot gray" id="prewarm-database-dot"></div>
+                            <span id="prewarm-database-text" style="font-size: 0.875rem;">Database connections</span>
+                        </div>
+                    </div>
+                    <div>
+                        <div class="status-indicator" style="margin-bottom: 0.5rem;">
+                            <div class="status-dot gray" id="prewarm-sitemap-dot"></div>
+                            <span id="prewarm-sitemap-text" style="font-size: 0.875rem;">Sitemap validation</span>
+                        </div>
+                        <div class="status-indicator" style="margin-bottom: 0.5rem;">
+                            <div class="status-dot gray" id="prewarm-crawl4ai-dot"></div>
+                            <span id="prewarm-crawl4ai-text" style="font-size: 0.875rem;">Crawl4AI service</span>
+                        </div>
+                    </div>
+                </div>
+                
+                <div id="prewarm-progress-container" style="margin-top: 0.75rem; display: none;">
+                    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 0.25rem;">
+                        <span style="font-size: 0.8rem; color: #6b7280;">Pre-warming progress</span>
+                        <span id="prewarm-progress-text" style="font-size: 0.8rem; color: #6b7280;">0%</span>
+                    </div>
+                    <div class="progress-bar" style="height: 4px;">
+                        <div class="progress-fill" id="prewarm-progress-bar" style="width: 0%; transition: width 0.3s ease;"></div>
+                    </div>
+                </div>
+            </div>
+            
             <div style="margin-top: 1rem; display: flex; gap: 1rem; align-items: center;">
                 <button class="btn btn-success" id="start-acquisition" onclick="startAcquisition()">
                     <i class="fas fa-play"></i> Start Learning
@@ -1284,6 +1326,16 @@
         
         if (startButton) {
             startButton.disabled = status.is_running;
+            
+            // Update button text when learning actually starts
+            if (status.is_running && (startButton.innerHTML.includes('Initiating') || 
+                                      startButton.innerHTML.includes('Initializing') || 
+                                      startButton.innerHTML.includes('Loading'))) {
+                startButton.innerHTML = '<i class="fas fa-pause"></i> Learning Active';
+                showAlert('AI learning process is now active!', 'success');
+            } else if (!status.is_running && startButton.innerHTML.includes('Learning Active')) {
+                startButton.innerHTML = '<i class="fas fa-play"></i> Start Learning';
+            }
         }
         if (stopButton) {
             stopButton.disabled = !status.is_running;
@@ -1386,24 +1438,135 @@
     }
     
     async function startAcquisition() {
-        const mode = document.getElementById('acquisition-mode').value;
-        const limit = document.getElementById('acquisition-limit').value;
-        const fresh = document.getElementById('acquisition-fresh').checked;
+        const startBtn = document.getElementById('start-acquisition');
+        const stopBtn = document.getElementById('stop-acquisition');
         
-        const data = { mode, fresh };
-        if (mode === 'test' && limit) {
-            data.limit = parseInt(limit);
-        }
+        // Immediate feedback - show button is working
+        const originalText = startBtn.innerHTML;
+        startBtn.disabled = true;
+        startBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Checking system...';
         
-        const result = await apiCall('/api/acquisition/start', 'POST', data);
-        
-        if (result.success) {
-            showAlert(result.message, 'success');
-        } else {
-            showAlert(result.error, 'error');
+        try {
+            // First check if system is pre-warmed
+            showAlert('Checking system pre-warm status...', 'info');
+            const prewarmStatus = await apiCall('/api/acquisition/prewarm-status');
+            
+            if (prewarmStatus.success) {
+                const status = prewarmStatus.status;
+                
+                // If system is not ready, trigger pre-warming
+                if (status.overall_status !== 'ready') {
+                    startBtn.innerHTML = '<i class="fas fa-thermometer-half fa-spin"></i> Pre-warming...';
+                    showAlert('System not ready - starting pre-warming process...', 'info');
+                    
+                    // Show the pre-warming status container
+                    const container = document.getElementById('prewarm-status-container');
+                    if (container) {
+                        container.style.display = 'block';
+                    }
+                    
+                    // Start pre-warming process
+                    const prewarmResult = await apiCall('/api/acquisition/prewarm', 'POST');
+                    
+                    if (prewarmResult.success) {
+                        showAlert('Pre-warming started - waiting for completion...', 'info');
+                        
+                        // Wait for pre-warming to complete
+                        await waitForPrewarmCompletion();
+                        
+                        // After pre-warming is complete, proceed with learning
+                        startBtn.innerHTML = '<i class="fas fa-rocket fa-spin"></i> Starting Learning...';
+                        showAlert('Pre-warming complete - starting learning process...', 'success');
+                    } else {
+                        throw new Error('Failed to start pre-warming: ' + prewarmResult.error);
+                    }
+                } else {
+                    // System is already ready
+                    startBtn.innerHTML = '<i class="fas fa-rocket fa-spin"></i> Starting Learning...';
+                    showAlert('System ready - starting learning process...', 'info');
+                }
+            } else {
+                // Can't check prewarm status, proceed anyway
+                startBtn.innerHTML = '<i class="fas fa-rocket fa-spin"></i> Starting Learning...';
+                showAlert('Unable to check pre-warm status - proceeding with learning...', 'warning');
+            }
+            
+            // Now start the actual learning process
+            const mode = document.getElementById('acquisition-mode').value;
+            const limit = document.getElementById('acquisition-limit').value;
+            const fresh = document.getElementById('acquisition-fresh').checked;
+            
+            const data = { mode, fresh };
+            if (mode === 'test' && limit) {
+                data.limit = parseInt(limit);
+            }
+            
+            const result = await apiCall('/api/acquisition/start', 'POST', data);
+            
+            if (result.success) {
+                // Update to show initialization phase
+                startBtn.innerHTML = '<i class="fas fa-cog fa-spin"></i> Initializing...';
+                showAlert('Learning subprocess starting - initializing environment...', 'info');
+                stopBtn.disabled = false;
+                
+                // Add more detailed feedback
+                setTimeout(() => {
+                    if (startBtn.innerHTML.includes('Initializing')) {
+                        startBtn.innerHTML = '<i class="fas fa-brain fa-spin"></i> Loading AI...';
+                        showAlert('Setting up AI learning environment...', 'info');
+                    }
+                }, 3000);
+                
+                setTimeout(() => {
+                    if (startBtn.innerHTML.includes('Loading')) {
+                        showAlert('AI learning process should begin shortly...', 'info');
+                    }
+                }, 6000);
+                
+            } else {
+                // Reset button on error
+                startBtn.disabled = false;
+                startBtn.innerHTML = originalText;
+                showAlert(result.error, 'error');
+            }
+        } catch (error) {
+            // Reset button on API error
+            startBtn.disabled = false;
+            startBtn.innerHTML = originalText;
+            showAlert('Failed to start learning: ' + error.message, 'error');
         }
         
         setTimeout(loadDashboardData, 1000);
+    }
+    
+    // Helper function to wait for pre-warming completion
+    async function waitForPrewarmCompletion() {
+        return new Promise((resolve, reject) => {
+            const checkInterval = setInterval(async () => {
+                try {
+                    const status = await apiCall('/api/acquisition/prewarm-status');
+                    if (status.success) {
+                        if (!status.status.is_prewarming && status.status.overall_status === 'ready') {
+                            clearInterval(checkInterval);
+                            resolve();
+                        } else if (!status.status.is_prewarming && status.status.overall_status !== 'ready') {
+                            clearInterval(checkInterval);
+                            reject(new Error('Pre-warming failed: ' + status.status.overall_status));
+                        }
+                        // Continue waiting if still pre-warming
+                    }
+                } catch (error) {
+                    clearInterval(checkInterval);
+                    reject(error);
+                }
+            }, 1000);
+            
+            // Timeout after 5 minutes
+            setTimeout(() => {
+                clearInterval(checkInterval);
+                reject(new Error('Pre-warming timed out after 5 minutes'));
+            }, 300000);
+        });
     }
     
     async function stopAcquisition() {
@@ -1756,7 +1919,123 @@ Status: ${comp.is_in_sync ? 'In Sync' : 'Out of Sync'}`;
     loadDashboardData = async function() {
         await originalLoadDashboardData();
         await updateEnvironmentStatus();
+        await updatePrewarmStatus();
     };
+    
+    // Pre-warming Status Functions
+    let prewarmInterval = null;
+    
+    async function updatePrewarmStatus() {
+        try {
+            const prewarmStatus = await apiCall('/api/acquisition/prewarm-status');
+            
+            if (prewarmStatus.success) {
+                const status = prewarmStatus.status;
+                const container = document.getElementById('prewarm-status-container');
+                
+                // Show/hide the pre-warming container based on whether we're pre-warming or have status to show
+                if (status.is_prewarming || status.overall_status !== 'ready') {
+                    container.style.display = 'block';
+                } else {
+                    container.style.display = 'none';
+                }
+                
+                // Update overall status
+                updatePrewarmOverallStatus(status);
+                
+                // Update individual component status
+                updatePrewarmComponent('subprocess', status.components.subprocess);
+                updatePrewarmComponent('database', status.components.database);
+                updatePrewarmComponent('sitemap', status.components.sitemap);
+                updatePrewarmComponent('crawl4ai', status.components.crawl4ai);
+                
+                // Update progress if pre-warming is active
+                if (status.is_prewarming) {
+                    updatePrewarmProgress(status.progress);
+                    
+                    // Start interval for updates if not already running
+                    if (!prewarmInterval) {
+                        prewarmInterval = setInterval(updatePrewarmStatus, 1000);
+                    }
+                } else {
+                    // Stop interval if pre-warming is complete
+                    if (prewarmInterval) {
+                        clearInterval(prewarmInterval);
+                        prewarmInterval = null;
+                    }
+                }
+            }
+        } catch (error) {
+            console.error('Error checking prewarm status:', error);
+            
+            // Hide container on error
+            const container = document.getElementById('prewarm-status-container');
+            if (container) {
+                container.style.display = 'none';
+            }
+        }
+    }
+    
+    function updatePrewarmOverallStatus(status) {
+        const overallStatusEl = document.getElementById('prewarm-overall-status');
+        if (!overallStatusEl) return;
+        
+        if (status.is_prewarming) {
+            overallStatusEl.textContent = 'Pre-warming...';
+            overallStatusEl.style.color = '#f59e0b';
+        } else if (status.overall_status === 'ready') {
+            overallStatusEl.textContent = 'Ready';
+            overallStatusEl.style.color = '#10b981';
+        } else if (status.overall_status === 'partial') {
+            overallStatusEl.textContent = 'Partially Ready';
+            overallStatusEl.style.color = '#f59e0b';
+        } else {
+            overallStatusEl.textContent = 'Not Ready';
+            overallStatusEl.style.color = '#ef4444';
+        }
+    }
+    
+    function updatePrewarmComponent(componentName, componentStatus) {
+        const dot = document.getElementById(`prewarm-${componentName}-dot`);
+        const text = document.getElementById(`prewarm-${componentName}-text`);
+        
+        if (!dot || !text) return;
+        
+        // Update status dot color
+        dot.className = 'status-dot ' + (componentStatus.status === 'ready' ? 'green' : 
+                                       componentStatus.status === 'initializing' ? 'yellow' : 
+                                       componentStatus.status === 'error' ? 'red' : 'gray');
+        
+        // Update text with details if available
+        const baseText = getComponentDisplayName(componentName);
+        if (componentStatus.details) {
+            text.textContent = `${baseText} - ${componentStatus.details}`;
+        } else {
+            text.textContent = baseText;
+        }
+    }
+    
+    function getComponentDisplayName(componentName) {
+        const names = {
+            'subprocess': 'Python subprocess startup',
+            'database': 'Database connections',
+            'sitemap': 'Sitemap validation',
+            'crawl4ai': 'Crawl4AI service'
+        };
+        return names[componentName] || componentName;
+    }
+    
+    function updatePrewarmProgress(progress) {
+        const progressContainer = document.getElementById('prewarm-progress-container');
+        const progressBar = document.getElementById('prewarm-progress-bar');
+        const progressText = document.getElementById('prewarm-progress-text');
+        
+        if (progressContainer && progressBar && progressText) {
+            progressContainer.style.display = 'block';
+            progressBar.style.width = `${progress.percentage}%`;
+            progressText.textContent = `${progress.percentage}%`;
+        }
+    }
     
     // Unified Service Management Functions
     async function startAllServices() {
