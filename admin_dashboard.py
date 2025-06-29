@@ -834,23 +834,42 @@ def comprehensive_health_check():
         health_results = {
             'timestamp': datetime.now().isoformat(),
             'overall_status': 'healthy',
-            'checks': {}
+            'checks': {},
+            'services': {}  # Individual service details
         }
         
-        # 1. Check Docker containers
+        # 1. Check all services individually
         try:
-            docker_status = docker_manager.get_required_containers_status()
-            running_containers = sum(1 for c in docker_status.values() if c.get('status') == 'running')
-            total_containers = len(docker_status)
+            all_services = docker_manager.get_required_containers_status()
+            healthy_services = 0
+            
+            # Add individual service details
+            for service_name, service_info in all_services.items():
+                status = service_info.get('status', 'unknown')
+                if status in ['running', 'healthy'] or service_info.get('healthy', False):
+                    healthy_services += 1
+                    service_status = 'healthy'
+                else:
+                    service_status = 'error'
+                    if health_results['overall_status'] == 'healthy':
+                        health_results['overall_status'] = 'degraded'
+                
+                health_results['services'][service_name] = {
+                    'status': service_status,
+                    'details': service_info.get('description', ''),
+                    'type': service_info.get('type', 'unknown')
+                }
+            
+            total_services = len(all_services)
             
             health_results['checks']['containers'] = {
-                'status': 'healthy' if running_containers == total_containers else 'degraded',
-                'running': running_containers,
-                'total': total_containers,
-                'details': f"{running_containers}/{total_containers} containers running"
+                'status': 'healthy' if healthy_services == total_services else 'degraded',
+                'running': healthy_services,
+                'total': total_services,
+                'details': f"{healthy_services}/{total_services} containers running"
             }
             
-            if running_containers < total_containers:
+            if healthy_services < total_services:
                 health_results['overall_status'] = 'degraded'
                 
         except Exception as e:
@@ -1586,39 +1605,38 @@ def check_docker_daemon():
         }
 
 def check_infrastructure_status():
-    """Check overall infrastructure container status"""
+    """Check overall infrastructure service status using health checks"""
     try:
-        required_containers = ['relational_db', 'vector_db', 'crawler']
-        running_containers = []
+        # Get health check status for all services
+        service_status = docker_manager.get_required_containers_status()
         
-        all_containers = docker_manager.get_all_containers_status()
+        healthy_services = []
+        total_services = 0
         
-        for container_name in required_containers:
-            if container_name in all_containers:
-                container = all_containers[container_name]
-                if container.get('status') == 'running':
-                    running_containers.append(container_name)
+        for service_id, service_data in service_status.items():
+            total_services += 1
+            if service_data.get('healthy', False) or service_data.get('status') == 'running':
+                healthy_services.append(service_id)
         
-        total_required = len(required_containers)
-        total_running = len(running_containers)
+        total_healthy = len(healthy_services)
         
-        if total_running == total_required:
+        if total_healthy == total_services:
             return {
                 'status': 'healthy',
-                'message': 'All Containers Running',
-                'details': f'{total_running}/{total_required} containers active'
+                'message': 'All Services Running',
+                'details': f'{total_healthy}/{total_services} services healthy'
             }
-        elif total_running > 0:
+        elif total_healthy > 0:
             return {
                 'status': 'partial',
                 'message': 'Partial Infrastructure',
-                'details': f'{total_running}/{total_required} containers running'
+                'details': f'{total_healthy}/{total_services} services running'
             }
         else:
             return {
                 'status': 'error',
                 'message': 'Infrastructure Down',
-                'details': 'No required containers running'
+                'details': 'No services running'
             }
             
     except Exception as e:

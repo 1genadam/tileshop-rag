@@ -1886,122 +1886,125 @@
     {
       "url": "https://www.tileshop.com/products/best-of-everything-lippage-gray-base-2000-pieces-per-box-351297",
       "lastmod": null,
-      "scraped_at": null,
-      "scrape_status": "pending"
+      "scraped_at": "2025-06-29T15:58:19.528439",
+      "scrape_status": "completed"
     },
     {
       "url": "https://www.tileshop.com/products/best-of-everything-lippage-gray-base-500-pieces-per-bag-351296",
       "lastmod": null,
-      "scraped_at": null,
-      "scrape_status": "pending"
+      "scraped_at": "2025-06-29T15:58:33.067041",
+      "scrape_status": "completed"
     },
     {
       "url": "https://www.tileshop.com/products/best-of-everything-lippage-grey-base-250-pieces-per-tub-351295",
       "lastmod": null,
-      "scraped_at": null,
-      "scrape_status": "pending"
+      "scraped_at": "2025-06-29T15:58:46.630997",
+      "scrape_status": "completed"
     },
     {
       "url": "https://www.tileshop.com/products/best-of-everything-lippage-white-base-2000-pieces-per-box-351294",
       "lastmod": null,
-      "scraped_at": null,
-      "scrape_status": "pending"
+      "scraped_at": "2025-06-29T15:59:00.540497",
+      "scrape_status": "completed"
     },
     {
       "url": "https://www.tileshop.com/products/best-of-everything-lippage-white-base-500-pieces-per-bag-351293",
       "lastmod": null,
-      "scraped_at": null,
-      "scrape_status": "pending"
+      "scraped_at": "2025-06-29T15:59:14.008897",
+      "scrape_status": "completed"
     },
     {
       "url": "https://www.tileshop.com/products/best-of-everything-lippage-white-base-250-pieces-per-tub-351292",
       "lastmod": null,
-      "scraped_at": null,
-      "scrape_status": "pending"
+      "scraped_at": "2025-06-29T15:59:27.586442",
+      "scrape_status": "completed"
     },
     {
       "url": "https://www.tileshop.com/products/best-of-everything-sponga-square-sponge-65-x-45-x-25-in-351326",
       "lastmod": null,
-      "scraped_at": null,
-      "scrape_status": "pending"
+      "scraped_at": "2025-06-29T15:59:41.116211",
+      "scrape_status": "completed"
     },
     {
       "url": "https://www.tileshop.com/products/best-of-everything-flexible-backer-pad-4-in-4-pieces-351325",
       "lastmod": null,
-      "scraped_at": null,
-      "scrape_status": "pending"
+      "scraped_at": "2025-06-29T15:59:54.645650",
+      "scrape_status": "completed"
     },
     {
       "url": "https://www.tileshop.com/products/best-of-everything-square-p2-notch-trowel-1/2-x-1/2-x-1/2-in-351324",
       "lastmod": null,
-      "scraped_at": null,
-      "scrape_status": "pending"
+      "scraped_at": "2025-06-29T16:00:07.720916",
+      "scrape_status": "failed",
+      "error": "Unexpected error: can only concatenate str (not \"NoneType\") to str"
     },
     {
       "url": "https://www.tileshop.com/products/best-of-everything-square-p2-notch-trowel-1/4-x-3/8-x-1/4-in-351323",
       "lastmod": null,
-      "scraped_at": null,
-      "scrape_status": "pending"
+      "scraped_at": "2025-06-29T16:00:17.781396",
+      "scrape_status": "failed",
+      "error": "Unexpected error: can only concatenate str (not \"NoneType\") to str"
     },
     {
       "url": "https://www.tileshop.com/products/best-of-everything-square-p2-notch-trowel-1/4-x-1/4-x-1/4-in-351322",
       "lastmod": null,
-      "scraped_at": null,
-      "scrape_status": "pending"
+      "scraped_at": "2025-06-29T16:46:17.641661",
+      "scrape_status": "failed",
+      "error": "Crawl timeout"
     },
     {
       "url": "https://www.tileshop.com/products/best-of-everything-diamond-3-step-dry-polishing-pad-3-piece-351321",
       "lastmod": null,
-      "scraped_at": null,
-      "scrape_status": "pending"
+      "scraped_at": "2025-06-29T16:46:28.261380",
+      "scrape_status": "completed"
     },
     {
       "url": "https://www.tileshop.com/products/best-of-everything-hd-series-premium-diamond-blade-45-in-351319",
       "lastmod": null,
-      "scraped_at": null,
-      "scrape_status": "pending"
+      "scraped_at": "2025-06-29T16:46:41.850303",
+      "scrape_status": "completed"
     },
     {
       "url": "https://www.tileshop.com/products/best-of-everything-h-series-premium-diamond-blade-10-in-351320",
       "lastmod": null,
-      "scraped_at": null,
-      "scrape_status": "pending"
+      "scraped_at": "2025-06-29T16:46:55.380069",
+      "scrape_status": "completed"
     },
     {
       "url": "https://www.tileshop.com/products/best-of-everything-lace-series-supreme-diamond-blade-10-in-351318",
       "lastmod": null,
-      "scraped_at": null,
-      "scrape_status": "pending"
+      "scraped_at": "2025-06-29T16:47:08.921427",
+      "scrape_status": "completed"
     },
     {
       "url": "https://www.tileshop.com/products/best-of-everything-lace-series-supreme-diamond-blade-45-in-351317",
       "lastmod": null,
-      "scraped_at": null,
-      "scrape_status": "pending"
+      "scraped_at": "2025-06-29T16:47:22.497043",
+      "scrape_status": "completed"
     },
     {
       "url": "https://www.tileshop.com/products/best-of-everything-milling-bit-75-in-351315",
       "lastmod": null,
-      "scraped_at": null,
-      "scrape_status": "pending"
+      "scraped_at": "2025-06-29T16:47:36.098421",
+      "scrape_status": "completed"
     },
     {
       "url": "https://www.tileshop.com/products/best-of-everything-3-diamond-countersink-bits-1375-in-351316",
       "lastmod": null,
-      "scraped_at": null,
-      "scrape_status": "pending"
+      "scraped_at": "2025-06-29T16:47:49.804584",
+      "scrape_status": "completed"
     },
     {
       "url": "https://www.tileshop.com/products/best-of-everything-long-vaccum-brazed-bit-2-in-351314",
       "lastmod": null,
-      "scraped_at": null,
-      "scrape_status": "pending"
+      "scraped_at": "2025-06-29T16:48:03.244920",
+      "scrape_status": "completed"
     },
     {
       "url": "https://www.tileshop.com/products/best-of-everything-long-vacuum-brazed-bit-1375-in-351313best-of-everything-long-vacuum-brazed-bit-1375-in-351313",
       "lastmod": null,
-      "scraped_at": null,
-      "scrape_status": "pending"
+      "scraped_at": "2025-06-29T16:48:16.763325",
+      "scrape_status": "completed"
     },
     {
       "url": "https://www.tileshop.com/products/best-of-everything-short-vacuum-brazed-diamond-bit-25-in-351312",
