@@ -1,6 +1,6 @@
 {% extends "base.html" %}
 
-{% block title %}Dashboard - Tileshop Intelligence{% endblock %}
+{% block title %}Dashboard - Tile Shop Intelligence{% endblock %}
 
 {% block content %}
 <div class="grid grid-4">
@@ -40,8 +40,40 @@
             </div>
         </div>
         
-        <!-- Services Grid -->
-        <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: 1rem;">
+        <!-- Microservices Table -->
+        <div class="services-table-container">
+            <table class="services-table">
+                <thead>
+                    <tr>
+                        <th style="width: 60px;">#</th>
+                        <th style="width: 180px;">Service</th>
+                        <th style="width: 120px;">Status</th>
+                        <th>Description</th>
+                        <th style="width: 100px;">Actions</th>
+                    </tr>
+                </thead>
+                <tbody>
+            <!-- Service 0: Docker Engine -->
+            <div class="service-card">
+                <div class="service-header">
+                    <i class="fas fa-cube"></i>
+                    <span class="service-name">0. docker_engine</span>
+                    <div class="status-dot gray" id="docker_engine-dot"></div>
+                </div>
+                <div class="service-details">
+                    <div class="service-status" id="docker_engine-text">Checking...</div>
+                    <div class="service-info" id="docker_engine-info">Container orchestration and infrastructure platform</div>
+                    <div class="service-progress" id="docker_engine-progress" style="display: none;">
+                        <div class="progress-bar">
+                            <div class="progress-fill animated"></div>
+                        </div>
+                    </div>
+                </div>
+                <div class="service-actions">
+                    <button class="btn btn-xs btn-secondary" onclick="showLogs('docker_engine')">Logs</button>
+                </div>
+            </div>
+
             <!-- Service 1: Relational Database -->
             <div class="service-card">
                 <div class="service-header">
@@ -105,11 +137,74 @@
                 </div>
             </div>
 
-            <!-- Service 4: Intelligence Platform -->
+            <!-- Service 4: LLM API -->
+            <div class="service-card">
+                <div class="service-header">
+                    <i class="fas fa-brain"></i>
+                    <span class="service-name">4. llm_api</span>
+                    <div class="status-dot gray" id="llm_api-dot"></div>
+                </div>
+                <div class="service-details">
+                    <div class="service-status" id="llm_api-text">Checking...</div>
+                    <div class="service-info" id="llm_api-info">Large language model API for AI processing</div>
+                    <div class="service-progress" id="llm_api-progress" style="display: none;">
+                        <div class="progress-bar">
+                            <div class="progress-fill animated"></div>
+                        </div>
+                    </div>
+                </div>
+                <div class="service-actions">
+                    <button class="btn btn-xs btn-secondary" onclick="showLogs('llm_api')">Logs</button>
+                </div>
+            </div>
+
+            <!-- Service 5: Web Server -->
+            <div class="service-card">
+                <div class="service-header">
+                    <i class="fas fa-globe"></i>
+                    <span class="service-name">5. web_server</span>
+                    <div class="status-dot gray" id="web_server-dot"></div>
+                </div>
+                <div class="service-details">
+                    <div class="service-status" id="web_server-text">Checking...</div>
+                    <div class="service-info" id="web_server-info">Intelligence platform web server and dashboard</div>
+                    <div class="service-progress" id="web_server-progress" style="display: none;">
+                        <div class="progress-bar">
+                            <div class="progress-fill animated"></div>
+                        </div>
+                    </div>
+                </div>
+                <div class="service-actions">
+                    <button class="btn btn-xs btn-secondary" onclick="showLogs('web_server')">Logs</button>
+                </div>
+            </div>
+
+            <!-- Service 6: API Gateway -->
+            <div class="service-card">
+                <div class="service-header">
+                    <i class="fas fa-network-wired"></i>
+                    <span class="service-name">6. api_gateway</span>
+                    <div class="status-dot gray" id="api_gateway-dot"></div>
+                </div>
+                <div class="service-details">
+                    <div class="service-status" id="api_gateway-text">Checking...</div>
+                    <div class="service-info" id="api_gateway-info">Microservices API gateway and routing layer</div>
+                    <div class="service-progress" id="api_gateway-progress" style="display: none;">
+                        <div class="progress-bar">
+                            <div class="progress-fill animated"></div>
+                        </div>
+                    </div>
+                </div>
+                <div class="service-actions">
+                    <button class="btn btn-xs btn-secondary" onclick="showLogs('api_gateway')">Logs</button>
+                </div>
+            </div>
+
+            <!-- Service 7: Intelligence Platform -->
             <div class="service-card">
                 <div class="service-header">
                     <i class="fas fa-cog"></i>
-                    <span class="service-name">4. intelligence_platform</span>
+                    <span class="service-name">7. intelligence_platform</span>
                     <div class="status-dot gray" id="environment-dot"></div>
                 </div>
                 <div class="service-details">
@@ -499,7 +594,7 @@
             <!-- Chat History -->
             <div id="ai-chat-history" style="flex: 1; background: #1f2937; color: #e5e7eb; padding: 1rem; border-radius: 6px; overflow-y: auto; font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; margin-bottom: 1rem;">
                 <div class="ai-message system">
-                    <strong>🤖 Customer Service Assistant:</strong> Hello! I'm here to help with your Tileshop intelligence platform questions and issues. I can assist with:
+                    <strong>🤖 Customer Service Assistant:</strong> Hello! I'm here to help with your Tile Shop intelligence platform questions and issues. I can assist with:
                     <br>• Troubleshooting scraping errors
                     <br>• Product data questions and analysis
                     <br>• Error log interpretation
