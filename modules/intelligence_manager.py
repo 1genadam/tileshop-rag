@@ -23,12 +23,12 @@ class ScraperManager:
     
     SCRAPER_MODES = {
         'test': {
-            'script': 'scrape_from_sitemap.py',
+            'script': 'acquire_from_sitemap.py',
             'description': 'Test mode with limited products (default: 10 URLs)',
             'args': []
         },
         'sitemap': {
-            'script': 'scrape_from_sitemap.py',
+            'script': 'acquire_from_sitemap.py',
             'description': 'Full sitemap scraper with recovery',
             'args': []
         }

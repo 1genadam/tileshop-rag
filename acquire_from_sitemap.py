@@ -9,7 +9,7 @@ import time
 import sys
 import signal
 from datetime import datetime
-from tileshop_scraper import extract_product_data, save_to_database, crawl_page_with_tabs
+from tileshop_learner import extract_product_data, save_to_database, crawl_page_with_tabs
 from download_sitemap import load_sitemap_data, update_url_status, get_pending_urls, get_scraping_statistics, main as refresh_sitemap
 
 # Configuration
@@ -344,11 +344,11 @@ def scrape_from_sitemap(max_products=None, resume=True):
         if interrupted:
             print(f"\n🔄 RECOVERY INSTRUCTIONS:")
             print(f"   ✅ All progress has been automatically saved")
-            print(f"   ✅ Run the same command to resume: python scrape_from_sitemap.py")
+            print(f"   ✅ Run the same command to resume: python acquire_from_sitemap.py")
             print(f"   ✅ The scraper will skip completed URLs and retry failed ones")
             print(f"   ✅ Recovery checkpoint saved for debugging")
         else:
-            print(f"   Run again to continue: python scrape_from_sitemap.py")
+            print(f"   Run again to continue: python acquire_from_sitemap.py")
     else:
         print(f"\n✅ All products completed!")
         # Clean up recovery file if everything is done
@@ -385,7 +385,7 @@ if __name__ == "__main__":
                 resume = False
                 print("Fresh start mode (ignoring previous progress)")
             else:
-                print("Usage: python scrape_from_sitemap.py [max_products] [--fresh]")
+                print("Usage: python acquire_from_sitemap.py [max_products] [--fresh]")
                 sys.exit(1)
     
     if len(sys.argv) > 2 and sys.argv[2] == '--fresh':

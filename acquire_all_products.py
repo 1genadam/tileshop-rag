@@ -8,7 +8,7 @@ import requests
 import xml.etree.ElementTree as ET
 import json
 import time
-from tileshop_scraper import extract_product_data, save_to_database, crawl_page_with_tabs
+from tileshop_learner import extract_product_data, save_to_database, crawl_page_with_tabs
 
 # Configuration
 SITEMAP_URL = "https://www.tileshop.com/sitemap.xml"

@@ -6,7 +6,7 @@ Retry failed URLs from sitemap with enhanced error handling
 import json
 import sys
 from download_sitemap import load_sitemap_data, update_url_status
-from scrape_from_sitemap import scrape_from_sitemap
+from acquire_from_sitemap import scrape_from_sitemap
 
 def get_failed_urls(max_retries=None):
     """Get list of failed URLs to retry"""
@@ -103,7 +103,7 @@ def main():
             
             reset_count = reset_failed_to_pending(max_urls)
             print(f"✅ Reset {reset_count} failed URLs to pending status")
-            print("🔄 Run scrape_from_sitemap.py to retry them")
+            print("🔄 Run acquire_from_sitemap.py to retry them")
             return
         
         elif command == 'retry':

@@ -19,7 +19,7 @@ load_dotenv()
 
 # Import our modules
 from modules.docker_manager import DockerManager
-from modules.scraper_manager import ScraperManager
+from modules.intelligence_manager import ScraperManager
 from modules.db_manager import DatabaseManager
 from modules.rag_manager import RAGManager
 from modules.sync_manager import DatabaseSyncManager
