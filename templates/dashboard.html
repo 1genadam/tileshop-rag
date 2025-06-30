@@ -1452,10 +1452,8 @@
             const prewarmStatus = await apiCall('/api/acquisition/prewarm-status');
             
             if (prewarmStatus.success) {
-                const status = prewarmStatus.status;
-                
                 // If system is not ready, trigger pre-warming
-                if (status.overall_status !== 'ready') {
+                if (!prewarmStatus.is_prewarmed) {
                     startBtn.innerHTML = '<i class="fas fa-thermometer-half fa-spin"></i> Pre-warming...';
                     showAlert('System not ready - starting pre-warming process...', 'info');
                     
@@ -1546,12 +1544,12 @@
                 try {
                     const status = await apiCall('/api/acquisition/prewarm-status');
                     if (status.success) {
-                        if (!status.status.is_prewarming && status.status.overall_status === 'ready') {
+                        if (!status.prewarm_in_progress && status.is_prewarmed) {
                             clearInterval(checkInterval);
                             resolve();
-                        } else if (!status.status.is_prewarming && status.status.overall_status !== 'ready') {
+                        } else if (!status.prewarm_in_progress && !status.is_prewarmed) {
                             clearInterval(checkInterval);
-                            reject(new Error('Pre-warming failed: ' + status.status.overall_status));
+                            reject(new Error('Pre-warming failed: System not ready'));
                         }
                         // Continue waiting if still pre-warming
                     }
