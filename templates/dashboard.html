@@ -273,6 +273,49 @@
                 </div>
             </div>
         </div>
+        
+        <!-- System Pre-warming Status Display -->
+        <div style="margin-top: 1.5rem;">
+            <div id="prewarm-status-container" style="padding: 0.75rem; background: #f8f9fa; border: 1px solid #e5e7eb; border-radius: 6px; display: block;">
+                <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 0.75rem;">
+                    <p style="margin: 0; font-weight: 600; color: #374151;"><i class="fas fa-cog"></i> System Pre-warming</p>
+                    <span id="prewarm-overall-status" style="font-size: 0.875rem; color: #6b7280;">Checking...</span>
+                </div>
+                
+                <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 0.75rem;">
+                    <div>
+                        <div class="status-indicator" style="margin-bottom: 0.5rem;">
+                            <div class="status-dot gray" id="prewarm-subprocess-dot"></div>
+                            <span id="prewarm-subprocess-text" style="font-size: 0.875rem;">Python subprocess startup</span>
+                        </div>
+                        <div class="status-indicator" style="margin-bottom: 0.5rem;">
+                            <div class="status-dot gray" id="prewarm-database-dot"></div>
+                            <span id="prewarm-database-text" style="font-size: 0.875rem;">Database connections</span>
+                        </div>
+                    </div>
+                    <div>
+                        <div class="status-indicator" style="margin-bottom: 0.5rem;">
+                            <div class="status-dot gray" id="prewarm-sitemap-dot"></div>
+                            <span id="prewarm-sitemap-text" style="font-size: 0.875rem;">Sitemap validation</span>
+                        </div>
+                        <div class="status-indicator" style="margin-bottom: 0.5rem;">
+                            <div class="status-dot gray" id="prewarm-crawl4ai-dot"></div>
+                            <span id="prewarm-crawl4ai-text" style="font-size: 0.875rem;">Crawler service</span>
+                        </div>
+                    </div>
+                </div>
+                
+                <div id="prewarm-progress-container" style="margin-top: 0.75rem; display: none;">
+                    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 0.25rem;">
+                        <span style="font-size: 0.8rem; color: #6b7280;">Pre-warming progress</span>
+                        <span id="prewarm-progress-text" style="font-size: 0.8rem; color: #6b7280;">0%</span>
+                    </div>
+                    <div class="progress-bar" style="height: 4px;">
+                        <div class="progress-fill" id="prewarm-progress-bar" style="width: 0%; transition: width 0.3s ease;"></div>
+                    </div>
+                </div>
+            </div>
+        </div>
     </div>
     
 </div>
@@ -404,47 +447,6 @@
                         Services loading...
                     </div>
                     <div id="url-status-indicator" style="position: absolute; top: 0.5rem; right: 0.5rem; width: 8px; height: 8px; border-radius: 50%; background: #ccc; transition: background-color 0.3s;"></div>
-                </div>
-            </div>
-            
-            <!-- Pre-warming Status Display -->
-            <div id="prewarm-status-container" style="margin-top: 1rem; padding: 0.75rem; background: #f8f9fa; border: 1px solid #e5e7eb; border-radius: 6px; display: block;">
-                <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 0.75rem;">
-                    <p style="margin: 0; font-weight: 600; color: #374151;"><i class="fas fa-cog"></i> System Pre-warming</p>
-                    <span id="prewarm-overall-status" style="font-size: 0.875rem; color: #6b7280;">Checking...</span>
-                </div>
-                
-                <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 0.75rem;">
-                    <div>
-                        <div class="status-indicator" style="margin-bottom: 0.5rem;">
-                            <div class="status-dot gray" id="prewarm-subprocess-dot"></div>
-                            <span id="prewarm-subprocess-text" style="font-size: 0.875rem;">Python subprocess startup</span>
-                        </div>
-                        <div class="status-indicator" style="margin-bottom: 0.5rem;">
-                            <div class="status-dot gray" id="prewarm-database-dot"></div>
-                            <span id="prewarm-database-text" style="font-size: 0.875rem;">Database connections</span>
-                        </div>
-                    </div>
-                    <div>
-                        <div class="status-indicator" style="margin-bottom: 0.5rem;">
-                            <div class="status-dot gray" id="prewarm-sitemap-dot"></div>
-                            <span id="prewarm-sitemap-text" style="font-size: 0.875rem;">Sitemap validation</span>
-                        </div>
-                        <div class="status-indicator" style="margin-bottom: 0.5rem;">
-                            <div class="status-dot gray" id="prewarm-crawl4ai-dot"></div>
-                            <span id="prewarm-crawl4ai-text" style="font-size: 0.875rem;">Crawler service</span>
-                        </div>
-                    </div>
-                </div>
-                
-                <div id="prewarm-progress-container" style="margin-top: 0.75rem; display: none;">
-                    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 0.25rem;">
-                        <span style="font-size: 0.8rem; color: #6b7280;">Pre-warming progress</span>
-                        <span id="prewarm-progress-text" style="font-size: 0.8rem; color: #6b7280;">0%</span>
-                    </div>
-                    <div class="progress-bar" style="height: 4px;">
-                        <div class="progress-fill" id="prewarm-progress-bar" style="width: 0%; transition: width 0.3s ease;"></div>
-                    </div>
                 </div>
             </div>
             
