@@ -40,7 +40,14 @@ A comprehensive e-commerce intelligence platform and AI-powered product discover
 
 ---
 
-## 🆕 **Latest Enhancements (June 29, 2025 - 9:20 PM)**
+## 🆕 **Latest Enhancements (June 29, 2025 - 10:30 PM)**
+
+### **🚀 System Pre-warming & Start Learning Button Fixes**
+- **✅ Fixed System Pre-warming Visibility**: Now always visible in Runtime Environment Status frame
+- **✅ Fixed Start Learning Button**: Corrected API response field references (`is_prewarmed` vs `status.overall_status`)
+- **✅ Updated Acquisition Modes**: Renamed "Full Data Intelligence Platform" → "Complete Sitemap Learning Mode"
+- **✅ Verified Pre-warming Logic**: Fixed `waitForPrewarmCompletion()` function with correct API structure
+- **✅ System Reboot Completed**: Fresh restart with all fixes applied and verified
 
 ### **🔧 System Configuration Fixes**
 - **✅ Fixed Virtual Environment Path**: Updated from `sandbox_env` to `autogen_env` 
@@ -1492,11 +1499,13 @@ git branch --set-upstream-to=tileshop-rag/main main
 4. **Pre-warming showing database connection ✗**: Normal if using docker exec method - check actual database stats work
 5. **Wrong product counts (5 vs 262)**: Ensure using relational_db/vector_db containers, not local PostgreSQL@14
 6. **Python subprocess startup ✗**: Check virtual environment path is set to `autogen_env`, not `sandbox_env`
-7. **Package installation problems**: Clean global packages and reinstall in venv
-8. **Git push failures**: Use correct remote (`tileshop-rag`) instead of origin
-9. **SSH authentication errors**: Add SSH key to agent with `ssh-add ~/.ssh/id_ed25519`
-10. **Permission denied (publickey)**: Ensure SSH key is added to GitHub account
-11. **HTTPS credential errors**: Use personal access token instead of password
+7. **System Pre-warming not visible**: Should be visible in Runtime Environment Status frame after recent fixes
+8. **Start Learning button not working**: Fixed - was using wrong API field references (`status.overall_status` vs `is_prewarmed`)
+9. **Package installation problems**: Clean global packages and reinstall in venv
+10. **Git push failures**: Use correct remote (`tileshop-rag`) instead of origin
+11. **SSH authentication errors**: Add SSH key to agent with `ssh-add ~/.ssh/id_ed25519`
+12. **Permission denied (publickey)**: Ensure SSH key is added to GitHub account
+13. **HTTPS credential errors**: Use personal access token instead of password
 
 ### Debug Commands
 ```bash
