@@ -2312,74 +2312,75 @@
     {
       "url": "https://www.tileshop.com/products/arbour-midlands-nutmeg-oak-luxury-vinyl-overlap-stair-nose-84-in-683944",
       "lastmod": null,
-      "scraped_at": null,
-      "scrape_status": "pending"
+      "scraped_at": "2025-06-29T18:08:06.072765",
+      "scrape_status": "completed"
     },
     {
       "url": "https://www.tileshop.com/products/arbour-midlands-nutmeg-oak-luxury-vinyl-reducer-84-in-683943",
       "lastmod": null,
-      "scraped_at": null,
-      "scrape_status": "pending"
+      "scraped_at": "2025-06-29T18:08:19.518729",
+      "scrape_status": "completed"
     },
     {
       "url": "https://www.tileshop.com/products/arbour-midlands-nutmeg-oak-luxury-vinyl-t-molding-84-in-683942",
       "lastmod": null,
-      "scraped_at": null,
-      "scrape_status": "pending"
+      "scraped_at": "2025-06-29T18:08:47.202290",
+      "scrape_status": "completed"
     },
     {
       "url": "https://www.tileshop.com/products/arbour-midlands-sandy-oak-luxury-vinyl-flush-stair-nose-84-in-683940",
       "lastmod": null,
-      "scraped_at": null,
-      "scrape_status": "pending"
+      "scraped_at": "2025-06-29T18:09:00.831991",
+      "scrape_status": "completed"
     },
     {
       "url": "https://www.tileshop.com/products/arbour-midlands-sandy-oak-luxury-vinyl-overlap-stair-nose-84-in-683939",
       "lastmod": null,
-      "scraped_at": null,
-      "scrape_status": "pending"
+      "scraped_at": "2025-06-29T18:09:22.944468",
+      "scrape_status": "completed"
     },
     {
       "url": "https://www.tileshop.com/products/arbour-midlands-sandy-oak-luxury-vinyl-reducer-84-in-683938",
       "lastmod": null,
-      "scraped_at": null,
-      "scrape_status": "pending"
+      "scraped_at": "2025-06-29T18:09:36.777547",
+      "scrape_status": "completed"
     },
     {
       "url": "https://www.tileshop.com/products/arbour-midlands-sandy-oak-luxury-vinyl-t-molding-84-in-683937",
       "lastmod": null,
-      "scraped_at": null,
-      "scrape_status": "pending"
+      "scraped_at": "2025-06-29T18:09:50.483363",
+      "scrape_status": "completed"
     },
     {
       "url": "https://www.tileshop.com/products/arbour-midlands-hickory-blonde-roast-luxury-vinyl-reducer-84-in-683933",
       "lastmod": null,
-      "scraped_at": null,
-      "scrape_status": "pending"
+      "scraped_at": "2025-06-29T18:10:09.970708",
+      "scrape_status": "completed"
     },
     {
       "url": "https://www.tileshop.com/products/arbour-midlands-hickory-blonde-roast-luxury-vinyl-t-molding-84-in-683932",
       "lastmod": null,
-      "scraped_at": null,
-      "scrape_status": "pending"
+      "scraped_at": "2025-06-29T18:10:23.572891",
+      "scrape_status": "completed"
     },
     {
       "url": "https://www.tileshop.com/products/arbour-midlands-cool-almond-oak-luxury-vinyl-quarter-round-84-in-683931",
       "lastmod": null,
-      "scraped_at": null,
-      "scrape_status": "pending"
+      "scraped_at": "2025-06-29T18:10:52.788499",
+      "scrape_status": "failed",
+      "error": "Crawl timeout"
     },
     {
       "url": "https://www.tileshop.com/products/arbour-midlands-cool-almond-oak-luxury-vinyl-flush-stair-nose-84-in-683930",
       "lastmod": null,
-      "scraped_at": null,
-      "scrape_status": "pending"
+      "scraped_at": "2025-06-29T18:52:06.069713",
+      "scrape_status": "completed"
     },
     {
       "url": "https://www.tileshop.com/products/arbour-midlands-cool-almond-oak-luxury-vinyl-overlap-stair-nose-84-in-683929",
       "lastmod": null,
-      "scraped_at": null,
-      "scrape_status": "pending"
+      "scraped_at": "2025-06-29T18:52:19.590097",
+      "scrape_status": "completed"
     },
     {
       "url": "https://www.tileshop.com/products/arbour-midlands-cool-almond-oak-luxury-vinyl-reducer-84-in-683928",

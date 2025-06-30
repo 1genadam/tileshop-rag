@@ -588,17 +588,20 @@ def get_sitemap_status():
         # Calculate inserted count (products in database that didn't come from current sitemap learning)
         inserted = 0
         try:
-            # Get current database count to calculate inserted
-            db_stats = db_manager.get_product_stats('supabase')
+            # Get current database count to calculate inserted (use relational_db as source)
+            db_stats = db_manager.get_product_stats('relational_db')
             db_count = db_stats.get('total_products', 0) if db_stats else 0
             # Inserted = Database products - Learned from sitemap (only if DB has more than learned)
             # This represents products from previous sessions, manual imports, etc.
+            logger.info(f"Debug inserted calculation: db_count={db_count}, completed={completed}")
             if db_count > completed:
                 inserted = db_count - completed
+                logger.info(f"Calculated inserted: {inserted}")
             else:
                 # If DB has same or fewer products than learned, inserted = 0
                 # (some learned products may have failed to insert)
                 inserted = 0
+                logger.info(f"DB count ({db_count}) <= completed ({completed}), inserted set to 0")
         except Exception as e:
             logger.warning(f"Could not calculate inserted count: {e}")
             inserted = 0  # Default to 0 if calculation fails

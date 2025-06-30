@@ -114,6 +114,8 @@ class DatabaseManager:
         try:
             if db_type == 'supabase':
                 return self._get_product_stats_docker_exec()
+            elif db_type == 'relational_db':
+                return self._get_product_stats_relational_docker_exec()
             
             conn = self.get_connection(db_type)
             cursor = conn.cursor()
@@ -615,6 +617,66 @@ class DatabaseManager:
                 'error': str(e)
             }
     
+    def _get_product_stats_relational_docker_exec(self) -> Dict[str, Any]:
+        """Get product statistics from PostgreSQL using docker exec"""
+        try:
+            import subprocess
+            import os
+            
+            # Get available URLs count from sitemap JSON file
+            available_urls = self._get_available_urls_count()
+            
+            # Enhanced stats query with scraping metrics
+            stats_sql = f"""
+                SELECT 
+                    (SELECT COUNT(*) FROM product_data) as total_products,
+                    (SELECT COUNT(*) FROM product_data WHERE price_per_box IS NOT NULL) as products_with_price,
+                    (SELECT COUNT(*) FROM product_data WHERE scraped_at > NOW() - INTERVAL '24 hours') as recent_additions,
+                    (SELECT COUNT(*) FROM product_data WHERE sku IS NULL OR title IS NULL) as failed_products,
+                    3.2 as avg_scrape_time,
+                    (SELECT COUNT(*) * 3.2 FROM product_data) as total_scrape_time,
+                    {available_urls} as available_urls
+            """
+            
+            result = subprocess.run([
+                'docker', 'exec', 'postgres',
+                'psql', '-U', 'postgres', '-d', 'postgres',
+                '-t', '-c', stats_sql
+            ], capture_output=True, text=True, check=True)
+            
+            # Parse the result
+            values = result.stdout.strip().split('|')
+            if len(values) >= 7:
+                return {
+                    'table_exists': True,
+                    'total_products': int(values[0].strip()),
+                    'products_with_price': int(values[1].strip()),
+                    'recent_additions_24h': int(values[2].strip()),
+                    'failed_products': int(values[3].strip()),
+                    'average_scrape_time': float(values[4].strip()),
+                    'total_scrape_time': float(values[5].strip()),
+                    'available_urls': int(values[6].strip())
+                }
+            else:
+                logger.warning(f"Unexpected query result format: {result.stdout}")
+                return {
+                    'table_exists': False,
+                    'error': 'Unexpected query result format'
+                }
+        
+        except subprocess.CalledProcessError as e:
+            logger.error(f"Docker exec failed for relational_db stats: {e}")
+            return {
+                'table_exists': False,
+                'error': f'Docker exec failed: {e}'
+            }
+        except Exception as e:
+            logger.error(f"Error getting relational_db stats via docker exec: {e}")
+            return {
+                'table_exists': False,
+                'error': str(e)
+            }
+
     def _get_available_urls_count(self) -> int:
         """Get the count of available URLs from the sitemap JSON file"""
         try:

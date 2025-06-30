@@ -82,7 +82,7 @@ class ScraperManager:
         try:
             logger.info("Pre-warming: Checking virtual environment...")
             # Check virtual environment
-            venv_python = '/Users/robertsher/Projects/sandbox_env/bin/python'
+            venv_python = '/Users/robertsher/Projects/autogen_env/bin/python'
             if os.path.exists(venv_python):
                 self.prewarm_status['virtual_env'] = True
                 logger.info("Pre-warming: Virtual environment OK")
@@ -92,11 +92,11 @@ class ScraperManager:
             try:
                 import psycopg2
                 conn = psycopg2.connect(
-                    host='localhost',
+                    host='127.0.0.1',  # Use IPv4 explicitly
                     port=5432,
                     database='postgres',
-                    user='postgres',
-                    password='postgres'
+                    user='robertsher',  # Use system user for external connections
+                    password=None  # No password needed for system user
                 )
                 conn.close()
                 self.prewarm_status['database_connection'] = True
@@ -211,7 +211,7 @@ class ScraperManager:
             project_dir = os.path.dirname(os.path.abspath(__file__)).replace('/modules', '')
             
             # Activate virtual environment and run
-            venv_python = '/Users/robertsher/Projects/sandbox_env/bin/python'  # Sandbox environment
+            venv_python = '/Users/robertsher/Projects/autogen_env/bin/python'  # Sandbox environment
             if os.path.exists(venv_python):
                 args[0] = venv_python
             
@@ -585,7 +585,7 @@ class ScraperManager:
         
         try:
             # Check if virtual environment exists
-            venv_python = '/Users/robertsher/Projects/sandbox_env/bin/python'  # Sandbox environment
+            venv_python = '/Users/robertsher/Projects/autogen_env/bin/python'  # Sandbox environment
             if os.path.exists(venv_python):
                 dependencies['python_environment'] = True
             
