@@ -20,6 +20,7 @@ This directory contains comprehensive reference materials for the Tileshop RAG s
 - **caulk_guide.md** - Complete caulk selection, application, and maintenance procedures
 - **adhesives_tools_guide.md** - Complete adhesive selection and essential tools guide
 - **trowel_selection_guide.md** - Technical trowel selection with size charts and application guidelines
+- **anti_fracture_membrane_guide.md** - Complete membrane installation with double thinset requirements
 - **cleaning_maintenance.md** - Comprehensive cleaning and maintenance procedures by tile type
 - **educational_content.md** - Product comparisons, room-specific guides, and cost analysis
 
