@@ -12,7 +12,7 @@
 
 **MALE AI:**
 ```
-"So here's what's fascinating - one of Christopher Davis's sales associates 
+"So here's what's fascinating - one of Christopher Davis's coleagues - a sales associates, 
 just built something that could completely change Tile Shop's competitive 
 position. While everyone's talking about Home Depot and Lowe's launching 
 AI assistants, this guy built tile-specific intelligence."
@@ -74,7 +74,7 @@ They need ROI proof, not just competitive positioning."
 
 **MALE AI:**
 ```
-"The ROI story is incredible though. Google Commerce shows semantic search 
+"The ROI story is incredible convincing. Google Commerce shows semantic search 
 improves conversions 10-15%, Boston Consulting Group has AOV increases 
 at 6-12%."
 ```
@@ -170,7 +170,7 @@ of capability addition."
 Tile Shop. Floor & Decor has 251 stores and according to our competitive 
 analysis, they're 12-18 months ahead technologically with their AI-powered 
 inventory management and Salesforce Commerce Cloud platform. But this 
-may level the playing field for Tile Shop."
+may level the playing field for the Tile Shop."
 ```
 
 **FEMALE AI:**
@@ -211,8 +211,8 @@ this effectively with customers."
 **MALE AI:**
 ```
 "Actually, that's the beauty of it. Christopher, the interface is 
-conversational - associates just ask questions like they would 
-to an expert colleague. No complex training required."
+conversational - associates and customers just ask questions like they would 
+when speaking to a real person. No complex training required."
 ```
 
 **FEMALE AI:**
@@ -253,14 +253,14 @@ philosophy. Employee innovation solving customer problems."
 "Christopher, your employee culture just created a $71 million opportunity. 
 The comprehensive analysis is ready, deployment could start in 90 days. 
 The question is whether you want to lead this transformation and help 
-Tile Shop catch up or watch competitors further erode sales and erode 
+the Tile Shop catch up or watch competitors further erode sales and erode 
 market share."
 ```
 
 **FEMALE AI:**
 ```
 "The competitive window won't stay open forever. Six months from now, 
-the competitive landscape will look very different."
+the landscape will look very different."
 ```
 
 ---

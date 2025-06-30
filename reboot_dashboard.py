@@ -1442,8 +1442,15 @@ def get_system_stats():
         boot_time = psutil.boot_time()
         system_stats['uptime'] = time.time() - boot_time
         
-        # Database connections (mock for now - could be enhanced)
-        system_stats['db_connections'] = 2  # relational + vector
+        # Database connections (real connectivity test)
+        try:
+            db_connections = db_manager.test_connections()
+            healthy_dbs = sum(1 for c in db_connections.values() if c.get('connected'))
+            total_dbs = len(db_connections)
+            system_stats['db_connections'] = f"{healthy_dbs}/{total_dbs}"
+        except Exception as e:
+            logger.warning(f"Database connectivity test failed: {e}")
+            system_stats['db_connections'] = "0/2"
         
         return jsonify({'success': True, 'stats': system_stats})
     except Exception as e:

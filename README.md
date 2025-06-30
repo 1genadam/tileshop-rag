@@ -40,15 +40,22 @@ A comprehensive e-commerce intelligence platform and AI-powered product discover
 
 ---
 
-## 🆕 **Latest Enhancements (June 29, 2025 - 10:30 PM)**
+## 🆕 **Latest Enhancements (June 29, 2025 - 11:30 PM)**
 
-### **🚀 System Pre-warming & Start Learning Button Fixes**
-- **✅ Fixed System Pre-warming Visibility**: Now always visible in Runtime Environment Status frame
-- **✅ Fixed Start Learning Button**: Corrected API response field references (`is_prewarmed` vs `status.overall_status`)
-- **✅ Updated Acquisition Modes**: Renamed "Full Data Intelligence Platform" → "Complete Sitemap Learning Mode"
-- **✅ Verified Pre-warming Logic**: Fixed `waitForPrewarmCompletion()` function with correct API structure
-- **✅ Renamed Main Application**: `admin_dashboard.py` → `reboot_dashboard.py` for clarity
-- **✅ System Reboot Completed**: Fresh restart with all fixes applied and verified
+### **🚀 Enhanced System Pre-warming with Database Separation**
+- **✅ Pre-warming Always Visible**: System Pre-warming section now remains visible when operational (no longer hidden)
+- **✅ Database Components Split**: Separated "Database connections" into individual `relational_db` and `vector_db` components
+- **✅ Enhanced Status Display**: Pre-warming components now show detailed status like Runtime Environment (e.g., "relational_db ✓ Ready", "vector_db ✗ Error")
+- **✅ Real Database Connectivity**: Pre-warming now uses actual database connectivity tests from system stats API (shows "1/2" connectivity)
+- **✅ 5-Component Pre-warming**: Enhanced from 4 to 5 components for better granular monitoring
+- **✅ Consistent Health Reporting**: Fixed database connectivity inconsistency between Health Check Results and Microservices Directory
+
+### **🔧 System Pre-warming Components (5 Total)**
+- **Python subprocess startup ✓ Ready**: Virtual environment activation and validation
+- **relational_db ✓ Ready**: PostgreSQL container connectivity and access
+- **vector_db ✗ Error**: Supabase container connectivity (correctly shows connection issues)
+- **Sitemap validation ✓ Ready**: Sitemap file validation and URL counting
+- **Crawler service ✓ Ready**: Crawl4AI service connectivity and health check
 
 ### **🔧 System Configuration Fixes**
 - **✅ Fixed Virtual Environment Path**: Updated from `sandbox_env` to `autogen_env` 

@@ -262,6 +262,12 @@ function addMessage(text, type) {
     const div = document.createElement('div');
     div.className = 'flex';
     
+    // Convert markdown to HTML for assistant messages
+    let processedText = text;
+    if (type === 'assistant') {
+        processedText = convertMarkdownToHtml(text);
+    }
+    
     if (type === 'user') {
         div.className += ' justify-end';
         div.innerHTML = `
@@ -273,7 +279,7 @@ function addMessage(text, type) {
     } else {
         div.innerHTML = `
             <div class="message-bubble assistant">
-                <p>${text}</p>
+                <div>${processedText}</div>
                 <small class="text-gray-500 text-xs">${type === 'error' ? 'Error' : 'Assistant'} - ${new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}</small>
             </div>
         `;
@@ -289,6 +295,26 @@ function addMessage(text, type) {
     }
     
     console.log('Message added successfully, total messages:', messageCount);
+}
+
+// Convert markdown to HTML
+function convertMarkdownToHtml(text) {
+    // Convert markdown images: ![alt text](url) to <img> tags
+    text = text.replace(/!\[([^\]]*)\]\(([^)]+)\)/g, '<img src="$2" alt="$1" style="max-width: 200px; height: auto; border-radius: 8px; margin: 8px 0; box-shadow: 0 2px 8px rgba(0,0,0,0.1);" />');
+    
+    // Convert markdown links: [text](url) to <a> tags
+    text = text.replace(/\[([^\]]+)\]\(([^)]+)\)/g, '<a href="$2" target="_blank" style="color: #3b82f6; text-decoration: underline;">$1</a>');
+    
+    // Convert **bold** text
+    text = text.replace(/\*\*([^*]+)\*\*/g, '<strong>$1</strong>');
+    
+    // Convert line breaks to <br> tags
+    text = text.replace(/\n/g, '<br>');
+    
+    // Format product entries with better structure
+    text = text.replace(/(\d+\.\s\*\*[^*]+\*\*)/g, '<div style="margin: 12px 0; padding: 8px; background: #f8f9fa; border-radius: 6px; border-left: 3px solid #3b82f6;">$1</div>');
+    
+    return text;
 }
 
 // Update character count
