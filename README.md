@@ -40,29 +40,35 @@ A comprehensive e-commerce intelligence platform and AI-powered product discover
 
 ---
 
-## 🆕 **Latest Enhancements (June 29, 2025 - 11:30 PM)**
+## 🆕 **Latest Enhancements (June 30, 2025 - 12:10 AM)**
 
-### **🚀 Enhanced System Pre-warming with Database Separation**
-- **✅ Pre-warming Always Visible**: System Pre-warming section now remains visible when operational (no longer hidden)
-- **✅ Database Components Split**: Separated "Database connections" into individual `relational_db` and `vector_db` components
-- **✅ Enhanced Status Display**: Pre-warming components now show detailed status like Runtime Environment (e.g., "relational_db ✓ Ready", "vector_db ✗ Error")
-- **✅ Real Database Connectivity**: Pre-warming now uses actual database connectivity tests from system stats API (shows "1/2" connectivity)
-- **✅ 5-Component Pre-warming**: Enhanced from 4 to 5 components for better granular monitoring
-- **✅ Consistent Health Reporting**: Fixed database connectivity inconsistency between Health Check Results and Microservices Directory
+### **🚀 Database Connectivity Resolution - All Systems Operational**
+- **✅ Database Errors Completely Resolved**: All database connectivity issues fixed - system now shows `is_prewarmed: true`
+- **✅ Enhanced Pre-warming System**: Upgraded to 5-component granular monitoring with separate database testing
+- **✅ Eliminated Demo Mode**: Removed demo mode that was preventing real database connections
+- **✅ Fixed Database Authentication**: Updated authentication to use reliable postgres/postgres credentials
+- **✅ Real-time Database Health**: Pre-warming now uses actual DatabaseManager.test_connections() for accurate status
 
-### **🔧 System Pre-warming Components (5 Total)**
-- **Python subprocess startup ✓ Ready**: Virtual environment activation and validation
-- **relational_db ✓ Ready**: PostgreSQL container connectivity and access
-- **vector_db ✗ Error**: Supabase container connectivity (correctly shows connection issues)
-- **Sitemap validation ✓ Ready**: Sitemap file validation and URL counting
-- **Crawler service ✓ Ready**: Crawl4AI service connectivity and health check
+### **🔧 System Pre-warming Components - All Operational (5/5)**
+- **Python subprocess startup ✅ Ready**: Virtual environment activation and validation
+- **relational_db ✅ Ready**: PostgreSQL container connectivity and access (FIXED)
+- **vector_db ✅ Ready**: Supabase container connectivity and access (FIXED)
+- **Sitemap validation ✅ Ready**: Sitemap file validation and URL counting  
+- **Crawler service ✅ Ready**: Crawl4AI service connectivity and health check
 
-### **🔧 System Configuration Fixes**
+### **🔧 Critical Database Fixes Applied**
+- **✅ Removed Demo Mode Entirely**: Eliminated `DEMO_MODE` that prevented real database connectivity tests
+- **✅ Fixed PostgreSQL Authentication**: Updated relational_db config from system user to postgres/postgres credentials
+- **✅ Fixed Import Error**: Corrected `DBManager` to `DatabaseManager` in intelligence_manager.py
+- **✅ Enhanced Database Testing**: Pre-warming now uses same connectivity tests as system health checks
+- **✅ Consistent Status Reporting**: Database connectivity now consistent across all dashboard components
+
+### **🔧 System Configuration Improvements**
 - **✅ Fixed Virtual Environment Path**: Updated from `sandbox_env` to `autogen_env` 
-- **✅ Fixed Database Authentication**: Updated to use IPv4 (127.0.0.1) with system user authentication
-- **✅ Added Docker Exec Support**: Implemented reliable docker exec method for both databases
+- **✅ Enhanced Database Connectivity**: Unified database connection methods across all components
+- **✅ Added Docker Exec Support**: Maintained reliable docker exec method for operations
 - **✅ Eliminated N8N Dependencies**: Removed old n8n-based database connections
-- **✅ Fixed Data Count Calculations**: Corrected sitemap status to show accurate metrics (262 products, 20 inserted)
+- **✅ Fixed Data Count Calculations**: Corrected sitemap status to show accurate metrics (294 products, 20 inserted)
 
 ### **🚀 Pre-warming System for Instant Learning**
 - **Eliminated 8-13 Second Delay**: Start Learning button now responds instantly
@@ -1497,6 +1503,79 @@ git remote add tileshop-rag git@github.com:1genadam/tileshop-rag.git
 # Set as default upstream
 git branch --set-upstream-to=tileshop-rag/main main
 ```
+
+## 🎯 **Cross-Selling & Upsell Strategy**
+
+### **Floor Tile Installation Upsells**
+
+**Essential Products (Required for Installation):**
+- **Grout**: Color-matched grout for tile joints
+- **Thinset**: Adhesive for tile installation
+- **Anti-Fracture Membrane**: 
+  - **Backer-lite**: For wet areas (bathrooms, showers)
+  - **Permat**: For dry areas (kitchens, living spaces)
+- **Sealer**: Premium Gold Sealer (Qt or Pt sizes)
+- **Tools & Supplies**:
+  - Sponge for sealer application
+  - Sponge for grout cleanup
+  - Trowel (1/2" for large format tiles)
+  - Margin trowel
+  - 6-gallon bucket for mixing
+
+**Premium Upgrades:**
+- **Heated Floor Systems**: 
+  - Eliminates need for backer-lite and permat
+  - Requires MaxLite or Bond Left thinset
+- **Trim & Finishing**:
+  - Wall border trim (marble skirting, Stanton, or base)
+  - Matching caulk (100% silicone to match grout)
+  - Critical for wall/floor transitions to prevent grout cracking
+
+**Why Caulk Instead of Grout**: Temperature changes cause walls and floors to expand/contract at different rates. Houses settle over time. Flexible caulk prevents cracking where rigid grout would fail.
+
+### **Wall Tile Installation Upsells**
+
+**Essential Products (Similar to Floor, with Key Differences):**
+- **Grout**: Color-matched grout for tile joints
+- **Thinset**: Wall-appropriate adhesive
+- **Sealer**: Premium Gold Sealer (research coverage specs)
+- **Same Tools**: Sponges, trowels, margin trowel, bucket
+
+**Wall-Specific Exclusions:**
+- ❌ No backer-lite (not needed for walls)
+- ❌ No permat (not needed for walls)  
+- ❌ No heated floor elements
+
+**Wall-Specific Additions:**
+- **Trim & Edging**:
+  - Sommersets trim pieces
+  - Barnes trim collection
+  - Niches for shower storage
+  - Upper wall moldings (cornices)
+  - Great Lakes L-channels
+  - Round nose edging
+  - Square edge metal edging trim
+
+### **Cross-Selling Implementation Strategy**
+
+**Project Calculator Enhancement:**
+1. **Detect Tile Application**: Floor vs Wall (from product specifications)
+2. **Calculate Base Needs**: Grout, thinset, tools based on room size
+3. **Suggest Premium Options**: Heated floors, premium sealers, trim packages
+4. **Include Installation Supplies**: Complete project shopping list
+
+**Upsell Pricing Strategy:**
+- **Base tile purchase**: $200 (23 sq ft)
+- **Essential installation supplies**: +$150-200
+- **Premium upgrades**: +$200-300
+- **Professional trim package**: +$100-150
+- **Target total**: $500-650 (2.5-3x original purchase)
+
+**RAG System Integration:**
+- Subway tile query → Complete installation package
+- Room size input → Accurate material calculations
+- Application type → Appropriate upsell recommendations
+- Return policy compliance → Whole box quantities only
 
 ## Troubleshooting
 

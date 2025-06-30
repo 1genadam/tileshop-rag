@@ -18,16 +18,12 @@ class DatabaseManager:
     """Manages database connections and operations"""
     
     def __init__(self):
-        # Demo mode - check if we're in cloud environment
-        import os
-        self.demo_mode = os.environ.get('DEMO_MODE', 'true').lower() == 'true'
-        
         self.relational_db_config = {
             'host': '127.0.0.1',  # Use IPv4 explicitly
             'port': 5432,
             'database': 'postgres',
-            'user': 'robertsher',  # Use system user for external connections
-            'password': None  # No password needed for system user
+            'user': 'postgres',
+            'password': 'postgres'  # Use postgres user with known password
         }
         
         self.supabase_config = {
@@ -37,9 +33,6 @@ class DatabaseManager:
             'user': 'postgres',
             'password': 'supabase123'
         }
-        
-        if self.demo_mode:
-            logger.info("Running in demo mode - using mock data")
     
     def get_connection(self, db_type: str = 'relational_db'):
         """Get database connection"""

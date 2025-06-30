@@ -56,7 +56,8 @@ class ScraperManager:
         self.is_prewarmed = False
         self.prewarm_status = {
             'virtual_env': False,
-            'database_connection': False,
+            'relational_db': False,
+            'vector_db': False,
             'sitemap_validation': False,
             'crawl4ai_service': False
         }
@@ -87,23 +88,29 @@ class ScraperManager:
                 self.prewarm_status['virtual_env'] = True
                 logger.info("Pre-warming: Virtual environment OK")
             
-            logger.info("Pre-warming: Testing database connection...")
-            # Test database connection using docker exec (same method as actual operations)
+            logger.info("Pre-warming: Testing database connections...")
+            # Test both database connections using the same method as system stats
             try:
-                import subprocess
-                result = subprocess.run([
-                    'docker', 'exec', 'postgres',
-                    'psql', '-U', 'postgres', '-d', 'postgres',
-                    '-c', 'SELECT 1;'
-                ], capture_output=True, text=True, timeout=10)
+                from .db_manager import DatabaseManager
+                db_manager = DatabaseManager()
+                db_connections = db_manager.test_connections()
                 
-                if result.returncode == 0:
-                    self.prewarm_status['database_connection'] = True
-                    logger.info("Pre-warming: Database connection OK")
+                # Test relational_db (PostgreSQL)
+                if db_connections.get('relational_db', {}).get('connected', False):
+                    self.prewarm_status['relational_db'] = True
+                    logger.info("Pre-warming: relational_db connection OK")
                 else:
-                    logger.warning(f"Pre-warming: Database connection failed: {result.stderr}")
+                    logger.warning(f"Pre-warming: relational_db connection failed")
+                
+                # Test vector_db (Supabase)
+                if db_connections.get('supabase', {}).get('connected', False):
+                    self.prewarm_status['vector_db'] = True
+                    logger.info("Pre-warming: vector_db connection OK")
+                else:
+                    logger.warning(f"Pre-warming: vector_db connection failed")
+                    
             except Exception as e:
-                logger.warning(f"Pre-warming: Database connection failed: {e}")
+                logger.warning(f"Pre-warming: Database connections test failed: {e}")
             
             logger.info("Pre-warming: Validating sitemap...")
             # Validate sitemap existence
