@@ -88,19 +88,20 @@ class ScraperManager:
                 logger.info("Pre-warming: Virtual environment OK")
             
             logger.info("Pre-warming: Testing database connection...")
-            # Test database connection
+            # Test database connection using docker exec (same method as actual operations)
             try:
-                import psycopg2
-                conn = psycopg2.connect(
-                    host='127.0.0.1',  # Use IPv4 explicitly
-                    port=5432,
-                    database='postgres',
-                    user='robertsher',  # Use system user for external connections
-                    password=None  # No password needed for system user
-                )
-                conn.close()
-                self.prewarm_status['database_connection'] = True
-                logger.info("Pre-warming: Database connection OK")
+                import subprocess
+                result = subprocess.run([
+                    'docker', 'exec', 'postgres',
+                    'psql', '-U', 'postgres', '-d', 'postgres',
+                    '-c', 'SELECT 1;'
+                ], capture_output=True, text=True, timeout=10)
+                
+                if result.returncode == 0:
+                    self.prewarm_status['database_connection'] = True
+                    logger.info("Pre-warming: Database connection OK")
+                else:
+                    logger.warning(f"Pre-warming: Database connection failed: {result.stderr}")
             except Exception as e:
                 logger.warning(f"Pre-warming: Database connection failed: {e}")
             
