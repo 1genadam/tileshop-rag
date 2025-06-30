@@ -40,7 +40,14 @@ A comprehensive e-commerce intelligence platform and AI-powered product discover
 
 ---
 
-## 🆕 **Latest Enhancements (June 29, 2025 - 6:55 PM)**
+## 🆕 **Latest Enhancements (June 29, 2025 - 9:20 PM)**
+
+### **🔧 System Configuration Fixes**
+- **✅ Fixed Virtual Environment Path**: Updated from `sandbox_env` to `autogen_env` 
+- **✅ Fixed Database Authentication**: Updated to use IPv4 (127.0.0.1) with system user authentication
+- **✅ Added Docker Exec Support**: Implemented reliable docker exec method for both databases
+- **✅ Eliminated N8N Dependencies**: Removed old n8n-based database connections
+- **✅ Fixed Data Count Calculations**: Corrected sitemap status to show accurate metrics (262 products, 20 inserted)
 
 ### **🚀 Pre-warming System for Instant Learning**
 - **Eliminated 8-13 Second Delay**: Start Learning button now responds instantly
@@ -1481,12 +1488,15 @@ git branch --set-upstream-to=tileshop-rag/main main
 ### Common Issues
 1. **crawl4ai not responding**: Check container status and restart if needed
 2. **Database connection errors**: Use 127.0.0.1 instead of localhost for IPv4
-3. **Virtual environment issues**: Use full path to activate script
-4. **Package installation problems**: Clean global packages and reinstall in venv
-5. **Git push failures**: Use correct remote (`tileshop-rag`) instead of origin
-6. **SSH authentication errors**: Add SSH key to agent with `ssh-add ~/.ssh/id_ed25519`
-7. **Permission denied (publickey)**: Ensure SSH key is added to GitHub account
-8. **HTTPS credential errors**: Use personal access token instead of password
+3. **Virtual environment issues**: Use full path to activate script (`/Users/robertsher/Projects/autogen_env/bin/python`)
+4. **Pre-warming showing database connection ✗**: Normal if using docker exec method - check actual database stats work
+5. **Wrong product counts (5 vs 262)**: Ensure using relational_db/vector_db containers, not local PostgreSQL@14
+6. **Python subprocess startup ✗**: Check virtual environment path is set to `autogen_env`, not `sandbox_env`
+7. **Package installation problems**: Clean global packages and reinstall in venv
+8. **Git push failures**: Use correct remote (`tileshop-rag`) instead of origin
+9. **SSH authentication errors**: Add SSH key to agent with `ssh-add ~/.ssh/id_ed25519`
+10. **Permission denied (publickey)**: Ensure SSH key is added to GitHub account
+11. **HTTPS credential errors**: Use personal access token instead of password
 
 ### Debug Commands
 ```bash
