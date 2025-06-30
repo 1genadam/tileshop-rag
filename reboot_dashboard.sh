@@ -7,26 +7,26 @@ echo "🔄 Rebooting Tileshop Dashboard..."
 
 # Stop any existing dashboard processes
 echo "⏹️  Stopping existing dashboard processes..."
-pkill -f "python.*admin_dashboard.py" 2>/dev/null
+pkill -f "python.*reboot_dashboard.py" 2>/dev/null
 sleep 2
 
 # Verify process is stopped
-if pgrep -f "admin_dashboard.py" > /dev/null; then
+if pgrep -f "reboot_dashboard.py" > /dev/null; then
     echo "⚠️  Force killing remaining processes..."
-    pkill -9 -f "admin_dashboard.py" 2>/dev/null
+    pkill -9 -f "reboot_dashboard.py" 2>/dev/null
     sleep 1
 fi
 
 # Start dashboard in autogen_env
 echo "🚀 Starting dashboard in autogen_env..."
-/Users/robertsher/Projects/autogen_env/bin/python admin_dashboard.py > dashboard.log 2>&1 &
+/Users/robertsher/Projects/autogen_env/bin/python reboot_dashboard.py > dashboard.log 2>&1 &
 
 # Wait for startup
 sleep 3
 
 # Check if dashboard started successfully
-if pgrep -f "admin_dashboard.py" > /dev/null; then
-    PID=$(pgrep -f "admin_dashboard.py")
+if pgrep -f "reboot_dashboard.py" > /dev/null; then
+    PID=$(pgrep -f "reboot_dashboard.py")
     echo "✅ Dashboard started successfully!"
     echo "   Process ID: $PID"
     echo "   Environment: autogen_env"

@@ -47,6 +47,7 @@ A comprehensive e-commerce intelligence platform and AI-powered product discover
 - **✅ Fixed Start Learning Button**: Corrected API response field references (`is_prewarmed` vs `status.overall_status`)
 - **✅ Updated Acquisition Modes**: Renamed "Full Data Intelligence Platform" → "Complete Sitemap Learning Mode"
 - **✅ Verified Pre-warming Logic**: Fixed `waitForPrewarmCompletion()` function with correct API structure
+- **✅ Renamed Main Application**: `admin_dashboard.py` → `reboot_dashboard.py` for clarity
 - **✅ System Reboot Completed**: Fresh restart with all fixes applied and verified
 
 ### **🔧 System Configuration Fixes**
@@ -394,11 +395,11 @@ docker run -d \
 cd /Users/robertsher/Projects/tileshop_rag_clean
 
 # Using Poetry (Recommended)
-poetry run python admin_dashboard.py
+poetry run python reboot_dashboard.py
 
 # Or using virtual environment
 source autogen_env/bin/activate
-python admin_dashboard.py > dashboard.log 2>&1 &
+python reboot_dashboard.py > dashboard.log 2>&1 &
 ```
 - **Dashboard**: http://localhost:8080 - Complete control panel
 - **RAG Chat**: http://localhost:8080/chat - AI assistant for product queries
@@ -857,7 +858,7 @@ A complete e-commerce intelligence system with advanced product categorization, 
 
 | File | Purpose | Key Functionality | When to Use |
 |------|---------|-------------------|-------------|
-| **`admin_dashboard.py`** | 🎯 **Main Flask Application** | All API endpoints, WebSocket handling, service orchestration | Primary entry point - contains all business logic |
+| **`reboot_dashboard.py`** | 🎯 **Main Flask Application** | All API endpoints, WebSocket handling, service orchestration | Primary entry point - contains all business logic |
 | **`reboot_dashboard.sh`** | 🔄 **Automated Startup Script** | Dashboard restart with environment verification | When dashboard needs clean restart with proper env |
 
 ### 📂 **Backend Modules (`/modules/`)**
@@ -989,7 +990,7 @@ A complete e-commerce intelligence system with advanced product categorization, 
 
 ### **🚀 Starting the System**
 ```
-reboot_dashboard.sh → admin_dashboard.py → modules/* → templates/dashboard.html
+reboot_dashboard.sh → reboot_dashboard.py → modules/* → templates/dashboard.html
 ```
 
 ### **📊 Data Acquisition Process**  
@@ -1018,12 +1019,12 @@ retry_failed.py (analyze) → discover_missing_data.py (debug) → tileshop_scra
 
 | **I Want To...** | **Primary File** | **Supporting Files** |
 |-------------------|------------------|---------------------|
-| **Fix dashboard UI issues** | `dashboard.html`, `base.html` | `admin_dashboard.py` (API endpoints) |
+| **Fix dashboard UI issues** | `dashboard.html`, `base.html` | `reboot_dashboard.py` (API endpoints) |
 | **Modify scraping logic** | `scrape_from_sitemap.py` | `intelligence_manager.py` (orchestration) |
 | **Add new data fields** | `tileshop_scraper.py` (test) → `scrape_from_sitemap.py` (implement) | `discover_missing_data.py` (analyze) |
 | **Debug AI chat issues** | `rag_manager.py` | `chat.html`, `/static/chat.js` |
 | **Fix database sync** | `sync_manager.py` | `db_manager.py` |
-| **Add service health checks** | `docker_manager.py` | `admin_dashboard.py` (API endpoints) |
+| **Add service health checks** | `docker_manager.py` | `reboot_dashboard.py` (API endpoints) |
 | **Deploy to production** | `deploy.py` | `Dockerfile`, `fly.toml` |
 | **Recover from scraping failures** | `retry_failed.py` | Production scraper logs |
 
@@ -1142,13 +1143,13 @@ For production deployment, the scraper will need **custom filter criteria** to h
 ### **Correct Restart Sequence**
 ```bash
 # 1. Stop existing dashboard process
-pkill -f admin_dashboard.py
+pkill -f reboot_dashboard.py
 
 # 2. Wait for process to terminate
 sleep 3
 
 # 3. Start dashboard in background with logging
-python admin_dashboard.py > dashboard.log 2>&1 &
+python reboot_dashboard.py > dashboard.log 2>&1 &
 
 # 4. Verify startup and environment status
 sleep 2 && tail -10 dashboard.log
@@ -1171,7 +1172,7 @@ curl -s http://localhost:8080/api/docker/status | python -m json.tool
 ### Usage Commands
 ```bash
 # 🆕 Admin Dashboard (All-in-One)
-python admin_dashboard.py > dashboard.log 2>&1 &    # Complete control center (background)
+python reboot_dashboard.py > dashboard.log 2>&1 &    # Complete control center (background)
 
 # Development & Testing
 python tileshop_scraper.py                    # Test individual product scraper

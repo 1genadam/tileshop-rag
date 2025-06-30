@@ -48,11 +48,11 @@ fi
 
 # Kill any existing dashboard process
 echo "🔄 Stopping any existing dashboard..."
-pkill -f "admin_dashboard.py" 2>/dev/null || true
+pkill -f "reboot_dashboard.py" 2>/dev/null || true
 
 # Start the dashboard
 echo "🌟 Starting dashboard..."
-python admin_dashboard.py > dashboard.log 2>&1 &
+python reboot_dashboard.py > dashboard.log 2>&1 &
 DASHBOARD_PID=$!
 
 echo "✅ Dashboard started with PID: $DASHBOARD_PID"
