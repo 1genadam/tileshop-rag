@@ -965,13 +965,13 @@ def comprehensive_health_check():
                 health_results['checks']['scraping'] = {
                     'status': 'healthy',
                     'test_url': test_url,
-                    'details': 'Crawl4AI responding normally'
+                    'details': 'Crawler responding normally'
                 }
             else:
                 health_results['checks']['scraping'] = {
                     'status': 'error',
                     'test_url': test_url,
-                    'error': 'Crawl4AI not responding or failed'
+                    'error': 'Crawler not responding or failed'
                 }
                 health_results['overall_status'] = 'error'
                 
@@ -1020,7 +1020,7 @@ def comprehensive_health_check():
             ai_details = 'Fallback responses available'
             
             if claude_key:
-                # Test Claude API with a simple request
+                # Test LLM API with a simple request
                 try:
                     import time
                     start_time = time.time()
@@ -1044,21 +1044,21 @@ def comprehensive_health_check():
                     
                     if test_response.status_code == 200:
                         ai_status = 'healthy'
-                        ai_details = f'Claude API responding normally ({response_time}ms)'
+                        ai_details = f'LLM API responding normally ({response_time}ms)'
                     else:
                         ai_status = 'warning'
-                        ai_details = f'Claude API error: {test_response.status_code}'
+                        ai_details = f'LLM API error: {test_response.status_code}'
                         if health_results['overall_status'] == 'healthy':
                             health_results['overall_status'] = 'warning'
                             
                 except Exception as api_error:
                     ai_status = 'warning'
-                    ai_details = f'Claude API unavailable: {str(api_error)[:50]}...'
+                    ai_details = f'LLM API unavailable: {str(api_error)[:50]}...'
                     if health_results['overall_status'] == 'healthy':
                         health_results['overall_status'] = 'warning'
             else:
                 ai_status = 'warning'
-                ai_details = 'Claude API key not configured - using fallback responses'
+                ai_details = 'LLM API key not configured - using fallback responses'
                 if health_results['overall_status'] == 'healthy':
                     health_results['overall_status'] = 'warning'
                     
@@ -1179,10 +1179,10 @@ def generate_ai_response(message):
         # Get current system context
         system_context = get_system_context()
         
-        # Check if Claude API key is available (same source as RAG system)
+        # Check if LLM API key is available (same source as RAG system)
         claude_key = os.getenv('ANTHROPIC_API_KEY')
         if not claude_key:
-            logger.info("Claude API key not found in .env file, using fallback responses")
+            logger.info("LLM API key not found in .env file, using fallback responses")
             # Fallback to enhanced keyword-based responses
             return generate_fallback_response(message, system_context)
         
@@ -1252,7 +1252,7 @@ If this question is related to the allowed topics above, provide a helpful techn
             return ai_response
         else:
             # Fallback on API error
-            logger.warning(f"Claude API error: {response.status_code} - {response.text}")
+            logger.warning(f"LLM API error: {response.status_code} - {response.text}")
             return generate_fallback_response(message, system_context)
             
     except Exception as e:

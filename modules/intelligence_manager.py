@@ -125,16 +125,16 @@ class ScraperManager:
             except Exception as e:
                 logger.warning(f"Pre-warming: Sitemap validation failed: {e}")
             
-            logger.info("Pre-warming: Testing Crawl4AI service...")
-            # Test Crawl4AI service
+            logger.info("Pre-warming: Testing Crawler service...")
+            # Test Crawler service
             try:
                 import requests
                 response = requests.get('http://localhost:11235/health', timeout=5)
                 if response.status_code == 200:
                     self.prewarm_status['crawl4ai_service'] = True
-                    logger.info("Pre-warming: Crawl4AI service OK")
+                    logger.info("Pre-warming: Crawler service OK")
             except Exception as e:
-                logger.warning(f"Pre-warming: Crawl4AI service check failed: {e}")
+                logger.warning(f"Pre-warming: Crawler service check failed: {e}")
             
             # Check if all components are ready
             all_ready = all(self.prewarm_status.values())

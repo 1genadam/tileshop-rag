@@ -836,7 +836,7 @@ class DockerManager:
             }
 
     def _health_check_crawler(self) -> Dict[str, Any]:
-        """Health check for crawler service (Crawl4AI)"""
+        """Health check for crawler service"""
         try:
             # First check if port 11235 is open
             import socket
@@ -854,25 +854,25 @@ class DockerManager:
                         return {
                             'healthy': True,
                             'status': 'running',
-                            'message': 'Crawl4AI service is accessible at http://localhost:11235'
+                            'message': 'Crawler service is accessible at http://localhost:11235'
                         }
                     else:
                         return {
                             'healthy': True,
                             'status': 'running',
-                            'message': f'Crawl4AI port 11235 is open (HTTP status: {response.status_code})'
+                            'message': f'Crawler port 11235 is open (HTTP status: {response.status_code})'
                         }
                 except:
                     return {
                         'healthy': True,
                         'status': 'running',
-                        'message': 'Crawl4AI port 11235 is open'
+                        'message': 'Crawler port 11235 is open'
                     }
             else:
                 return {
                     'healthy': False,
                     'status': 'unavailable',
-                    'message': 'Crawl4AI service is not accessible on port 11235'
+                    'message': 'Crawler service is not accessible on port 11235'
                 }
                 
         except Exception as e:
