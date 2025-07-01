@@ -240,12 +240,18 @@ class ScraperManager:
                 env=env
             )
             
-            # Monitor output
+            # Monitor output with enhanced progress detection
             for line in iter(self.current_process.stdout.readline, ''):
                 if line:
-                    self._process_log_line(line.strip())
+                    line_stripped = line.strip()
+                    self._process_log_line(line_stripped)
+                    
+                    # Enhanced progress callback with detailed parsing
                     if self.progress_callback:
-                        self.progress_callback('log', {'line': line.strip()})
+                        progress_data = self._parse_progress_line(line_stripped)
+                        if progress_data:
+                            self.progress_callback('progress_update', progress_data)
+                        self.progress_callback('log', {'line': line_stripped})
             
             # Wait for completion
             return_code = self.current_process.wait()
@@ -266,6 +272,72 @@ class ScraperManager:
             self.is_running = False
             if self.progress_callback:
                 self.progress_callback('error', {'error': str(e)})
+    
+    def _parse_progress_line(self, line: str) -> Optional[Dict[str, Any]]:
+        """Parse progress information from enhanced crawl output"""
+        line_lower = line.lower()
+        
+        # Parse crawl progress events
+        if '📊 crawl_start:' in line:
+            return {'type': 'crawl_start', 'stage': 'starting', 'message': line}
+        elif '📋 task submitted:' in line:
+            # Extract task ID and timing
+            if 'task submitted:' in line and '(' in line:
+                parts = line.split('task submitted:')[1].strip()
+                task_id = parts.split('(')[0].strip()
+                timing = parts.split('(')[1].replace(')', '').replace('s', '')
+                return {
+                    'type': 'crawl_submitted', 
+                    'task_id': task_id, 
+                    'submit_time': float(timing) if timing.replace('.', '').isdigit() else 0
+                }
+        elif '🔍 status check #' in line and ':' in line:
+            # Extract status and timing info
+            try:
+                if 'elapsed' in line and 'check' in line:
+                    status_part = line.split(':')[1].split('(')[0].strip()
+                    elapsed_part = line.split('elapsed')[0].split('(')[-1].replace('s', '')
+                    return {
+                        'type': 'crawl_status',
+                        'status': status_part,
+                        'elapsed': float(elapsed_part) if elapsed_part.replace('.', '').isdigit() else 0
+                    }
+            except (IndexError, ValueError):
+                pass
+        elif '✅ crawl completed in' in line:
+            # Extract total completion time
+            try:
+                time_part = line.split('completed in')[1].split('s')[0].strip()
+                return {
+                    'type': 'crawl_complete',
+                    'total_time': float(time_part) if time_part.replace('.', '').isdigit() else 0
+                }
+            except (IndexError, ValueError):
+                pass
+        elif '⏰ crawl timeout' in line:
+            return {'type': 'crawl_timeout', 'message': line}
+        elif '✗ crawl failed:' in line:
+            error_msg = line.split('crawl failed:')[1].strip() if 'crawl failed:' in line else 'Unknown error'
+            return {'type': 'crawl_error', 'error': error_msg}
+        
+        # Parse general progress patterns
+        elif any(pattern in line_lower for pattern in ['processing', 'scraping', 'extracting']):
+            if 'processing ' in line_lower and '/' in line:
+                try:
+                    # Extract current/total pattern like "Processing 5/100"
+                    progress_part = line.split('Processing')[1].split(':')[0].strip()
+                    if '/' in progress_part:
+                        current, total = progress_part.split('/')
+                        return {
+                            'type': 'processing_progress',
+                            'current': int(current),
+                            'total': int(total),
+                            'percent': (int(current) / int(total)) * 100
+                        }
+                except (IndexError, ValueError):
+                    pass
+        
+        return None
     
     def _process_log_line(self, line: str):
         """Process log line and extract progress information"""

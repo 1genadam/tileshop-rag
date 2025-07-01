@@ -86,8 +86,8 @@ def validate_sitemap_freshness():
         print("🔄 Attempting to use existing sitemap...")
         return True  # Continue with existing sitemap
 
-def crawl_single_page(url):
-    """Simplified crawling for single page with better error handling"""
+def crawl_single_page(url, progress_callback=None):
+    """Optimized crawling with real-time progress updates"""
     import requests
     
     headers = {
@@ -95,60 +95,118 @@ def crawl_single_page(url):
         'Content-Type': 'application/json'
     }
     
-    print(f"  Crawling: {url}")
+    print(f"  🔄 Starting crawl: {url}")
+    if progress_callback:
+        progress_callback('crawl_start', {'url': url, 'stage': 'submitting'})
     
     try:
-        # Submit crawl request
+        # Optimized crawl configuration for speed
         crawl_data = {
             "urls": [url],
             "formats": ["html", "markdown"],
             "javascript": True,
-            "wait_time": 15,  # Reduced from 20 to speed up
-            "page_timeout": 45000,  # Reduced from 60s to 45s
-            "user_agent": "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36"
+            "wait_time": 8,  # Reduced from 15 to 8 seconds
+            "page_timeout": 30000,  # Reduced from 45s to 30s
+            "user_agent": "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36",
+            "css_selector": ".product-detail, .product-info, .product-specs, .product-title, .price",  # Target specific content
+            "exclude_tags": ["script", "style", "nav", "footer", "header", "aside"]  # Skip unnecessary content
         }
         
-        response = requests.post(f"{CRAWL4AI_URL}/crawl", headers=headers, json=crawl_data, timeout=10)
+        submit_start = time.time()
+        response = requests.post(f"{CRAWL4AI_URL}/crawl", headers=headers, json=crawl_data, timeout=60)
         
         if response.status_code != 200:
-            print(f"  ✗ Failed to submit crawl request: {response.status_code}")
-            return None, f"HTTP {response.status_code}"
+            error_msg = f"HTTP {response.status_code}"
+            print(f"  ✗ Failed to submit crawl request: {error_msg}")
+            if progress_callback:
+                progress_callback('crawl_error', {'url': url, 'error': error_msg, 'stage': 'submission'})
+            return None, error_msg
         
         task_id = response.json().get('task_id')
-        print(f"  Task ID: {task_id}")
+        submit_time = time.time() - submit_start
+        print(f"  📋 Task submitted: {task_id} ({submit_time:.2f}s)")
+        if progress_callback:
+            progress_callback('crawl_submitted', {'url': url, 'task_id': task_id, 'submit_time': submit_time})
         
-        # Wait for completion with shorter initial wait
-        time.sleep(10)  # Reduced from 20 to 10 seconds
+        # Adaptive polling - start checking immediately with shorter intervals
+        poll_start = time.time()
+        check_intervals = [1, 1, 2, 2, 3, 3, 4, 4, 5, 5]  # Progressive back-off
         
-        # Check result with timeout
-        max_attempts = 8  # Reduced from 10 to 8
-        for attempt in range(max_attempts):
+        for attempt, interval in enumerate(check_intervals):
+            if attempt > 0:  # Skip initial sleep
+                time.sleep(interval)
+            
             try:
-                result_response = requests.get(f"{CRAWL4AI_URL}/task/{task_id}", headers=headers, timeout=5)
+                check_start = time.time()
+                result_response = requests.get(f"{CRAWL4AI_URL}/task/{task_id}", headers=headers, timeout=10)
+                check_time = time.time() - check_start
                 
                 if result_response.status_code == 200:
                     result = result_response.json()
-                    if result.get('status') == 'completed':
+                    status = result.get('status')
+                    elapsed = time.time() - poll_start
+                    
+                    print(f"  🔍 Status check #{attempt+1}: {status} ({elapsed:.1f}s elapsed, {check_time:.2f}s check)")
+                    if progress_callback:
+                        progress_callback('crawl_status', {
+                            'url': url, 
+                            'status': status, 
+                            'attempt': attempt+1, 
+                            'elapsed': elapsed,
+                            'check_time': check_time
+                        })
+                    
+                    if status == 'completed':
                         main_result = result.get('results', [{}])[0] if result.get('results') else None
                         if main_result:
-                            print(f"  ✓ Crawl completed")
+                            total_time = time.time() - submit_start
+                            print(f"  ✅ Crawl completed in {total_time:.2f}s")
+                            if progress_callback:
+                                progress_callback('crawl_complete', {
+                                    'url': url, 
+                                    'total_time': total_time,
+                                    'submit_time': submit_time,
+                                    'poll_time': elapsed
+                                })
                             return {'main': main_result}, None
                         else:
-                            return None, "No results returned"
-                    elif result.get('status') == 'failed':
+                            error_msg = "No results returned"
+                            print(f"  ✗ {error_msg}")
+                            if progress_callback:
+                                progress_callback('crawl_error', {'url': url, 'error': error_msg, 'stage': 'results'})
+                            return None, error_msg
+                    elif status == 'failed':
                         error_msg = result.get('error', 'Unknown crawl error')
                         print(f"  ✗ Crawl failed: {error_msg}")
+                        if progress_callback:
+                            progress_callback('crawl_error', {'url': url, 'error': error_msg, 'stage': 'processing'})
                         return None, error_msg
-                    # Still processing, continue waiting
+                    elif status in ['pending', 'processing']:
+                        # Continue polling
+                        continue
                 else:
                     print(f"  ⚠ Status check failed: {result_response.status_code}")
+                    if progress_callback:
+                        progress_callback('crawl_warning', {
+                            'url': url, 
+                            'message': f'Status check failed: {result_response.status_code}',
+                            'attempt': attempt+1
+                        })
                 
             except requests.RequestException as e:
-                print(f"  ⚠ Request error during status check: {e}")
-            
-            time.sleep(2)
+                print(f"  ⚠ Request error during status check #{attempt+1}: {e}")
+                if progress_callback:
+                    progress_callback('crawl_warning', {
+                        'url': url, 
+                        'message': f'Request error: {e}',
+                        'attempt': attempt+1
+                    })
         
-        return None, "Crawl timeout"
+        timeout_msg = f"Crawl timeout after {len(check_intervals)} attempts"
+        print(f"  ⏰ {timeout_msg}")
+        if progress_callback:
+            progress_callback('crawl_timeout', {'url': url, 'attempts': len(check_intervals)})
+        return None, timeout_msg
         
     except requests.RequestException as e:
         print(f"  ✗ Network error: {e}")
@@ -239,8 +297,11 @@ def scrape_from_sitemap(max_products=None, resume=True):
         print('='*80)
         
         try:
-            # Crawl the page
-            crawl_results, error_msg = crawl_single_page(url)
+            # Crawl the page with progress callback
+            def crawl_progress_callback(event_type, data):
+                print(f"    📊 {event_type}: {data.get('stage', data.get('status', 'update'))}")
+            
+            crawl_results, error_msg = crawl_single_page(url, crawl_progress_callback)
             
             if not crawl_results:
                 print(f"  ✗ Failed to crawl: {error_msg}")
