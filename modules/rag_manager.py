@@ -6,7 +6,11 @@ RAG Manager - Manages RAG system operations
 import sys
 import os
 import logging
+import re
+import json
+import glob
 from typing import Dict, List, Any, Optional
+from pathlib import Path
 
 # Add parent directory for imports
 sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
@@ -25,7 +29,9 @@ class RAGManager:
         self.rag_system = None
         self.conversation_history = []
         self.max_history = 50
+        self.knowledge_base = {}
         self._initialize_rag()
+        self._load_knowledge_base()
     
     def _initialize_rag(self):
         """Initialize RAG system"""
@@ -297,3 +303,413 @@ class RAGManager:
         except Exception as e:
             logger.error(f"Error getting popular queries: {e}")
             return []
+    
+    def _load_knowledge_base(self):
+        """Load knowledge base files"""
+        try:
+            knowledge_dir = Path(__file__).parent.parent / "knowledge_base"
+            if not knowledge_dir.exists():
+                logger.warning(f"Knowledge base directory not found: {knowledge_dir}")
+                return
+            
+            # Load all markdown files in knowledge base
+            for md_file in knowledge_dir.glob("*.md"):
+                try:
+                    with open(md_file, 'r', encoding='utf-8') as f:
+                        content = f.read()
+                    
+                    # Store content by filename (without extension)
+                    key = md_file.stem
+                    self.knowledge_base[key] = {
+                        'content': content,
+                        'path': str(md_file),
+                        'title': self._extract_title(content)
+                    }
+                    
+                except Exception as e:
+                    logger.error(f"Error loading knowledge file {md_file}: {e}")
+            
+            logger.info(f"Loaded {len(self.knowledge_base)} knowledge base files")
+            
+        except Exception as e:
+            logger.error(f"Error loading knowledge base: {e}")
+    
+    def _extract_title(self, content: str) -> str:
+        """Extract title from markdown content"""
+        lines = content.split('\n')
+        for line in lines:
+            line = line.strip()
+            if line.startswith('# '):
+                return line[2:].strip()
+        return "Unknown"
+    
+    def calculate_tile_needs(self, room_length: float, room_width: float, 
+                           tile_coverage_per_box: float, waste_factor: float = 0.15,
+                           deductions: List[Dict[str, float]] = None) -> Dict[str, Any]:
+        """Calculate tile needs for a room"""
+        try:
+            # Calculate base area
+            base_area = room_length * room_width
+            
+            # Subtract deductions (cabinets, etc.)
+            total_deductions = 0
+            if deductions:
+                for deduction in deductions:
+                    deduct_area = deduction.get('length', 0) * deduction.get('width', 0)
+                    total_deductions += deduct_area
+            
+            net_area = base_area - total_deductions
+            
+            # Add waste factor
+            area_with_waste = net_area * (1 + waste_factor)
+            
+            # Calculate boxes needed (always round up)
+            boxes_needed = int(-(-area_with_waste // tile_coverage_per_box))  # Ceiling division
+            
+            # Calculate grout needs based on tile size
+            grout_bags = self._calculate_grout_needs(net_area, room_length, room_width)
+            
+            return {
+                'success': True,
+                'calculations': {
+                    'room_dimensions': f"{room_length} ft × {room_width} ft",
+                    'base_area': round(base_area, 2),
+                    'deductions': round(total_deductions, 2),
+                    'net_area': round(net_area, 2),
+                    'waste_factor_percent': int(waste_factor * 100),
+                    'area_with_waste': round(area_with_waste, 2),
+                    'tile_coverage_per_box': tile_coverage_per_box,
+                    'boxes_needed': boxes_needed,
+                    'grout_bags_needed': grout_bags,
+                    'total_tile_coverage': boxes_needed * tile_coverage_per_box
+                },
+                'recommendations': self._get_installation_recommendations(net_area, boxes_needed)
+            }
+            
+        except Exception as e:
+            logger.error(f"Error calculating tile needs: {e}")
+            return {
+                'success': False,
+                'error': str(e)
+            }
+    
+    def _calculate_grout_needs(self, area: float, length: float, width: float) -> int:
+        """Calculate grout bag needs based on area"""
+        # Standard sanded grout covers 105-115 sq ft per 25lb bag for subway tile
+        # Adjust based on area size
+        if area <= 50:
+            return 1  # Minimum 1 bag
+        elif area <= 100:
+            return 2  # 2 bags for medium rooms
+        else:
+            return int(-(-area // 100)) + 1  # 1 bag per 100 sq ft + buffer
+    
+    def _get_installation_recommendations(self, area: float, tile_boxes: int) -> Dict[str, Any]:
+        """Get installation material recommendations"""
+        base_cost = tile_boxes * 50  # Estimate $50/box average
+        
+        # Essential materials
+        essentials = {
+            'grout_bags': max(1, int(-(-area // 100))),  # 1 bag per 100 sq ft minimum
+            'thinset_bags': max(1, int(-(-area // 100))),  # 1 bag per 100 sq ft minimum  
+            'sealer_quarts': max(1, int(-(-area // 150))),  # 1 quart per 150 sq ft
+            'basic_tools': 1  # Tool package
+        }
+        
+        # Premium upgrades
+        premium_options = []
+        if area > 50:  # Larger rooms
+            premium_options.append("Anti-fracture membrane for enhanced durability")
+            premium_options.append("Heated floor system (eliminates membrane need)")
+        
+        premium_options.append("Premium grout sealer for enhanced protection")
+        premium_options.append("Professional-grade tools for better results")
+        
+        return {
+            'essentials': essentials,
+            'estimated_base_cost': base_cost,
+            'premium_options': premium_options,
+            'return_policy_note': "Order complete boxes only - no partial box returns after 60 days"
+        }
+    
+    def check_dcof_requirements(self, application: str, is_wet_area: bool = False) -> Dict[str, Any]:
+        """Check DCOF requirements for specific applications"""
+        try:
+            # DCOF requirements based on application
+            dcof_requirements = {
+                'bathroom_floor': {'min_dcof': 0.60, 'class': 3, 'wet_testing': True},
+                'shower_floor': {'min_dcof': 0.70, 'class': 3, 'wet_testing': True},
+                'kitchen_floor': {'min_dcof': 0.42, 'class': 2, 'wet_testing': False},
+                'commercial_kitchen': {'min_dcof': 0.60, 'class': 3, 'wet_testing': True},
+                'pool_deck': {'min_dcof': 0.60, 'class': 3, 'wet_testing': True},
+                'living_area': {'min_dcof': 0.42, 'class': 1, 'wet_testing': False},
+                'staircase': {'min_dcof': 0.42, 'class': 2, 'wet_testing': False}
+            }
+            
+            app_lower = application.lower()
+            requirement = None
+            
+            # Match application to requirements
+            for key, req in dcof_requirements.items():
+                if key in app_lower or any(word in app_lower for word in key.split('_')):
+                    requirement = req.copy()
+                    requirement['application'] = key
+                    break
+            
+            if not requirement:
+                # Default based on wet area
+                requirement = {
+                    'min_dcof': 0.60 if is_wet_area else 0.42,
+                    'class': 3 if is_wet_area else 1,
+                    'wet_testing': is_wet_area,
+                    'application': 'general'
+                }
+            
+            # Add recommendations
+            recommendations = []
+            if requirement['min_dcof'] >= 0.60:
+                recommendations.extend([
+                    "Look for matte or textured finishes",
+                    "Avoid glossy or polished tiles",
+                    "Consider anti-slip surface treatments",
+                    "Ensure tiles meet DCOF requirements when wet"
+                ])
+            
+            if requirement['wet_testing']:
+                recommendations.append("Verify DCOF rating was tested under wet conditions")
+            
+            return {
+                'success': True,
+                'application': application,
+                'requirements': requirement,
+                'recommendations': recommendations,
+                'compliance_note': "Consult with Tile Shop representative for specific product DCOF ratings"
+            }
+            
+        except Exception as e:
+            logger.error(f"Error checking DCOF requirements: {e}")
+            return {
+                'success': False,
+                'error': str(e)
+            }
+    
+    def enhanced_chat(self, query: str, user_id: str = 'default') -> Dict[str, Any]:
+        """Enhanced chat with calculator and knowledge base integration"""
+        try:
+            # Check for calculator-related queries
+            calc_result = self._check_calculator_query(query)
+            if calc_result:
+                self._add_to_history(user_id, query, calc_result['response'])
+                return {
+                    'success': True,
+                    'query': query,
+                    'response': calc_result['response'],
+                    'calculator_data': calc_result.get('data'),
+                    'timestamp': self._get_timestamp(),
+                    'type': 'calculator'
+                }
+            
+            # Check for DCOF/compliance queries
+            dcof_result = self._check_dcof_query(query)
+            if dcof_result:
+                self._add_to_history(user_id, query, dcof_result['response'])
+                return {
+                    'success': True,
+                    'query': query,
+                    'response': dcof_result['response'],
+                    'dcof_data': dcof_result.get('data'),
+                    'timestamp': self._get_timestamp(),
+                    'type': 'dcof_compliance'
+                }
+            
+            # Check knowledge base for relevant information
+            kb_context = self._search_knowledge_base(query)
+            
+            # Use regular RAG system with knowledge base context
+            if self.rag_system:
+                if kb_context:
+                    enhanced_query = f"{query}\n\nRelevant information:\n{kb_context[:500]}..."
+                    response = self.rag_system.chat(enhanced_query)
+                else:
+                    response = self.rag_system.chat(query)
+                
+                self._add_to_history(user_id, query, response)
+                return {
+                    'success': True,
+                    'query': query,
+                    'response': response,
+                    'knowledge_context': kb_context is not None,
+                    'timestamp': self._get_timestamp(),
+                    'type': 'enhanced_rag'
+                }
+            else:
+                # Fallback to knowledge base only
+                if kb_context:
+                    response = f"Based on our installation guides:\n\n{kb_context[:800]}..."
+                    self._add_to_history(user_id, query, response)
+                    return {
+                        'success': True,
+                        'query': query,
+                        'response': response,
+                        'timestamp': self._get_timestamp(),
+                        'type': 'knowledge_base'
+                    }
+                else:
+                    return {
+                        'success': False,
+                        'error': 'No relevant information found',
+                        'response': 'Sorry, I couldn\'t find information about that. Could you be more specific?'
+                    }
+                    
+        except Exception as e:
+            logger.error(f"Error in enhanced chat: {e}")
+            return {
+                'success': False,
+                'error': str(e),
+                'response': 'Sorry, I encountered an error. Please try again.'
+            }
+    
+    def _check_calculator_query(self, query: str) -> Optional[Dict[str, Any]]:
+        """Check if query is asking for tile calculations"""
+        calc_keywords = ['calculate', 'how much', 'how many', 'room size', 'square feet', 'boxes needed']
+        if not any(keyword in query.lower() for keyword in calc_keywords):
+            return None
+        
+        # Extract dimensions if provided
+        dimension_pattern = r'(\d+(?:\.\d+)?)\s*(?:ft|feet|foot)?\s*(?:x|by|\*)\s*(\d+(?:\.\d+)?)\s*(?:ft|feet|foot)?'
+        match = re.search(dimension_pattern, query.lower())
+        
+        if match:
+            length = float(match.group(1))
+            width = float(match.group(2))
+            
+            # Use default tile coverage (can be enhanced to detect tile type)
+            default_coverage = 10.76  # Subway tile coverage
+            
+            result = self.calculate_tile_needs(length, width, default_coverage)
+            
+            if result['success']:
+                calc_data = result['calculations']
+                response = f"""**Tile Calculator Results**
+
+**Room**: {calc_data['room_dimensions']} = {calc_data['net_area']} sq ft
+**With {calc_data['waste_factor_percent']}% waste factor**: {calc_data['area_with_waste']} sq ft needed
+**Boxes required**: {calc_data['boxes_needed']} boxes (at {default_coverage} sq ft per box)
+
+**Installation Materials Needed**:
+- Grout: {calc_data['grout_bags_needed']} bags (25 lb sanded)
+- Thinset: {calc_data['grout_bags_needed']} bags (50 lb)
+- Sealer: 1 quart
+
+**Important**: We can only accept returns of complete, unopened boxes within 60 days. Always round up to complete boxes.
+
+Would you like me to help you select specific tiles or provide installation guidance?"""
+                
+                return {
+                    'response': response,
+                    'data': calc_data
+                }
+        
+        # If no dimensions found, ask for them
+        return {
+            'response': """I'd be happy to calculate your tile needs! Please provide:
+
+1. **Room dimensions** (length × width in feet)
+2. **Tile type** you're considering (I'll look up the coverage per box)
+3. **Any areas to exclude** (cabinets, fixtures, etc.)
+
+Example: "I have a 10 ft by 12 ft bathroom, minus a 2x4 ft vanity"
+
+I'll calculate the exact number of boxes needed plus installation materials!""",
+            'data': None
+        }
+    
+    def _check_dcof_query(self, query: str) -> Optional[Dict[str, Any]]:
+        """Check if query is asking about DCOF ratings or slip resistance"""
+        dcof_keywords = ['dcof', 'slip resistant', 'slip resistance', 'friction', 'safety', 'bathroom safe', 'pool safe']
+        if not any(keyword in query.lower() for keyword in dcof_keywords):
+            return None
+        
+        # Determine application from query
+        applications = {
+            'bathroom': ['bathroom', 'shower', 'bath'],
+            'kitchen': ['kitchen', 'cooking'],
+            'pool': ['pool', 'deck', 'swimming'],
+            'commercial': ['commercial', 'restaurant', 'business'],
+            'stair': ['stair', 'steps']
+        }
+        
+        detected_app = 'general'
+        for app, keywords in applications.items():
+            if any(kw in query.lower() for kw in keywords):
+                detected_app = app
+                break
+        
+        is_wet = any(word in query.lower() for word in ['shower', 'bathroom', 'pool', 'wet'])
+        
+        result = self.check_dcof_requirements(detected_app, is_wet)
+        
+        if result['success']:
+            req = result['requirements']
+            response = f"""**DCOF Requirements for {detected_app.title()} Application**
+
+**Minimum DCOF Rating**: {req['min_dcof']} ({'wet' if req['wet_testing'] else 'dry'} testing)
+**Safety Class**: Class {req['class']}
+
+**Recommendations**:
+"""
+            for rec in result['recommendations']:
+                response += f"- {rec}\n"
+            
+            response += f"""
+**Compliance Note**: {result['compliance_note']}
+
+**What This Means**: DCOF measures slip resistance. Higher numbers = better grip. Wet areas need higher ratings for safety.
+
+Would you like me to help you find tiles that meet these requirements?"""
+            
+            return {
+                'response': response,
+                'data': result
+            }
+        
+        return None
+    
+    def _search_knowledge_base(self, query: str) -> Optional[str]:
+        """Search knowledge base for relevant information"""
+        if not self.knowledge_base:
+            return None
+        
+        query_lower = query.lower()
+        relevant_content = []
+        
+        # Search for relevant knowledge base entries
+        for key, kb_item in self.knowledge_base.items():
+            content = kb_item['content'].lower()
+            
+            # Simple keyword matching - can be enhanced with better scoring
+            if any(word in content for word in query_lower.split() if len(word) > 3):
+                relevant_content.append({
+                    'title': kb_item['title'],
+                    'content': kb_item['content'][:500],  # First 500 chars
+                    'relevance': self._calculate_relevance(query_lower, content)
+                })
+        
+        if relevant_content:
+            # Sort by relevance and return top result
+            relevant_content.sort(key=lambda x: x['relevance'], reverse=True)
+            best_match = relevant_content[0]
+            return f"**{best_match['title']}**\n\n{best_match['content']}"
+        
+        return None
+    
+    def _calculate_relevance(self, query: str, content: str) -> float:
+        """Calculate relevance score between query and content"""
+        query_words = set(query.split())
+        content_words = set(content.split())
+        
+        # Simple Jaccard similarity
+        intersection = query_words.intersection(content_words)
+        union = query_words.union(content_words)
+        
+        return len(intersection) / len(union) if union else 0

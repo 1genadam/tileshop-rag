@@ -817,15 +817,17 @@ def rag_sync():
 
 @app.route('/api/rag/chat', methods=['POST'])
 def rag_chat():
-    """Chat with RAG system"""
+    """Enhanced chat with RAG system, calculator, and knowledge base"""
     try:
         data = request.get_json()
         query = data.get('query', '')
         user_id = session.get('user_id', 'default')
         
-        result = rag_manager.chat(query, user_id)
+        # Use enhanced chat functionality
+        result = rag_manager.enhanced_chat(query, user_id)
         return jsonify(result)
     except Exception as e:
+        logger.error(f"Error in RAG chat: {e}")
         return jsonify({'success': False, 'error': str(e)})
 
 @app.route('/api/rag/search', methods=['POST'])
