@@ -2644,338 +2644,394 @@
     {
       "url": "https://www.tileshop.com/products/fusion-silver-interlocking-mosaic-porcelain-wall-and-floor-tile-2-x-6-in-683878",
       "lastmod": null,
-      "scraped_at": null,
-      "scrape_status": "pending"
+      "scraped_at": "2025-06-30T22:59:06.678653",
+      "scrape_status": "failed",
+      "error": "Crawl timeout"
     },
     {
       "url": "https://www.tileshop.com/products/fusion-silver-porcelain-wall-and-floor-tile-12-x-24-in-683877",
       "lastmod": null,
-      "scraped_at": null,
-      "scrape_status": "pending"
+      "scraped_at": "2025-06-30T22:59:34.736851",
+      "scrape_status": "failed",
+      "error": "Crawl timeout"
     },
     {
       "url": "https://www.tileshop.com/products/fusion-sand-interlocking-mosaic-porcelain-wall-and-floor-tile-2-x-6-in-683876",
       "lastmod": null,
-      "scraped_at": null,
-      "scrape_status": "pending"
+      "scraped_at": "2025-06-30T23:00:02.510938",
+      "scrape_status": "failed",
+      "error": "Crawl timeout"
     },
     {
       "url": "https://www.tileshop.com/products/fusion-sand-porcelain-wall-and-floor-tile-12-x-24-in-683875",
       "lastmod": null,
-      "scraped_at": null,
-      "scrape_status": "pending"
+      "scraped_at": "2025-06-30T23:00:30.322957",
+      "scrape_status": "failed",
+      "error": "Crawl timeout"
     },
     {
       "url": "https://www.tileshop.com/products/fusion-chalk-interlocking-mosaic-porcelain-wall-and-floor-tile-2-x-6-in-683874",
       "lastmod": null,
-      "scraped_at": null,
-      "scrape_status": "pending"
+      "scraped_at": "2025-06-30T23:00:58.028976",
+      "scrape_status": "failed",
+      "error": "Crawl timeout"
     },
     {
       "url": "https://www.tileshop.com/products/fusion-chalk-porcelain-wall-and-floor-tile-12-x-24-in-683873",
       "lastmod": null,
-      "scraped_at": null,
-      "scrape_status": "pending"
+      "scraped_at": "2025-06-30T23:01:25.884851",
+      "scrape_status": "failed",
+      "error": "Crawl timeout"
     },
     {
       "url": "https://www.tileshop.com/products/bento-gray-porcelain-wall-and-floor-tile-9-x-10-in-683833",
       "lastmod": null,
-      "scraped_at": null,
-      "scrape_status": "pending"
+      "scraped_at": "2025-06-30T23:01:53.508261",
+      "scrape_status": "failed",
+      "error": "Crawl timeout"
     },
     {
       "url": "https://www.tileshop.com/products/andes-nat-ceramic-wall-and-floor-tile-12-x-24-in-683777",
       "lastmod": null,
-      "scraped_at": null,
-      "scrape_status": "pending"
+      "scraped_at": "2025-06-30T23:02:21.932970",
+      "scrape_status": "failed",
+      "error": "Crawl timeout"
     },
     {
       "url": "https://www.tileshop.com/products/invisible-nat-ceramic-wall-and-floor-tile-12-x-24-in-683776",
       "lastmod": null,
-      "scraped_at": null,
-      "scrape_status": "pending"
+      "scraped_at": "2025-06-30T23:02:49.597831",
+      "scrape_status": "failed",
+      "error": "Crawl timeout"
     },
     {
       "url": "https://www.tileshop.com/products/superior-excel-linen-unsanded-grout-5lb-54010",
       "lastmod": null,
-      "scraped_at": null,
-      "scrape_status": "pending"
+      "scraped_at": "2025-06-30T23:03:17.426273",
+      "scrape_status": "failed",
+      "error": "Crawl timeout"
     },
     {
       "url": "https://www.tileshop.com/products/superior-excel-ivory-unsanded-grout-5lb-54004",
       "lastmod": null,
-      "scraped_at": null,
-      "scrape_status": "pending"
+      "scraped_at": "2025-07-01T07:01:43.717199",
+      "scrape_status": "failed",
+      "error": "Crawl timeout"
     },
     {
       "url": "https://www.tileshop.com/products/superior-excel-desert-sand-unsanded-grout-5lb-54009",
       "lastmod": null,
-      "scraped_at": null,
-      "scrape_status": "pending"
+      "scraped_at": "2025-07-01T07:02:36.135030",
+      "scrape_status": "failed",
+      "error": "Crawl timeout"
     },
     {
       "url": "https://www.tileshop.com/products/superior-excel-antique-white-unsanded-grout-5lb-54003",
       "lastmod": null,
-      "scraped_at": null,
-      "scrape_status": "pending"
+      "scraped_at": "2025-07-01T07:03:04.723014",
+      "scrape_status": "failed",
+      "error": "Crawl timeout"
     },
     {
       "url": "https://www.tileshop.com/products/superior-excel-dove-grey-unsanded-grout-5lb-54007",
       "lastmod": null,
-      "scraped_at": null,
-      "scrape_status": "pending"
+      "scraped_at": "2025-07-01T07:03:33.061558",
+      "scrape_status": "failed",
+      "error": "Crawl timeout"
     },
     {
       "url": "https://www.tileshop.com/products/superior-excel-natural-unsanded-grout-5lb-54011",
       "lastmod": null,
-      "scraped_at": null,
-      "scrape_status": "pending"
+      "scraped_at": "2025-07-01T07:04:00.781546",
+      "scrape_status": "failed",
+      "error": "Crawl timeout"
     },
     {
       "url": "https://www.tileshop.com/products/superior-excel-terracotta-unsanded-grout-5lb-54016",
       "lastmod": null,
-      "scraped_at": null,
-      "scrape_status": "pending"
+      "scraped_at": "2025-07-01T07:04:28.594137",
+      "scrape_status": "failed",
+      "error": "Crawl timeout"
     },
     {
       "url": "https://www.tileshop.com/products/superior-excel-hot-lila-unsanded-grout-5lb-54021",
       "lastmod": null,
-      "scraped_at": null,
-      "scrape_status": "pending"
+      "scraped_at": "2025-07-01T07:04:56.632101",
+      "scrape_status": "failed",
+      "error": "Crawl timeout"
     },
     {
       "url": "https://www.tileshop.com/products/superior-excel-silver-luster-unsanded-grout-5lb-54020",
       "lastmod": null,
-      "scraped_at": null,
-      "scrape_status": "pending"
+      "scraped_at": "2025-07-01T07:05:24.854819",
+      "scrape_status": "failed",
+      "error": "Crawl timeout"
     },
     {
       "url": "https://www.tileshop.com/products/superior-excel-standard-white-unsanded-grout-5lb-54001",
       "lastmod": null,
-      "scraped_at": null,
-      "scrape_status": "pending"
+      "scraped_at": "2025-07-01T07:05:52.513993",
+      "scrape_status": "failed",
+      "error": "Crawl timeout"
     },
     {
       "url": "https://www.tileshop.com/products/superior-excel-standard-white-unsanded-grout-20lb-54002",
       "lastmod": null,
-      "scraped_at": null,
-      "scrape_status": "pending"
+      "scraped_at": "2025-07-01T07:06:20.351545",
+      "scrape_status": "failed",
+      "error": "Crawl timeout"
     },
     {
       "url": "https://www.tileshop.com/products/superior-excel-whisper-grey-unsanded-grout-5lb-54005",
       "lastmod": null,
-      "scraped_at": null,
-      "scrape_status": "pending"
+      "scraped_at": "2025-07-01T07:06:48.435157",
+      "scrape_status": "failed",
+      "error": "Crawl timeout"
     },
     {
       "url": "https://www.tileshop.com/products/superior-excel-whisper-grey-unsanded-grout-20lb-54006",
       "lastmod": null,
-      "scraped_at": null,
-      "scrape_status": "pending"
+      "scraped_at": "2025-07-01T07:07:16.647271",
+      "scrape_status": "failed",
+      "error": "Crawl timeout"
     },
     {
       "url": "https://www.tileshop.com/products/superior-excel-charcoal-unsanded-grout-5lb-54018",
       "lastmod": null,
-      "scraped_at": null,
-      "scrape_status": "pending"
+      "scraped_at": "2025-07-01T07:07:44.470180",
+      "scrape_status": "failed",
+      "error": "Crawl timeout"
     },
     {
       "url": "https://www.tileshop.com/products/superior-excel-tobacco-unsanded-grout-5lb-54015",
       "lastmod": null,
-      "scraped_at": null,
-      "scrape_status": "pending"
+      "scraped_at": "2025-07-01T07:08:12.196187",
+      "scrape_status": "failed",
+      "error": "Crawl timeout"
     },
     {
       "url": "https://www.tileshop.com/products/superior-excel-umber-unsanded-grout-5lb-54017",
       "lastmod": null,
-      "scraped_at": null,
-      "scrape_status": "pending"
+      "scraped_at": "2025-07-01T07:08:40.065039",
+      "scrape_status": "failed",
+      "error": "Crawl timeout"
     },
     {
       "url": "https://www.tileshop.com/products/superior-excel-mocha-unsanded-grout-5lb-54014",
       "lastmod": null,
-      "scraped_at": null,
-      "scrape_status": "pending"
+      "scraped_at": "2025-07-01T07:09:07.710784",
+      "scrape_status": "failed",
+      "error": "Crawl timeout"
     },
     {
       "url": "https://www.tileshop.com/products/superior-excel-mobe-pearl-unsanded-grout-5lb-54008",
       "lastmod": null,
-      "scraped_at": null,
-      "scrape_status": "pending"
+      "scraped_at": "2025-07-01T07:09:35.763754",
+      "scrape_status": "failed",
+      "error": "Crawl timeout"
     },
     {
       "url": "https://www.tileshop.com/products/superior-excel-autumn-wheat-unsanded-grout-5lb-54012",
       "lastmod": null,
-      "scraped_at": null,
-      "scrape_status": "pending"
+      "scraped_at": "2025-07-01T07:10:04.119649",
+      "scrape_status": "failed",
+      "error": "Crawl timeout"
     },
     {
       "url": "https://www.tileshop.com/products/superior-excel-black-onyx-unsanded-grout-5lb-54019",
       "lastmod": null,
-      "scraped_at": null,
-      "scrape_status": "pending"
+      "scraped_at": "2025-07-01T07:10:31.942566",
+      "scrape_status": "failed",
+      "error": "Crawl timeout"
     },
     {
       "url": "https://www.tileshop.com/products/superior-excel-london-fog-unsanded-grout-5lb-54013",
       "lastmod": null,
-      "scraped_at": null,
-      "scrape_status": "pending"
+      "scraped_at": "2025-07-01T07:10:59.788315",
+      "scrape_status": "failed",
+      "error": "Crawl timeout"
     },
     {
       "url": "https://www.tileshop.com/products/signature-slate-blue-gloss-ceramic-square-pencil-wall-trim-tile-484883",
       "lastmod": null,
-      "scraped_at": null,
-      "scrape_status": "pending"
+      "scraped_at": "2025-07-01T07:11:27.964722",
+      "scrape_status": "failed",
+      "error": "Crawl timeout"
     },
     {
       "url": "https://www.tileshop.com/products/signature-pewter-gloss-ceramic-square-pencil-wall-trim-tile-484868",
       "lastmod": null,
-      "scraped_at": null,
-      "scrape_status": "pending"
+      "scraped_at": "2025-07-01T07:11:55.601765",
+      "scrape_status": "failed",
+      "error": "Crawl timeout"
     },
     {
       "url": "https://www.tileshop.com/products/signature-oatmeal-matte-ceramic-square-pencil-wall-trim-tile-484850",
       "lastmod": null,
-      "scraped_at": null,
-      "scrape_status": "pending"
+      "scraped_at": "2025-07-01T07:12:23.378370",
+      "scrape_status": "failed",
+      "error": "Crawl timeout"
     },
     {
       "url": "https://www.tileshop.com/products/signature-oatmeal-gloss-ceramic-square-pencil-wall-trim-tile-484835",
       "lastmod": null,
-      "scraped_at": null,
-      "scrape_status": "pending"
+      "scraped_at": "2025-07-01T07:12:50.987912",
+      "scrape_status": "failed",
+      "error": "Crawl timeout"
     },
     {
       "url": "https://www.tileshop.com/products/signature-mint-gloss-ceramic-square-pencil-wall-trim-tile-484814",
       "lastmod": null,
-      "scraped_at": null,
-      "scrape_status": "pending"
+      "scraped_at": "2025-07-01T07:13:18.737681",
+      "scrape_status": "failed",
+      "error": "Crawl timeout"
     },
     {
       "url": "https://www.tileshop.com/products/signature-gunmetal-gloss-ceramic-square-pencil-wall-trim-tile-484799",
       "lastmod": null,
-      "scraped_at": null,
-      "scrape_status": "pending"
+      "scraped_at": "2025-07-01T07:13:46.202639",
+      "scrape_status": "failed",
+      "error": "Crawl timeout"
     },
     {
       "url": "https://www.tileshop.com/products/signature-slate-blue-gloss-ceramic-skirting-wall-trim-tile-484882",
       "lastmod": null,
-      "scraped_at": null,
-      "scrape_status": "pending"
+      "scraped_at": "2025-07-01T07:14:13.822997",
+      "scrape_status": "failed",
+      "error": "Crawl timeout"
     },
     {
       "url": "https://www.tileshop.com/products/signature-oatmeal-matte-ceramic-skirting-wall-trim-tile-484849",
       "lastmod": null,
-      "scraped_at": null,
-      "scrape_status": "pending"
+      "scraped_at": "2025-07-01T07:14:13.859354",
+      "scrape_status": "failed",
+      "error": "Unexpected error: [Errno 32] Broken pipe"
     },
     {
       "url": "https://www.tileshop.com/products/signature-oatmeal-gloss-ceramic-skirting-wall-trim-tile-484834",
       "lastmod": null,
-      "scraped_at": null,
-      "scrape_status": "pending"
+      "scraped_at": "2025-07-01T07:14:41.417707",
+      "scrape_status": "failed",
+      "error": "Crawl timeout"
     },
     {
       "url": "https://www.tileshop.com/products/signature-mint-gloss-ceramic-skirting-wall-trim-tile-484813",
       "lastmod": null,
-      "scraped_at": null,
-      "scrape_status": "pending"
+      "scraped_at": "2025-07-01T07:15:09.152975",
+      "scrape_status": "failed",
+      "error": "Crawl timeout"
     },
     {
       "url": "https://www.tileshop.com/products/signature-gunmetal-gloss-ceramic-skirting-wall-trim-tile-484798",
       "lastmod": null,
-      "scraped_at": null,
-      "scrape_status": "pending"
+      "scraped_at": "2025-07-01T07:15:36.774117",
+      "scrape_status": "failed",
+      "error": "Crawl timeout"
     },
     {
       "url": "https://www.tileshop.com/products/signature-fog-grey-gloss-ceramic-skirting-wall-trim-tile-484783",
       "lastmod": null,
-      "scraped_at": null,
-      "scrape_status": "pending"
+      "scraped_at": "2025-07-01T07:16:04.555865",
+      "scrape_status": "failed",
+      "error": "Crawl timeout"
     },
     {
       "url": "https://www.tileshop.com/products/signature-oatmeal-gloss-ceramic-london-wall-trim-tile-484832",
       "lastmod": null,
-      "scraped_at": null,
-      "scrape_status": "pending"
+      "scraped_at": "2025-07-01T07:16:32.127539",
+      "scrape_status": "failed",
+      "error": "Crawl timeout"
     },
     {
       "url": "https://www.tileshop.com/products/signature-fog-grey-gloss-ceramic-square-pencil-wall-trim-tile-484784",
       "lastmod": null,
-      "scraped_at": null,
-      "scrape_status": "pending"
+      "scraped_at": "2025-07-01T07:16:59.805062",
+      "scrape_status": "failed",
+      "error": "Crawl timeout"
     },
     {
       "url": "https://www.tileshop.com/products/signature-pewter-gloss-ceramic-skirting-wall-trim-tile-484867",
       "lastmod": null,
-      "scraped_at": null,
-      "scrape_status": "pending"
+      "scraped_at": "2025-07-01T07:17:26.707965",
+      "scrape_status": "failed",
+      "error": "Crawl timeout"
     },
     {
       "url": "https://www.tileshop.com/products/signature-fog-grey-gloss-ceramic-pencil-wall-trim-tile-484782",
       "lastmod": null,
-      "scraped_at": null,
-      "scrape_status": "pending"
+      "scraped_at": "2025-07-01T07:17:54.290927",
+      "scrape_status": "failed",
+      "error": "Crawl timeout"
     },
     {
       "url": "https://www.tileshop.com/products/signature-gunmetal-gloss-ceramic-pencil-wall-trim-tile-484797",
       "lastmod": null,
-      "scraped_at": null,
-      "scrape_status": "pending"
+      "scraped_at": "2025-07-01T07:18:21.991466",
+      "scrape_status": "failed",
+      "error": "Unexpected error: [Errno 32] Broken pipe"
     },
     {
       "url": "https://www.tileshop.com/products/signature-mint-gloss-ceramic-pencil-wall-trim-tile-484812",
       "lastmod": null,
-      "scraped_at": null,
-      "scrape_status": "pending"
+      "scraped_at": "2025-07-01T07:18:49.489249",
+      "scrape_status": "failed",
+      "error": "Crawl timeout"
     },
     {
       "url": "https://www.tileshop.com/products/signature-oatmeal-gloss-ceramic-pencil-wall-trim-tile-484833",
       "lastmod": null,
-      "scraped_at": null,
-      "scrape_status": "pending"
+      "scraped_at": "2025-07-01T07:19:17.086676",
+      "scrape_status": "failed",
+      "error": "Crawl timeout"
     },
     {
       "url": "https://www.tileshop.com/products/signature-oatmeal-matte-ceramic-pencil-wall-trim-tile-484848",
       "lastmod": null,
-      "scraped_at": null,
-      "scrape_status": "pending"
+      "scraped_at": "2025-07-01T07:19:44.577685",
+      "scrape_status": "failed",
+      "error": "Crawl timeout"
     },
     {
       "url": "https://www.tileshop.com/products/signature-pewter-gloss-ceramic-pencil-wall-trim-tile-484866",
       "lastmod": null,
-      "scraped_at": null,
-      "scrape_status": "pending"
+      "scraped_at": "2025-07-01T07:20:12.117503",
+      "scrape_status": "failed",
+      "error": "Crawl timeout"
     },
     {
       "url": "https://www.tileshop.com/products/signature-slate-blue-gloss-ceramic-pencil-wall-trim-tile-484881",
       "lastmod": null,
-      "scraped_at": null,
-      "scrape_status": "pending"
+      "scraped_at": "2025-07-01T07:20:39.972974",
+      "scrape_status": "failed",
+      "error": "Crawl timeout"
     },
     {
       "url": "https://www.tileshop.com/products/signature-fog-grey-gloss-ceramic-cornice-wall-trim-tile-484780",
       "lastmod": null,
-      "scraped_at": null,
-      "scrape_status": "pending"
+      "scraped_at": "2025-07-01T07:21:07.631505",
+      "scrape_status": "failed",
+      "error": "Crawl timeout"
     },
     {
       "url": "https://www.tileshop.com/products/signature-gunmetal-gloss-ceramic-cornice-wall-trim-tile-484795",
       "lastmod": null,
-      "scraped_at": null,
-      "scrape_status": "pending"
+      "scraped_at": "2025-07-01T07:21:35.371613",
+      "scrape_status": "failed",
+      "error": "Crawl timeout"
     },
     {
       "url": "https://www.tileshop.com/products/signature-mint-gloss-ceramic-cornice-wall-trim-tile-484810",
       "lastmod": null,
-      "scraped_at": null,
-      "scrape_status": "pending"
+      "scraped_at": "2025-07-01T07:22:03.186844",
+      "scrape_status": "failed",
+      "error": "Crawl timeout"
     },
     {
       "url": "https://www.tileshop.com/products/signature-oatmeal-gloss-ceramic-cornice-wall-trim-tile-484831",
       "lastmod": null,
-      "scraped_at": null,
-      "scrape_status": "pending"
+      "scraped_at": "2025-07-01T07:22:30.723547",
+      "scrape_status": "failed",
+      "error": "Crawl timeout"
     },
     {
       "url": "https://www.tileshop.com/products/signature-oatmeal-matte-ceramic-cornice-wall-trim-tile-484846",

@@ -25,7 +25,9 @@ A comprehensive e-commerce intelligence platform and AI-powered product discover
 
 ### 🚀 **Deployment & Production**
 - [🚀 Production Deployment](#-production-deployment) - Cloud deployment procedures
-- [🆕 Latest Enhancements](#-latest-enhancements-june-29-2025---350-pm) - Recent updates and improvements
+- [📋 Fly.io Independent Server Roadmap](flyio-deployment-roadmap.md) - **★ COMPLETE CLOUD MIGRATION STRATEGY**
+- [📋 Development Roadmap](dev_roadmap.md) - Business feature development timeline
+- [🆕 Latest Enhancements](#-latest-enhancements-july-01-2025---714-am) - Recent updates and improvements
 - [📋 Recent Session Improvements](#-recent-session-improvements-june-29-2025) - Development history
 
 ### 🎯 **Quick Reference Sections**
@@ -35,12 +37,35 @@ A comprehensive e-commerce intelligence platform and AI-powered product discover
 | **📁 Find a specific file** | [Project Architecture & File Index](#-project-architecture--file-index) | Complete file inventory |
 | **🖥️ Use the dashboard** | [Admin Dashboard Features](#-admin-dashboard-features) | UI controls and functions |
 | **🔧 Fix a problem** | [Troubleshooting](#troubleshooting) | Common issues and solutions |
-| **🚀 Deploy to production** | [Production Deployment](#-production-deployment) | Cloud deployment guide |
+| **🚀 Deploy to production** | [Fly.io Independent Server Roadmap](flyio-deployment-roadmap.md) | Complete cloud migration strategy |
 | **📊 Understand the data** | [Database Schema](#database-schema) | Data structure and fields |
 
 ---
 
-## 🆕 **Latest Enhancements (June 30, 2025 - 12:10 AM)**
+## 🆕 **Latest Enhancements (July 01, 2025 - 7:14 AM)**
+
+### **🚀 Fly.io Independent Server Deployment Roadmap Created**
+- **📋 Comprehensive Migration Strategy**: Complete roadmap for migrating from local dependencies to fully independent cloud deployment
+- **🔧 Infrastructure Analysis**: Detailed assessment of current local dependencies (PostgreSQL, Supabase, Crawl4AI)
+- **📊 Cost Analysis**: $155-290/month operational cost estimates with performance expectations
+- **⏱️ Timeline**: 4-6 week migration plan with phased implementation strategy
+- **📖 Documentation**: Full roadmap available at [flyio-deployment-roadmap.md](flyio-deployment-roadmap.md)
+
+### **🎯 Acquisition Mode UI Enhancement**
+- **✅ Default Selection Updated**: "Complete Sitemap Learning Mode" now default instead of "Test Mode (10 URLs)"
+- **✅ Consistent URL Limits**: Default URL limit changed from 10 to 4775 to match sitemap mode
+- **✅ Production-Ready Defaults**: Dashboard now optimized for full-scale learning operations
+- **🔄 Backward Compatibility**: Test mode still available for development and testing
+
+### **🛠️ Infrastructure Fixes Applied**
+- **✅ PostgreSQL Container Restarted**: Fixed relational_db connectivity issues after git pull
+- **✅ All Services Operational**: Complete 8-service ecosystem now running with full health checks
+- **✅ Pre-warming System Restored**: All 5 components (virtual_env, relational_db, vector_db, sitemap_validation, crawl4ai_service) showing ready status
+- **✅ Database Connectivity Verified**: Both PostgreSQL (5432) and Supabase (5433) containers connected and operational
+
+---
+
+## 🆕 **Previous Enhancements (June 30, 2025 - 12:10 AM)**
 
 ### **🚀 Database Connectivity Resolution - All Systems Operational**
 - **✅ Database Errors Completely Resolved**: All database connectivity issues fixed - system now shows `is_prewarmed: true`
