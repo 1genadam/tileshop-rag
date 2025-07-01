@@ -1371,22 +1371,14 @@ The project now uses proper environment variable management to protect sensitive
 
 ### **🔄 Creating Pull Requests**
 
-#### **Method 1: Using GitHub CLI (Recommended)**
-```bash
-# Install GitHub CLI if not available
-brew install gh
-
-# Create feature branch and push changes
-git checkout -b feature/your-feature-name
-git add .
-git commit -m "Your commit message"
-git push -u origin feature/your-feature-name
-
-# Create pull request
-gh pr create --title "Your PR Title" --body "Description of changes"
-```
-
-#### **Method 2: Using Personal Access Token & GitHub API**
+#### **Method 1: Using Personal Access Token & GitHub API (Recommended)**
+> **✅ This project is pre-configured with Personal Access Token authentication**
+> 
+> **Why This Method is Recommended:**
+> - ✅ **Already configured** - No additional setup required
+> - ✅ **Programmatic approach** - Works well with automation
+> - ✅ **No extra dependencies** - Uses curl (built into most systems)
+> - ✅ **Consistent with project setup** - Matches existing authentication
 ```bash
 # Create and push feature branch
 git checkout -b feature/your-feature-name
@@ -1407,7 +1399,7 @@ curl -X POST \
   }'
 ```
 
-#### **Method 3: Using GitHub Web Interface**
+#### **Method 2: Using GitHub Web Interface**
 ```bash
 # Push your feature branch
 git checkout -b feature/your-feature-name
@@ -1417,6 +1409,21 @@ git push -u origin feature/your-feature-name
 
 # Then visit: https://github.com/1genadam/tileshop-rag/pulls
 # Click "New pull request" and select your branch
+```
+
+#### **Method 3: Using GitHub CLI (Optional - Not Pre-configured)**
+```bash
+# Only if you want to install GitHub CLI
+brew install gh
+
+# Create feature branch and push changes
+git checkout -b feature/your-feature-name
+git add .
+git commit -m "Your commit message"
+git push -u origin feature/your-feature-name
+
+# Create pull request
+gh pr create --title "Your PR Title" --body "Description of changes"
 ```
 
 ### **✅ Quick Push (Direct to Master - Use Sparingly)**
