@@ -1359,17 +1359,79 @@ The project now uses proper environment variable management to protect sensitive
 
 ### **Repository Information**
 - **GitHub**: https://github.com/1genadam/tileshop-rag
-- **Main Branch**: `main`
-- **License**: Private repository
+- **Main Branch**: `master` (Note: Uses master, not main)
+- **License**: Public repository
 - **Current Authentication**: Personal Access Token (configured in remote URL)
 
-### **✅ Quick Push (Current Setup)**
+### **📋 Current Pull Request Status**
+- **Latest PR**: [#1 - Knowledge Base Enhancements](https://github.com/1genadam/tileshop-rag/pull/1)
+- **Status**: Open and ready for review
+- **Changes**: DCOF compliance docs, tile calculator guide, anti-fracture membrane guide
+- **Files**: 11 files changed (+1,841 additions, -281 deletions)
+
+### **🔄 Creating Pull Requests**
+
+#### **Method 1: Using Personal Access Token & GitHub API (Recommended)**
+> **✅ This project is pre-configured with Personal Access Token authentication**
+> 
+> **Why This Method is Recommended:**
+> - ✅ **Already configured** - No additional setup required
+> - ✅ **Programmatic approach** - Works well with automation
+> - ✅ **No extra dependencies** - Uses curl (built into most systems)
+> - ✅ **Consistent with project setup** - Matches existing authentication
 ```bash
-# The repository is already configured with Personal Access Token
-# Simply stage, commit, and push:
+# Create and push feature branch
+git checkout -b feature/your-feature-name
 git add .
 git commit -m "Your commit message"
-git push tileshop-rag main
+git push -u origin feature/your-feature-name
+
+# Create pull request using GitHub API
+curl -X POST \
+  -H "Authorization: token YOUR_GITHUB_TOKEN" \
+  -H "Accept: application/vnd.github.v3+json" \
+  https://api.github.com/repos/1genadam/tileshop-rag/pulls \
+  -d '{
+    "title": "Your PR Title",
+    "head": "feature/your-feature-name",
+    "base": "master",
+    "body": "Description of your changes"
+  }'
+```
+
+#### **Method 2: Using GitHub Web Interface**
+```bash
+# Push your feature branch
+git checkout -b feature/your-feature-name
+git add .
+git commit -m "Your commit message"
+git push -u origin feature/your-feature-name
+
+# Then visit: https://github.com/1genadam/tileshop-rag/pulls
+# Click "New pull request" and select your branch
+```
+
+#### **Method 3: Using GitHub CLI (Optional - Not Pre-configured)**
+```bash
+# Only if you want to install GitHub CLI
+brew install gh
+
+# Create feature branch and push changes
+git checkout -b feature/your-feature-name
+git add .
+git commit -m "Your commit message"
+git push -u origin feature/your-feature-name
+
+# Create pull request
+gh pr create --title "Your PR Title" --body "Description of changes"
+```
+
+### **✅ Quick Push (Direct to Master - Use Sparingly)**
+```bash
+# Only for urgent hotfixes - prefer pull requests for review
+git add .
+git commit -m "Your commit message"
+git push origin master
 ```
 
 ### **Easy GitHub Commit Instructions**

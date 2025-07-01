@@ -74,6 +74,182 @@ class SimpleTileShopRAG:
         
         return query
     
+    def detect_subway_tile_query(self, query: str) -> Dict[str, Any]:
+        """Enhanced detection for subway tile opportunities"""
+        subway_indicators = ['subway', '3x6', '4x8', 'backsplash', 'bathroom wall', 'kitchen wall']
+        project_indicators = ['bathroom', 'kitchen', 'shower', 'backsplash', 'remodel']
+        
+        query_lower = query.lower()
+        
+        # Detect both product interest AND project context
+        return {
+            'is_subway_query': any(term in query_lower for term in subway_indicators),
+            'project_context': [term for term in project_indicators if term in query_lower],
+            'needs_upselling': any(term in query_lower for term in subway_indicators)
+        }
+    
+    def extract_project_scope(self, query: str) -> Dict[str, Any]:
+        """Intelligent project scope detection"""
+        query_lower = query.lower()
+        
+        # Extract room mentions
+        room_indicators = {
+            'bathroom': {'typical_size': '50-80 sq ft', 'high_moisture': True},
+            'kitchen backsplash': {'typical_size': '30-50 sq ft', 'moderate_moisture': True},
+            'shower': {'typical_size': '100-150 sq ft walls', 'high_moisture': True}
+        }
+        
+        detected_room = None
+        for room in room_indicators:
+            if room.replace(' backsplash', '') in query_lower:
+                detected_room = room
+                break
+        
+        # Extract size if mentioned
+        size_match = re.search(r'(\d+)\s*(?:sq\s*ft|square\s*feet)', query_lower)
+        size = int(size_match.group(1)) if size_match else None
+        
+        return {
+            'room_type': detected_room,
+            'size': size,
+            'room_info': room_indicators.get(detected_room, {}),
+            'needs_size_followup': detected_room and not size
+        }
+    
+    def calculate_material_needs(self, tile_selection: Dict, room_size: int, room_type: str) -> Dict[str, Any]:
+        """Calculate complete project materials based on room size and type"""
+        
+        # Base tile calculations
+        tile_cost = tile_selection.get('price_per_sqft', 0) * room_size
+        boxes_needed = max(1, (room_size / 10.76))  # Typical coverage per box
+        
+        # Essential materials
+        essential_package = {
+            'grout': {
+                'item': 'Sanded grout (1/8" spacing)',
+                'cost': 17.0,
+                'coverage': '40-200 sq ft per bag'
+            },
+            'thinset': {
+                'item': 'Modified thinset',
+                'cost': 30.0,
+                'bags_needed': 1 if room_type not in ['bathroom', 'shower'] else 2,
+                'note': 'Double quantity for membrane installations'
+            },
+            'tools': {
+                'item': 'Basic installation tools',
+                'cost': 65.0,
+                'includes': '1/4" trowel + grout float + spacers'
+            }
+        }
+        
+        # Wet area additions
+        if room_type in ['bathroom', 'shower']:
+            essential_package.update({
+                'waterproofing': {
+                    'item': 'Backer-lite membrane (wet areas)',
+                    'cost': 85.0,
+                    'note': 'Essential for bathroom/shower floors'
+                },
+                'caulk': {
+                    'item': '100% silicone caulk',
+                    'cost': 12.0,
+                    'note': 'Movement areas and transitions'
+                },
+                'sealer': {
+                    'item': 'Grout sealer',
+                    'cost': 25.0,
+                    'note': 'Moisture protection'
+                }
+            })
+        
+        # Premium upgrades
+        premium_options = {
+            'trim_package': {
+                'item': 'Matching trim and edging',
+                'cost': 45.0,
+                'note': 'Professional finishing'
+            },
+            'euro_trowel': {
+                'item': 'Euro trowel (universal flexibility)',
+                'cost': 85.0,
+                'note': 'Handles any tile size perfectly'
+            },
+            'professional_tools': {
+                'item': 'Complete tool kit',
+                'cost': 150.0,
+                'note': 'Everything needed for professional results'
+            }
+        }
+        
+        # Calculate totals
+        essential_total = sum(item.get('cost', 0) * item.get('bags_needed', 1) for item in essential_package.values())
+        premium_total = sum(item.get('cost', 0) for item in premium_options.values())
+        
+        return {
+            'tile_info': {
+                'cost': tile_cost,
+                'boxes_needed': round(boxes_needed, 1),
+                'coverage': f"{room_size} sq ft"
+            },
+            'essential_package': essential_package,
+            'premium_options': premium_options,
+            'pricing': {
+                'tiles_only': tile_cost,
+                'essential_total': tile_cost + essential_total,
+                'premium_total': tile_cost + essential_total + premium_total
+            }
+        }
+    
+    def generate_upselling_response(self, subway_tiles: List[Dict], project_details: Dict, materials: Dict) -> str:
+        """Generate compelling upselling response for subway tiles"""
+        
+        if not subway_tiles:
+            return "I couldn't find subway tiles matching your query. Let me help you with other tile options."
+        
+        # Use first tile for primary recommendation
+        primary_tile = subway_tiles[0]
+        room_type = project_details.get('room_type', 'room')
+        room_size = project_details.get('size', 50)  # Default 50 sq ft
+        
+        response_parts = [
+            f"🏠 **Complete {room_type.replace('_', ' ').title()} Subway Tile Project**\n",
+            f"**Your Selected Subway Tile:** {primary_tile['title']}",
+            f"- **Base Cost:** ${materials['pricing']['tiles_only']:.2f} ({room_size} sq ft)",
+            f"- **Coverage:** {materials['tile_info']['boxes_needed']} boxes\n",
+            "🎯 **Essential Installation Materials:**"
+        ]
+        
+        # Add essential materials
+        for key, item in materials['essential_package'].items():
+            cost = item['cost'] * item.get('bags_needed', 1)
+            note = f" - {item.get('note', '')}" if item.get('note') else ""
+            response_parts.append(f"✅ **{item['item'].title()}:** ${cost:.0f}{note}")
+        
+        response_parts.extend([
+            "\n⭐ **Professional Upgrade Options:"
+        ])
+        
+        # Add premium options
+        for key, item in materials['premium_options'].items():
+            note = f" - {item.get('note', '')}" if item.get('note') else ""
+            response_parts.append(f"🔹 **{item['item'].title()}:** ${item['cost']:.0f}{note}")
+        
+        response_parts.extend([
+            "\n💰 **Investment Summary:**",
+            f"- **Tiles Only:** ${materials['pricing']['tiles_only']:.2f}",
+            f"- **Essential Complete Package:** ${materials['pricing']['essential_total']:.2f}",
+            f"- **Professional Complete Package:** ${materials['pricing']['premium_total']:.2f}\n",
+            "🛡️ **Why Complete Packages Save Money:**",
+            "- Prevents costly return trips for missing materials",
+            "- Ensures proper installation and long-term performance",
+            "- Professional tools create better results",
+            "- Warranty protection with complete system approach\n",
+            "Would you like me to customize this package for your specific project needs?"
+        ])
+        
+        return "\n".join(response_parts)
+    
     def search_products(self, query: str, limit: int = 3) -> List[Dict[str, Any]]:
         """Search products using PostgreSQL full-text search via docker exec"""
         try:
@@ -213,6 +389,13 @@ class SimpleTileShopRAG:
     def chat(self, query: str) -> str:
         """Generate intelligent chat response - Smart routing based on query type"""
         try:
+            # Check for subway tile upselling opportunities FIRST
+            subway_detection = self.detect_subway_tile_query(query)
+            
+            if subway_detection['is_subway_query'] and subway_detection['needs_upselling']:
+                logger.info("Detected subway tile upselling opportunity")
+                return self._handle_subway_upselling_query(query)
+            
             # Check if this is a direct SKU query (more comprehensive detection)
             query_lower = query.lower().strip()
             
@@ -320,6 +503,63 @@ Provide a specific, helpful answer with exact product names, SKUs, prices, and U
             logger.error(f"Error in analytical query: {e}")
             # Re-raise the exception so the caller can handle fallback
             raise e
+    
+    def _handle_subway_upselling_query(self, query: str) -> str:
+        """Handle subway tile queries with upselling logic"""
+        try:
+            # Search for subway tiles using simplified search
+            subway_tiles = self.search_products("subway", limit=3)
+            
+            if not subway_tiles:
+                return "I couldn't find subway tiles matching your query. Let me search for other tile options."
+            
+            # Extract project details
+            project_details = self.extract_project_scope(query)
+            
+            # If no room size, ask for it
+            if project_details['needs_size_followup']:
+                room_type = project_details['room_type'].replace('_', ' ')
+                return f"""I'd love to help you create a complete {room_type} subway tile project! 
+                
+**Found These Subway Tiles:**
+{self._format_tile_results(subway_tiles[:2])}
+
+To calculate exact materials and create your complete project package, what size area are you tiling? 
+For example:
+- Small bathroom: 50 sq ft
+- Large bathroom: 80+ sq ft  
+- Kitchen backsplash: 30-40 sq ft
+
+Once I know the size, I can show you everything you'll need for professional installation!"""
+            
+            # Calculate materials for project
+            room_size = project_details.get('size', 50)
+            room_type = project_details.get('room_type', 'bathroom')
+            
+            materials = self.calculate_material_needs(subway_tiles[0], room_size, room_type)
+            
+            # Generate upselling response
+            return self.generate_upselling_response(subway_tiles, project_details, materials)
+            
+        except Exception as e:
+            logger.error(f"Error in subway upselling: {e}")
+            return self._handle_search_query(query)
+    
+    def _format_tile_results(self, tiles: List[Dict]) -> str:
+        """Format tile results for display"""
+        result_parts = []
+        
+        for i, tile in enumerate(tiles, 1):
+            price_info = f"${tile.get('price_per_sqft', 0):.2f}/sq ft"
+            if tile.get('price_per_box'):
+                price_info += f" (${tile['price_per_box']:.2f}/box)"
+            
+            result_parts.append(
+                f"{i}. **{tile['title']}** - {price_info}\n"
+                f"   SKU: {tile['sku']} | {tile.get('size_shape', 'Standard size')}"
+            )
+        
+        return "\n".join(result_parts)
     
     def _handle_search_query(self, query: str) -> str:
         """Handle regular search queries"""
