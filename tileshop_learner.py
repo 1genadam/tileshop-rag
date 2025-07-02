@@ -8,10 +8,20 @@ import json
 import re
 import requests
 import psycopg2
-from datetime import datetime
+from datetime import datetime, timezone, timedelta
 import time
 from urllib.parse import urlparse, urljoin
 import sys
+
+# Set EST timezone globally for the project
+EST = timezone(timedelta(hours=-5))  # EST is UTC-5
+# For automatic EST/EDT handling, use pytz if available
+try:
+    import pytz
+    EST = pytz.timezone('US/Eastern')
+except ImportError:
+    # Fallback to manual EST timezone
+    EST = timezone(timedelta(hours=-5))
 
 # Configuration
 CRAWL4AI_URL = "http://localhost:11235"
@@ -51,7 +61,7 @@ def crawl_page_with_tabs(url):
         url,
         f"{url}#specifications",  # Enable to capture color variations
         # f"{url}#description", 
-        # f"{url}#resources"
+        f"{url}#resources"  # Enable to capture PDF links and installation guides
     ]
     
     results = {}
@@ -195,7 +205,7 @@ def find_color_variations(html_content, base_url, specs_html=None):
         r'Found colors?:\s*([^\n]+)',
     ]
     
-    all_content = html_content + (specs_html or '')
+    all_content = (html_content or '') + (specs_html or '')
     for pattern in js_color_patterns:
         matches = re.findall(pattern, all_content, re.IGNORECASE)
         for match in matches:
@@ -226,7 +236,11 @@ def find_color_variations(html_content, base_url, specs_html=None):
                 color_text = match if isinstance(match, str) else (match[1] if len(match) > 1 else match[0])
                 
                 # Extract individual color names from text like "Moss, Sky Blue, Cloudy"
-                colors_in_text = re.findall(r'\b(?:' + '|'.join(color_words) + r')\b[^,]*', color_text, re.IGNORECASE)
+                safe_color_words = [w for w in color_words if w is not None and isinstance(w, str)]
+                if safe_color_words:
+                    colors_in_text = re.findall(r'\b(?:' + '|'.join(safe_color_words) + r')\b[^,]*', color_text, re.IGNORECASE)
+                else:
+                    colors_in_text = []
                 for color in colors_in_text:
                     clean_color = color.strip()
                     if clean_color and len(clean_color) < 30:  # Reasonable length
@@ -345,9 +359,10 @@ def extract_product_data(crawl_results, base_url):
         return None
     
     # Debug: Save HTML to file for examination
-    with open(f"/tmp/debug_html_{data.get('sku', 'unknown')}.html", 'w') as f:
+    sku_debug = data.get('sku') or 'unknown'
+    with open(f"/tmp/debug_html_{sku_debug}.html", 'w') as f:
         f.write(main_html)
-    print(f"Debug: Saved HTML to /tmp/debug_html_{data.get('sku', 'unknown')}.html")
+    print(f"Debug: Saved HTML to /tmp/debug_html_{sku_debug}.html")
     
     # Extract SKU from URL
     sku_match = re.search(r'(\d+)$', base_url)
@@ -432,6 +447,44 @@ def extract_product_data(crawl_results, base_url):
             print(f"Error parsing JSON-LD: {e}")
             print(f"JSON content preview: {json_ld[:200]}...")
             continue
+    
+    # Fallback: Extract primary image from HTML if not found in JSON-LD
+    if not data['primary_image'] and data['sku']:
+        print(f"\n--- Fallback: Extracting primary image from HTML for SKU {data['sku']} ---")
+        
+        # Build expected Scene7 URL pattern for this SKU
+        primary_image_url = f"https://s7d1.scene7.com/is/image/TileShop/{data['sku']}?$ExtraLarge$"
+        
+        # Verify this URL pattern exists in the HTML content
+        if primary_image_url in main_html or f"TileShop/{data['sku']}" in main_html:
+            data['primary_image'] = primary_image_url
+            print(f"  Fallback primary image: {data['primary_image']}")
+            
+            # Generate image variants
+            image_base_url = f"https://s7d1.scene7.com/is/image/TileShop/{data['sku']}"
+            image_variants = {
+                'base_url': image_base_url,
+                'extra_large': f"{image_base_url}?$ExtraLarge$",
+                'large': f"{image_base_url}?$Large$",
+                'medium': f"{image_base_url}?$Medium$",
+                'small': f"{image_base_url}?$Small$",
+                'thumbnail': f"{image_base_url}?$Thumbnail$"
+            }
+            data['image_variants'] = json.dumps(image_variants)
+            print(f"  Fallback image variants generated: {len(image_variants)} sizes")
+        else:
+            print(f"  No Scene7 image reference found for SKU {data['sku']}")
+    
+    # Alternative fallback: Look for any Scene7 ExtraLarge images in the page
+    if not data['primary_image']:
+        print(f"\n--- Alternative fallback: Looking for Scene7 ExtraLarge images ---")
+        scene7_pattern = r'(https://s7d1\.scene7\.com/is/image/TileShop/[^?]*)\?[^"]*ExtraLarge[^"]*'
+        scene7_matches = re.findall(scene7_pattern, main_html)
+        if scene7_matches:
+            data['primary_image'] = f"{scene7_matches[0]}?$ExtraLarge$"
+            print(f"  Alternative primary image: {data['primary_image']}")
+        else:
+            print(f"  No Scene7 ExtraLarge images found")
     
     # Extract price information with multiple patterns - ENHANCED
     price_patterns = [
@@ -743,7 +796,9 @@ def extract_product_data(crawl_results, base_url):
                     print(f"  Found collection link: {match[1]} -> {match[0]}")
     
     # Also look for the collection name in the product title/description
-    if 'signature' in (data.get('title', '') + data.get('description', '')).lower():
+    title_text = data.get('title') or ''
+    desc_text = data.get('description') or ''
+    if 'signature' in (title_text + desc_text).lower():
         collection_links.append({
             'collection': 'Signature Collection',
             'mentioned_in': 'product_description'
@@ -770,13 +825,70 @@ def extract_product_data(crawl_results, base_url):
                     data['description'] = desc.strip()
                     break
     
-    # Extract resources from resources tab
+    # Extract resources from resources tab - ENHANCED
+    print(f"\n--- Extracting resources ---")
+    resources = {}
+    
     if crawl_results.get('resources', {}).get('html'):
         res_html = crawl_results['resources']['html']
+        print(f"Processing resources tab content...")
+        
         # Look for PDF links, installation guides, etc.
-        pdf_links = re.findall(r'href="([^"]*\.pdf[^"]*)"', res_html, re.IGNORECASE)
+        pdf_patterns = [
+            r'href="([^"]*\.pdf[^"]*)"[^>]*>([^<]*)',  # PDF with link text
+            r'href="([^"]*\.pdf[^"]*)"',  # Just PDF URLs
+        ]
+        
+        pdf_links = []
+        for pattern in pdf_patterns:
+            matches = re.findall(pattern, res_html, re.IGNORECASE)
+            for match in matches:
+                if isinstance(match, tuple):
+                    pdf_url, link_text = match[0], match[1].strip()
+                    pdf_links.append({
+                        'url': match[0],
+                        'title': link_text if link_text else 'PDF Document'
+                    })
+                    print(f"  Found PDF: {link_text or 'PDF Document'} -> {match[0]}")
+                else:
+                    pdf_links.append({
+                        'url': match,
+                        'title': 'PDF Document'
+                    })
+                    print(f"  Found PDF: {match}")
+        
         if pdf_links:
-            data['resources'] = json.dumps({'pdf_links': pdf_links})
+            resources['pdf_links'] = pdf_links
+        
+        # Look for other resource types
+        resource_patterns = {
+            'installation_guides': [r'installation[^"]*guide', r'install[^"]*instruction'],
+            'spec_sheets': [r'spec[^"]*sheet', r'specification[^"]*sheet'],
+            'care_instructions': [r'care[^"]*instruction', r'maintenance[^"]*guide'],
+            'warranty_info': [r'warranty', r'guarantee'],
+        }
+        
+        for resource_type, patterns in resource_patterns.items():
+            for pattern in patterns:
+                # Look for links containing these keywords
+                pattern_regex = f'href="([^"]*)"[^>]*>([^<]*{pattern}[^<]*)'
+                matches = re.findall(pattern_regex, res_html, re.IGNORECASE)
+                if matches:
+                    if resource_type not in resources:
+                        resources[resource_type] = []
+                    for url, text in matches:
+                        resources[resource_type].append({
+                            'url': url,
+                            'title': text.strip()
+                        })
+                        print(f"  Found {resource_type}: {text.strip()} -> {url}")
+        
+        if resources:
+            data['resources'] = json.dumps(resources)
+            total_resources = sum(len(v) if isinstance(v, list) else 1 for v in resources.values())
+            print(f"Total resources extracted: {total_resources}")
+    else:
+        print("No resources tab content found")
     
     return data
 
@@ -791,9 +903,9 @@ def save_to_database(product_data, crawl_results):
     raw_markdown = crawl_results.get('main', {}).get('markdown', '') if crawl_results.get('main') else ''
     
     # Truncate if too large for SQL injection safety
-    if len(raw_html) > 500000:  # 500KB limit for SQL
+    if raw_html and len(raw_html) > 500000:  # 500KB limit for SQL
         raw_html = raw_html[:500000] + "... [TRUNCATED]"
-    if len(raw_markdown) > 500000:  # 500KB limit  
+    if raw_markdown and len(raw_markdown) > 500000:  # 500KB limit  
         raw_markdown = raw_markdown[:500000] + "... [TRUNCATED]"
     
     # Escape single quotes for SQL

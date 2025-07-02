@@ -277,9 +277,11 @@
         <!-- System Pre-warming Status Display -->
         <div style="margin-top: 1.5rem;">
             <div id="prewarm-status-container" style="padding: 0.75rem; background: #f8f9fa; border: 1px solid #e5e7eb; border-radius: 6px; display: block;">
-                <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 0.75rem;">
+                <div style="margin-bottom: 0.75rem;">
                     <p style="margin: 0; font-weight: 600; color: #374151;"><i class="fas fa-cog"></i> System Pre-warming</p>
-                    <span id="prewarm-overall-status" style="font-size: 0.875rem; color: #6b7280;">Checking...</span>
+                    <div style="margin-top: 0.5rem;">
+                        <span id="prewarm-overall-status" style="font-size: 0.875rem; color: #6b7280;">Checking...</span>
+                    </div>
                 </div>
                 
                 <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 0.75rem;">
@@ -442,7 +444,8 @@
                     <p><strong>Errors:</strong> <span id="acquisition-errors" style="color: #dc2626;">0</span></p>
                 </div>
                 <div style="margin: 0.5rem 0;">
-                    <p><strong>Speed:</strong> <span id="acquisition-speed">-- pages/min</span> 
+                    <p><strong>Average Read Speed:</strong> <span id="acquisition-speed">-- pages/min</span> 
+                       <span style="margin-left: 1rem;"><strong>Counter:</strong> <span id="acquisition-counter">--</span>s</span>
                        <span style="margin-left: 1rem;"><strong>Runtime:</strong> <span id="acquisition-runtime">--</span></span></p>
                 </div>
                 <p><strong>Current URL:</strong></p>
@@ -534,14 +537,6 @@
             <p style="font-size: 1.5rem; font-weight: bold;" id="url-coverage">-</p>
         </div>
     </div>
-    <div style="margin-top: 1rem; display: flex; gap: 1rem;">
-        <button class="btn btn-primary" onclick="viewProducts()">
-            <i class="fas fa-table"></i> View Products
-        </button>
-        <button class="btn btn-secondary" onclick="exportProducts()">
-            <i class="fas fa-download"></i> Export CSV
-        </button>
-    </div>
 </div>
 
 <!-- System Statistics -->
@@ -596,6 +591,51 @@
         <div>
             <h4 style="color: #06b6d4; font-size: 0.9rem;"><i class="fas fa-clock"></i> Uptime</h4>
             <p style="font-size: 1.3rem; font-weight: bold;" id="system-uptime">-</p>
+        </div>
+    </div>
+</div>
+
+<!-- SKU Lookup Section -->
+<div class="card">
+    <h3><i class="fas fa-search"></i> SKU Lookup</h3>
+    <p style="color: #666; margin-bottom: 1rem;">Search for a specific product by SKU to view its database information</p>
+    
+    <div style="display: flex; gap: 1rem; margin-bottom: 1rem;">
+        <input 
+            type="text" 
+            id="sku-input" 
+            placeholder="Enter SKU (e.g., 684287, 683996, etc.)"
+            style="flex: 1; padding: 0.75rem; border: 1px solid #d1d5db; border-radius: 6px; font-size: 0.9rem;"
+            onkeypress="if(event.key==='Enter') lookupSku()"
+        >
+        <button class="btn btn-primary" onclick="lookupSku()">
+            <i class="fas fa-search"></i> Search
+        </button>
+    </div>
+    
+    <div id="sku-results" style="display: none;">
+        <div id="sku-product-info" style="background: #f8fafc; border: 1px solid #e5e7eb; border-radius: 6px; padding: 1rem;">
+            <!-- Product information will be displayed here -->
+        </div>
+    </div>
+    
+    <div id="sku-error" style="display: none; color: #ef4444; background: #fef2f2; border: 1px solid #fecaca; border-radius: 6px; padding: 1rem;">
+        <!-- Error messages will be displayed here -->
+    </div>
+    
+    <div id="sku-loading" style="display: none; text-align: center; padding: 2rem; color: #666;">
+        <i class="fas fa-spinner fa-spin"></i> Searching database...
+    </div>
+    
+    <!-- Product Management Actions -->
+    <div style="margin-top: 1.5rem; padding-top: 1rem; border-top: 1px solid #e5e7eb;">
+        <div style="display: flex; gap: 1rem; justify-content: center;">
+            <button class="btn btn-primary" onclick="viewProducts()">
+                <i class="fas fa-table"></i> View Products
+            </button>
+            <button class="btn btn-secondary" onclick="exportProducts()">
+                <i class="fas fa-download"></i> Export CSV
+            </button>
         </div>
     </div>
 </div>
@@ -709,6 +749,12 @@
         
         // Initialize sitemap detection on page load
         detectSitemapOnLoad();
+        
+        // Auto-start learning process after dashboard loads
+        setTimeout(function() {
+            console.log('Auto-starting learning process...');
+            startAcquisition();
+        }, 5000); // Wait 5 seconds for dashboard to load completely
         
         // Add URL input listener for automatic sitemap detection
         const urlInput = document.getElementById('target-url');
@@ -1244,41 +1290,45 @@
             if (runtime > 0) {
                 document.getElementById('acquisition-runtime').textContent = formatDuration(runtime);
                 
-                // Calculate speed (pages per minute) - use success_count for more accurate speed
+                // Use rolling average read speed from API
+                const avgReadSpeed = status.average_read_speed_pages_per_minute || 0;
                 const successful = status.stats.success_count || 0;
-                const processed = status.stats.products_processed || 0;
                 
-                if (successful > 0 && runtime > 0) {
-                    const pagesPerMin = Math.round((successful / runtime) * 60);
-                    document.getElementById('acquisition-speed').textContent = pagesPerMin + ' pages/min';
-                    
-                    // Calculate ETA based on remaining items to process
-                    const remaining = (status.stats.estimated_total || 0) - successful;
-                    if (remaining > 0 && pagesPerMin > 0) {
-                        const etaMinutes = Math.ceil(remaining / pagesPerMin);
-                        document.getElementById('acquisition-eta').textContent = 'ETA: ' + formatDuration(etaMinutes * 60);
-                    } else if (remaining <= 0) {
-                        document.getElementById('acquisition-eta').textContent = 'ETA: Complete';
-                    } else {
-                        document.getElementById('acquisition-eta').textContent = 'ETA: Calculating...';
-                    }
-                } else if (processed > 0 && runtime > 0) {
-                    // Fallback to processing speed if no successes yet
-                    const pagesPerMin = Math.round((processed / runtime) * 60);
-                    document.getElementById('acquisition-speed').textContent = pagesPerMin + ' pages/min (processing)';
-                    document.getElementById('acquisition-eta').textContent = 'ETA: Calculating...';
+                // Update Average Read Speed
+                if (avgReadSpeed > 0) {
+                    document.getElementById('acquisition-speed').textContent = avgReadSpeed + ' pages/min';
+                } else if (successful > 0) {
+                    document.getElementById('acquisition-speed').textContent = 'Calculating...';
                 } else {
                     document.getElementById('acquisition-speed').textContent = 'Starting...';
+                }
+                
+                // Update Counter (seconds since last read)
+                const counterSeconds = status.counter_seconds_since_last_read || 0;
+                document.getElementById('acquisition-counter').textContent = counterSeconds;
+                
+                // Calculate ETA based on remaining items and average read speed
+                if (avgReadSpeed > 0 && successful > 0) {
+                    const remaining = (status.stats.estimated_total || 0) - successful;
+                    if (remaining > 0) {
+                        const etaMinutes = Math.ceil(remaining / avgReadSpeed);
+                        document.getElementById('acquisition-eta').textContent = 'ETA: ' + formatDuration(etaMinutes * 60);
+                    } else {
+                        document.getElementById('acquisition-eta').textContent = 'ETA: Complete';
+                    }
+                } else {
                     document.getElementById('acquisition-eta').textContent = 'ETA: Calculating...';
                 }
             } else {
                 document.getElementById('acquisition-runtime').textContent = 'Starting...';
                 document.getElementById('acquisition-speed').textContent = 'Starting...';
+                document.getElementById('acquisition-counter').textContent = '--';
                 document.getElementById('acquisition-eta').textContent = 'ETA: Calculating...';
             }
         } else {
             document.getElementById('acquisition-runtime').textContent = '--';
             document.getElementById('acquisition-speed').textContent = '-- pages/min';
+            document.getElementById('acquisition-counter').textContent = '--';
             document.getElementById('acquisition-eta').textContent = 'ETA: --';
         }
         
@@ -2507,6 +2557,527 @@ Status: ${comp.is_in_sync ? 'In Sync' : 'Out of Sync'}`;
             } else if (data.stage === 'error') {
                 showAlert('Sitemap download failed: ' + data.message, 'error');
             }
+        });
+    }
+
+    // SKU Lookup Function
+    async function lookupSku() {
+        const skuInput = document.getElementById('sku-input');
+        const resultsDiv = document.getElementById('sku-results');
+        const errorDiv = document.getElementById('sku-error');
+        const loadingDiv = document.getElementById('sku-loading');
+        const productInfo = document.getElementById('sku-product-info');
+        
+        const sku = skuInput.value.trim();
+        
+        if (!sku) {
+            showAlert('Please enter a SKU to search', 'warning');
+            return;
+        }
+        
+        // Show loading state
+        resultsDiv.style.display = 'none';
+        errorDiv.style.display = 'none';
+        loadingDiv.style.display = 'block';
+        
+        try {
+            const response = await fetch(`/api/database/product/sku/${encodeURIComponent(sku)}`);
+            const result = await response.json();
+            
+            loadingDiv.style.display = 'none';
+            
+            if (result.success) {
+                if (result.found && result.product) {
+                    // Display product information
+                    displayProductInfo(result.product);
+                    resultsDiv.style.display = 'block';
+                    showAlert(`Product found: ${result.product.title || 'Untitled'}`, 'success');
+                } else {
+                    // No product found
+                    errorDiv.innerHTML = `<strong>No product found</strong><br>${result.message || 'No product with this SKU exists in the database.'}`;
+                    errorDiv.style.display = 'block';
+                }
+            } else {
+                // API error
+                errorDiv.innerHTML = `<strong>Search Error</strong><br>${result.error || 'Unknown error occurred'}`;
+                errorDiv.style.display = 'block';
+                showAlert('SKU search failed', 'error');
+            }
+        } catch (error) {
+            loadingDiv.style.display = 'none';
+            errorDiv.innerHTML = `<strong>Connection Error</strong><br>Unable to connect to database: ${error.message}`;
+            errorDiv.style.display = 'block';
+            showAlert('Database connection error', 'error');
+        }
+    }
+
+    function displayProductInfo(product) {
+        const productInfo = document.getElementById('sku-product-info');
+        
+        // Create comprehensive product view
+        let html = `
+            <div style="max-height: 600px; overflow-y: auto;">
+                <!-- Product Header -->
+                <div style="background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); color: white; padding: 1.5rem; border-radius: 8px; margin-bottom: 1.5rem; position: relative;">
+                    <!-- Close Button -->
+                    <button onclick="closeProductPopup()" style="position: absolute; top: 1rem; right: 1rem; background: rgba(255,255,255,0.2); border: none; color: white; width: 30px; height: 30px; border-radius: 50%; cursor: pointer; display: flex; align-items: center; justify-content: center; font-size: 1.2rem; transition: background 0.2s;" onmouseover="this.style.background='rgba(255,255,255,0.3)'" onmouseout="this.style.background='rgba(255,255,255,0.2)'">
+                        <i class="fas fa-times"></i>
+                    </button>
+                    
+                    <h3 style="margin: 0; font-size: 1.3rem; padding-right: 3rem;">
+                        <i class="fas fa-cube"></i> ${product.title || 'Untitled Product'}
+                    </h3>
+                    
+                    <!-- SKU and Enhanced Pricing Section -->
+                    <div style="margin-top: 1rem; display: flex; justify-content: space-between; align-items: flex-start; flex-wrap: wrap; gap: 1rem;">
+                        <div>
+                            <span style="background: rgba(255,255,255,0.2); padding: 0.25rem 0.75rem; border-radius: 20px; font-size: 0.9rem;">
+                                SKU: <strong>${product.sku}</strong>
+                            </span>
+                        </div>
+                        <div style="text-align: right;">
+                            <!-- Enhanced Pricing Display -->
+                            <div style="display: flex; flex-direction: column; gap: 0.25rem; align-items: flex-end;">
+                                ${product.price_per_sqft ? `<div style="font-size: 1.2rem; font-weight: bold; background: rgba(255,255,255,0.15); padding: 0.25rem 0.75rem; border-radius: 15px;">$${parseFloat(product.price_per_sqft).toFixed(2)} /sf</div>` : ''}
+                                ${product.price_per_box ? `<div style="font-size: 1.1rem; font-weight: 600; background: rgba(255,255,255,0.1); padding: 0.25rem 0.75rem; border-radius: 15px;">$${parseFloat(product.price_per_box).toFixed(2)} /bx</div>` : ''}
+                                ${product.price_each ? `<div style="font-size: 1.1rem; font-weight: 600; background: rgba(255,255,255,0.1); padding: 0.25rem 0.75rem; border-radius: 15px;">$${parseFloat(product.price_each).toFixed(2)} /each</div>` : ''}
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Complete Dataset Tabs View -->
+                <div style="display: grid; gap: 1.5rem;">
+        `;
+
+        // Product Details Tab
+        html += `
+            <div style="border: 1px solid #e5e7eb; border-radius: 8px; overflow: hidden;">
+                <div style="background: #f8fafc; padding: 1rem; border-bottom: 1px solid #e5e7eb;">
+                    <h4 style="margin: 0; color: #1f2937; display: flex; align-items: center; gap: 0.5rem;">
+                        <i class="fas fa-info-circle" style="color: #3b82f6;"></i> Product Details
+                    </h4>
+                </div>
+                <div style="padding: 1rem;">
+                    <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 1rem;">
+        `;
+
+        // All available fields
+        const productFields = [
+            { key: 'coverage', label: 'Coverage', icon: 'fas fa-ruler-combined' },
+            { key: 'finish', label: 'Finish', icon: 'fas fa-paint-brush' },
+            { key: 'color', label: 'Color', icon: 'fas fa-palette' },
+            { key: 'size_shape', label: 'Size & Shape', icon: 'fas fa-shapes' },
+            { key: 'price_per_box', label: 'Price per Box', icon: 'fas fa-dollar-sign', format: 'currency' },
+            { key: 'price_per_sqft', label: 'Price per Sq Ft', icon: 'fas fa-calculator', format: 'currency' }
+        ];
+
+        productFields.forEach(field => {
+            if (product[field.key]) {
+                let value = product[field.key];
+                if (field.format === 'currency') {
+                    value = `$${parseFloat(value).toFixed(2)}`;
+                }
+                html += `
+                    <div style="display: flex; align-items: center; gap: 0.5rem; padding: 0.5rem; background: #f9fafb; border-radius: 6px;">
+                        <i class="${field.icon}" style="color: #6b7280; width: 16px;"></i>
+                        <div>
+                            <div style="font-size: 0.8rem; color: #6b7280; text-transform: uppercase; letter-spacing: 0.05em;">${field.label}</div>
+                            <div style="font-weight: 600; color: #1f2937;">${value}</div>
+                        </div>
+                    </div>
+                `;
+            }
+        });
+
+        html += `
+                    </div>
+                </div>
+            </div>
+        `;
+
+        // Description Tab
+        if (product.description) {
+            html += `
+                <div style="border: 1px solid #e5e7eb; border-radius: 8px; overflow: hidden;">
+                    <div style="background: #f8fafc; padding: 1rem; border-bottom: 1px solid #e5e7eb;">
+                        <h4 style="margin: 0; color: #1f2937; display: flex; align-items: center; gap: 0.5rem;">
+                            <i class="fas fa-file-text" style="color: #10b981;"></i> Description
+                        </h4>
+                    </div>
+                    <div style="padding: 1rem;">
+                        <div style="line-height: 1.6; color: #374151;">${product.description}</div>
+                    </div>
+                </div>
+            `;
+        }
+
+        // Specifications Tab
+        if (product.specifications) {
+            html += `
+                <div style="border: 1px solid #e5e7eb; border-radius: 8px; overflow: hidden;">
+                    <div style="background: #f8fafc; padding: 1rem; border-bottom: 1px solid #e5e7eb;">
+                        <h4 style="margin: 0; color: #1f2937; display: flex; align-items: center; gap: 0.5rem;">
+                            <i class="fas fa-cogs" style="color: #f59e0b;"></i> Technical Specifications
+                        </h4>
+                    </div>
+                    <div style="padding: 1rem;">
+            `;
+
+            // Try to format specifications nicely
+            try {
+                let specs = typeof product.specifications === 'string' ? JSON.parse(product.specifications) : product.specifications;
+                if (typeof specs === 'object' && specs !== null) {
+                    html += `<div style="display: grid; gap: 0.75rem;">`;
+                    Object.entries(specs).forEach(([key, value]) => {
+                        html += `
+                            <div style="display: flex; justify-content: space-between; align-items: center; padding: 0.75rem; background: #f9fafb; border-radius: 6px; border-left: 4px solid #f59e0b;">
+                                <span style="font-weight: 600; color: #374151; text-transform: capitalize;">${key.replace(/_/g, ' ')}</span>
+                                <span style="color: #6b7280; font-family: monospace;">${value}</span>
+                            </div>
+                        `;
+                    });
+                    html += `</div>`;
+                } else {
+                    html += `<pre style="background: #f9fafb; padding: 1rem; border-radius: 6px; font-size: 0.9rem; overflow-x: auto;">${JSON.stringify(specs, null, 2)}</pre>`;
+                }
+            } catch (e) {
+                html += `<pre style="background: #f9fafb; padding: 1rem; border-radius: 6px; font-size: 0.9rem; overflow-x: auto;">${product.specifications}</pre>`;
+            }
+
+            html += `
+                    </div>
+                </div>
+            `;
+        }
+
+        // Resources Tab (PDFs, Installation Guides, etc.)
+        if (product.resources) {
+            html += `
+                <div style="border: 1px solid #e5e7eb; border-radius: 8px; overflow: hidden;">
+                    <div style="background: #f8fafc; padding: 1rem; border-bottom: 1px solid #e5e7eb;">
+                        <h4 style="margin: 0; color: #1f2937; display: flex; align-items: center; gap: 0.5rem;">
+                            <i class="fas fa-file-pdf" style="color: #dc2626;"></i> Resources & Downloads
+                        </h4>
+                    </div>
+                    <div style="padding: 1rem;">
+            `;
+
+            // Try to format resources nicely
+            try {
+                let resources = typeof product.resources === 'string' ? JSON.parse(product.resources) : product.resources;
+                if (typeof resources === 'object' && resources !== null) {
+                    
+                    // PDF Links
+                    if (resources.pdf_links && resources.pdf_links.length > 0) {
+                        html += `
+                            <div style="margin-bottom: 1.5rem;">
+                                <h5 style="margin: 0 0 0.75rem 0; color: #374151; display: flex; align-items: center; gap: 0.5rem;">
+                                    <i class="fas fa-file-pdf" style="color: #dc2626;"></i> PDF Documents
+                                </h5>
+                                <div style="display: grid; gap: 0.5rem;">
+                        `;
+                        resources.pdf_links.forEach(pdf => {
+                            const title = pdf.title || pdf.url || 'PDF Document';
+                            const url = pdf.url || pdf;
+                            html += `
+                                <a href="${url}" target="_blank" style="display: flex; align-items: center; gap: 0.75rem; padding: 0.75rem; background: #fef2f2; border: 1px solid #fecaca; border-radius: 6px; text-decoration: none; color: #991b1b; transition: all 0.2s ease;">
+                                    <i class="fas fa-file-pdf" style="color: #dc2626; font-size: 1.2rem;"></i>
+                                    <div>
+                                        <div style="font-weight: 600;">${title}</div>
+                                        <div style="font-size: 0.8rem; opacity: 0.7;">${url}</div>
+                                    </div>
+                                    <i class="fas fa-external-link-alt" style="margin-left: auto; opacity: 0.5;"></i>
+                                </a>
+                            `;
+                        });
+                        html += `
+                                </div>
+                            </div>
+                        `;
+                    }
+                    
+                    // Installation Guides
+                    if (resources.installation_guides && resources.installation_guides.length > 0) {
+                        html += `
+                            <div style="margin-bottom: 1.5rem;">
+                                <h5 style="margin: 0 0 0.75rem 0; color: #374151; display: flex; align-items: center; gap: 0.5rem;">
+                                    <i class="fas fa-tools" style="color: #059669;"></i> Installation Guides
+                                </h5>
+                                <div style="display: grid; gap: 0.5rem;">
+                        `;
+                        resources.installation_guides.forEach(guide => {
+                            html += `
+                                <a href="${guide.url}" target="_blank" style="display: flex; align-items: center; gap: 0.75rem; padding: 0.75rem; background: #f0fdf4; border: 1px solid #bbf7d0; border-radius: 6px; text-decoration: none; color: #065f46; transition: all 0.2s ease;">
+                                    <i class="fas fa-tools" style="color: #059669; font-size: 1.2rem;"></i>
+                                    <div>
+                                        <div style="font-weight: 600;">${guide.title}</div>
+                                        <div style="font-size: 0.8rem; opacity: 0.7;">${guide.url}</div>
+                                    </div>
+                                    <i class="fas fa-external-link-alt" style="margin-left: auto; opacity: 0.5;"></i>
+                                </a>
+                            `;
+                        });
+                        html += `
+                                </div>
+                            </div>
+                        `;
+                    }
+                    
+                    // Other resource types
+                    ['spec_sheets', 'care_instructions', 'warranty_info'].forEach(resourceType => {
+                        if (resources[resourceType] && resources[resourceType].length > 0) {
+                            const typeLabels = {
+                                'spec_sheets': { label: 'Specification Sheets', icon: 'fas fa-clipboard-list', color: '#3b82f6', bgColor: '#eff6ff', borderColor: '#bfdbfe' },
+                                'care_instructions': { label: 'Care Instructions', icon: 'fas fa-heart', color: '#7c3aed', bgColor: '#f3f4f6', borderColor: '#d1d5db' },
+                                'warranty_info': { label: 'Warranty Information', icon: 'fas fa-shield-alt', color: '#f59e0b', bgColor: '#fffbeb', borderColor: '#fde68a' }
+                            };
+                            const typeInfo = typeLabels[resourceType];
+                            
+                            html += `
+                                <div style="margin-bottom: 1.5rem;">
+                                    <h5 style="margin: 0 0 0.75rem 0; color: #374151; display: flex; align-items: center; gap: 0.5rem;">
+                                        <i class="${typeInfo.icon}" style="color: ${typeInfo.color};"></i> ${typeInfo.label}
+                                    </h5>
+                                    <div style="display: grid; gap: 0.5rem;">
+                            `;
+                            resources[resourceType].forEach(item => {
+                                html += `
+                                    <a href="${item.url}" target="_blank" style="display: flex; align-items: center; gap: 0.75rem; padding: 0.75rem; background: ${typeInfo.bgColor}; border: 1px solid ${typeInfo.borderColor}; border-radius: 6px; text-decoration: none; color: ${typeInfo.color}; transition: all 0.2s ease;">
+                                        <i class="${typeInfo.icon}" style="color: ${typeInfo.color}; font-size: 1.2rem;"></i>
+                                        <div>
+                                            <div style="font-weight: 600;">${item.title}</div>
+                                            <div style="font-size: 0.8rem; opacity: 0.7;">${item.url}</div>
+                                        </div>
+                                        <i class="fas fa-external-link-alt" style="margin-left: auto; opacity: 0.5;"></i>
+                                    </a>
+                                `;
+                            });
+                            html += `
+                                    </div>
+                                </div>
+                            `;
+                        }
+                    });
+                    
+                } else {
+                    html += `<pre style="background: #f9fafb; padding: 1rem; border-radius: 6px; font-size: 0.9rem; overflow-x: auto;">${JSON.stringify(resources, null, 2)}</pre>`;
+                }
+            } catch (e) {
+                html += `<pre style="background: #f9fafb; padding: 1rem; border-radius: 6px; font-size: 0.9rem; overflow-x: auto;">${product.resources}</pre>`;
+            }
+
+            html += `
+                    </div>
+                </div>
+            `;
+        }
+
+        // Images Tab
+        if (product.images || product.primary_image) {
+            html += `
+                <div style="border: 1px solid #e5e7eb; border-radius: 8px; overflow: hidden;">
+                    <div style="background: #f8fafc; padding: 1rem; border-bottom: 1px solid #e5e7eb;">
+                        <h4 style="margin: 0; color: #1f2937; display: flex; align-items: center; gap: 0.5rem;">
+                            <i class="fas fa-images" style="color: #8b5cf6;"></i> Product Images
+                        </h4>
+                    </div>
+                    <div style="padding: 1rem;">
+            `;
+
+            // Primary Image
+            if (product.primary_image) {
+                html += `
+                    <div style="margin-bottom: 1.5rem;">
+                        <h5 style="margin: 0 0 0.75rem 0; color: #374151; display: flex; align-items: center; gap: 0.5rem;">
+                            <i class="fas fa-star" style="color: #fbbf24;"></i> Primary Image
+                        </h5>
+                        <div style="text-align: center; padding: 1rem; background: #f9fafb; border-radius: 8px; border: 2px dashed #d1d5db;">
+                            <img src="${product.primary_image}" alt="Primary product image" style="max-width: 300px; max-height: 300px; border-radius: 8px; box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);" onerror="this.style.display='none'; this.nextElementSibling.style.display='block';">
+                            <div style="display: none; color: #6b7280; font-style: italic;">Image failed to load</div>
+                            <div style="margin-top: 0.5rem; font-size: 0.8rem; color: #6b7280; word-break: break-all;">${product.primary_image}</div>
+                        </div>
+                    </div>
+                `;
+            }
+
+            // Additional Images
+            if (product.images) {
+                try {
+                    let images = typeof product.images === 'string' ? JSON.parse(product.images) : product.images;
+                    if (Array.isArray(images) && images.length > 0) {
+                        html += `
+                            <div style="margin-bottom: 1.5rem;">
+                                <h5 style="margin: 0 0 0.75rem 0; color: #374151; display: flex; align-items: center; gap: 0.5rem;">
+                                    <i class="fas fa-images" style="color: #8b5cf6;"></i> Additional Images
+                                </h5>
+                                <div style="display: grid; grid-template-columns: repeat(auto-fill, minmax(150px, 1fr)); gap: 1rem;">
+                        `;
+                        images.forEach((img, index) => {
+                            html += `
+                                <div style="text-align: center; padding: 0.5rem; background: #f9fafb; border-radius: 6px; border: 1px solid #e5e7eb;">
+                                    <img src="${img}" alt="Product image ${index + 1}" style="width: 100%; max-height: 120px; object-fit: cover; border-radius: 4px;" onerror="this.style.display='none'; this.nextElementSibling.style.display='block';">
+                                    <div style="display: none; color: #6b7280; font-style: italic; font-size: 0.8rem;">Failed to load</div>
+                                    <div style="margin-top: 0.25rem; font-size: 0.7rem; color: #6b7280; word-break: break-all;">${img}</div>
+                                </div>
+                            `;
+                        });
+                        html += `
+                                </div>
+                            </div>
+                        `;
+                    }
+                } catch (e) {
+                    html += `<pre style="background: #f9fafb; padding: 1rem; border-radius: 6px; font-size: 0.9rem; overflow-x: auto;">${product.images}</pre>`;
+                }
+            }
+
+            html += `
+                    </div>
+                </div>
+            `;
+        }
+
+        // Raw Data Tab
+        html += `
+            <div style="border: 1px solid #e5e7eb; border-radius: 8px; overflow: hidden;">
+                <div style="background: #f8fafc; padding: 1rem; border-bottom: 1px solid #e5e7eb;">
+                    <h4 style="margin: 0; color: #1f2937; display: flex; align-items: center; gap: 0.5rem;">
+                        <i class="fas fa-database" style="color: #8b5cf6;"></i> Complete Database Record
+                    </h4>
+                </div>
+                <div style="padding: 1rem;">
+                    <div style="display: grid; gap: 0.5rem; font-family: monospace; font-size: 0.85rem;">
+        `;
+
+        // Show all fields from the database
+        Object.entries(product).forEach(([key, value]) => {
+            if (value !== null && value !== undefined && value !== '') {
+                let displayValue = value;
+                
+                // Format different data types
+                if (key.includes('_at') && typeof value === 'string') {
+                    try {
+                        const date = new Date(value);
+                        displayValue = `${date.toLocaleDateString()} ${date.toLocaleTimeString()}`;
+                    } catch (e) {
+                        displayValue = value;
+                    }
+                } else if (typeof value === 'object') {
+                    displayValue = JSON.stringify(value, null, 2);
+                } else if (typeof value === 'number') {
+                    displayValue = value.toString();
+                }
+
+                html += `
+                    <div style="display: grid; grid-template-columns: 140px 1fr; gap: 1rem; padding: 0.5rem; background: ${key === 'id' || key === 'sku' ? '#eff6ff' : '#f9fafb'}; border-radius: 4px; border-left: 3px solid ${key === 'id' || key === 'sku' ? '#3b82f6' : '#e5e7eb'};">
+                        <span style="font-weight: 600; color: #374151; text-transform: uppercase; font-size: 0.75rem; letter-spacing: 0.05em;">${key.replace(/_/g, ' ')}</span>
+                        <span style="color: #6b7280; word-break: break-all;">${displayValue}</span>
+                    </div>
+                `;
+            }
+        });
+
+        html += `
+                    </div>
+                </div>
+            </div>
+        `;
+
+        // Actions Tab
+        html += `
+            <div style="border: 1px solid #e5e7eb; border-radius: 8px; overflow: hidden;">
+                <div style="background: #f8fafc; padding: 1rem; border-bottom: 1px solid #e5e7eb;">
+                    <h4 style="margin: 0; color: #1f2937; display: flex; align-items: center; gap: 0.5rem;">
+                        <i class="fas fa-external-link-alt" style="color: #ef4444;"></i> External Links & Actions
+                    </h4>
+                </div>
+                <div style="padding: 1rem;">
+                    <div style="display: flex; flex-wrap: wrap; gap: 1rem;">
+        `;
+
+        if (product.url) {
+            html += `
+                <a href="${product.url}" target="_blank" class="btn btn-secondary" style="font-size: 0.9rem; display: flex; align-items: center; gap: 0.5rem;">
+                    <i class="fas fa-shopping-cart"></i> View Product Page
+                </a>
+            `;
+        }
+
+        html += `
+                <button onclick="copyToClipboard('${product.sku}')" class="btn btn-secondary" style="font-size: 0.9rem; display: flex; align-items: center; gap: 0.5rem;">
+                    <i class="fas fa-copy"></i> Copy SKU
+                </button>
+                <button onclick="copyToClipboard('${JSON.stringify(product, null, 2).replace(/'/g, "\\'")}'); showAlert('Product data copied to clipboard', 'success')" class="btn btn-secondary" style="font-size: 0.9rem; display: flex; align-items: center; gap: 0.5rem;">
+                    <i class="fas fa-download"></i> Copy JSON Data
+                </button>
+                    </div>
+                </div>
+            </div>
+        `;
+
+        html += `
+                </div>
+            </div>
+        `;
+        
+        productInfo.innerHTML = html;
+        
+        // Add click-outside-to-close functionality and ESC key support
+        setTimeout(() => {
+            const resultsDiv = document.getElementById('sku-results');
+            if (resultsDiv && resultsDiv.style.display !== 'none') {
+                // Add click event listener to the results container
+                resultsDiv.onclick = function(event) {
+                    // Only close if clicking on the background, not the content
+                    if (event.target === resultsDiv) {
+                        closeProductPopup();
+                    }
+                };
+                
+                // Make the results div act as a modal background
+                resultsDiv.style.cursor = 'pointer';
+                const productInfoDiv = document.getElementById('sku-product-info');
+                if (productInfoDiv) {
+                    productInfoDiv.style.cursor = 'default';
+                }
+                
+                // Add ESC key listener
+                document.addEventListener('keydown', handlePopupEscKey);
+            }
+        }, 100);
+    }
+    
+    // Function to close the product popup
+    function closeProductPopup() {
+        const resultsDiv = document.getElementById('sku-results');
+        const errorDiv = document.getElementById('sku-error');
+        
+        if (resultsDiv) {
+            resultsDiv.style.display = 'none';
+            resultsDiv.onclick = null; // Remove click listener
+        }
+        if (errorDiv) {
+            errorDiv.style.display = 'none';
+        }
+        
+        // Remove ESC key listener
+        document.removeEventListener('keydown', handlePopupEscKey);
+    }
+    
+    // Handle ESC key press for popup
+    function handlePopupEscKey(event) {
+        if (event.key === 'Escape') {
+            closeProductPopup();
+        }
+    }
+
+    // Helper function to copy text to clipboard
+    function copyToClipboard(text) {
+        navigator.clipboard.writeText(text).then(() => {
+            showAlert('Copied to clipboard!', 'success');
+        }).catch(() => {
+            showAlert('Failed to copy to clipboard', 'error');
         });
     }
 </script>

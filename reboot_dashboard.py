@@ -8,11 +8,21 @@ from flask_socketio import SocketIO, emit
 import os
 import json
 import logging
-from datetime import datetime
+from datetime import datetime, timezone, timedelta
 import threading
 import time
 import requests
 from dotenv import load_dotenv
+
+# Set EST timezone globally for the project
+EST = timezone(timedelta(hours=-5))  # EST is UTC-5
+# For automatic EST/EDT handling, use pytz if available
+try:
+    import pytz
+    EST = pytz.timezone('US/Eastern')
+except ImportError:
+    # Fallback to manual EST timezone
+    EST = timezone(timedelta(hours=-5))
 
 # Load environment variables from .env file
 load_dotenv()
@@ -36,6 +46,8 @@ app = Flask(__name__)
 # Support for subdirectory deployment
 app.config['APPLICATION_ROOT'] = '/tileshop-rag'
 app.config['SECRET_KEY'] = 'tileshop-admin-secret-key'
+# Disable template caching for development
+app.config['TEMPLATES_AUTO_RELOAD'] = True
 socketio = SocketIO(app, cors_allowed_origins="*")
 
 # Initialize managers
@@ -694,6 +706,16 @@ def get_product_detail(product_id):
     """Get detailed product information"""
     try:
         result = db_manager.get_product_detail(product_id)
+        return jsonify(result)
+    except Exception as e:
+        return jsonify({'success': False, 'error': str(e)})
+
+@app.route('/api/database/product/sku/<sku>')
+def get_product_by_sku(sku):
+    """Get product information by SKU"""
+    try:
+        # Use relational_db (PostgreSQL) where current scraped data with images is stored
+        result = db_manager.get_product_by_sku(sku, 'relational_db')
         return jsonify(result)
     except Exception as e:
         return jsonify({'success': False, 'error': str(e)})

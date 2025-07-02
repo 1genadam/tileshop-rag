@@ -11,7 +11,17 @@ import time
 import json
 import logging
 from typing import Dict, Any, Optional, Callable, List
-from datetime import datetime
+from datetime import datetime, timezone, timedelta
+
+# Set EST timezone globally for the project
+EST = timezone(timedelta(hours=-5))  # EST is UTC-5
+# For automatic EST/EDT handling, use pytz if available
+try:
+    import pytz
+    EST = pytz.timezone('US/Eastern')
+except ImportError:
+    # Fallback to manual EST timezone
+    EST = timezone(timedelta(hours=-5))
 
 # Add parent directory to path for imports
 sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
@@ -49,6 +59,18 @@ class ScraperManager:
             'estimated_total': 0,
             'progress_percent': 0
         }
+        
+        # Rolling performance tracking for speed calculation
+        self.recent_successful_saves = []  # Store last 5 successful save timestamps
+        self.max_recent_saves = 5
+        
+        # Counter tracking for time between page reads
+        self.last_page_read_time = None
+        self.seconds_since_last_read = 0
+        self.counter_start_time = None
+        self.recent_counter_values = []  # Store last 5 counter values for average
+        self.max_counter_values = 5
+        
         self.log_lines = []
         self.max_log_lines = 100
         
@@ -190,7 +212,7 @@ class ScraperManager:
         
         try:
             # Start the acquisition process
-            self.start_time = datetime.now()
+            self.start_time = datetime.now(EST)
             self.is_running = True
             
             # Run in separate thread to avoid blocking
@@ -304,14 +326,22 @@ class ScraperManager:
                     }
             except (IndexError, ValueError):
                 pass
-        elif '✅ crawl completed in' in line:
-            # Extract total completion time
+        elif '✅ crawl completed in' in line or '⚡ crawl completed immediately' in line:
+            # Log crawl completion but don't use for speed calculation
             try:
-                time_part = line.split('completed in')[1].split('s')[0].strip()
-                return {
-                    'type': 'crawl_complete',
-                    'total_time': float(time_part) if time_part.replace('.', '').isdigit() else 0
-                }
+                if 'completed in' in line:
+                    time_part = line.split('completed in')[1].split('s')[0].strip()
+                elif 'completed immediately' in line and '(' in line:
+                    time_part = line.split('(')[1].split('s')[0].strip()
+                else:
+                    time_part = None
+                
+                if time_part and time_part.replace('.', '').isdigit():
+                    crawl_time = float(time_part)
+                    return {
+                        'type': 'crawl_complete',
+                        'total_time': crawl_time
+                    }
             except (IndexError, ValueError):
                 pass
         elif '⏰ crawl timeout' in line:
@@ -339,11 +369,59 @@ class ScraperManager:
         
         return None
     
+    def _calculate_rolling_speed(self) -> float:
+        """Calculate rolling average speed from last 5 successful saves based on timestamp differences"""
+        if len(self.recent_successful_saves) < 2:
+            return 0.0
+        
+        # Calculate time differences between consecutive saves
+        time_differences = []
+        for i in range(1, len(self.recent_successful_saves)):
+            time_diff = self.recent_successful_saves[i] - self.recent_successful_saves[i-1]
+            time_differences.append(time_diff)
+        
+        if not time_differences:
+            return 0.0
+        
+        # Calculate average time between saves (in seconds)
+        avg_time_between_saves = sum(time_differences) / len(time_differences)
+        
+        # Convert to pages per minute
+        if avg_time_between_saves > 0:
+            pages_per_minute = 60.0 / avg_time_between_saves
+            return round(pages_per_minute, 1)
+        
+        return 0.0
+    
+    def _calculate_average_read_speed(self) -> float:
+        """Calculate average read speed from counter values (sum of 5 counters divided by 5)"""
+        if len(self.recent_counter_values) == 0:
+            return 0.0
+        
+        # Calculate average of counter values
+        avg_counter_seconds = sum(self.recent_counter_values) / len(self.recent_counter_values)
+        
+        # Convert to pages per minute (60 seconds / avg_seconds_per_page)
+        if avg_counter_seconds > 0:
+            pages_per_minute = 60.0 / avg_counter_seconds
+            return round(pages_per_minute, 1)
+        
+        return 0.0
+    
+    def _get_current_counter_value(self) -> int:
+        """Get current counter value (seconds since last page read)"""
+        if not self.is_running or self.last_page_read_time is None:
+            return 0
+        
+        import time
+        current_time = time.time()
+        return int(current_time - self.last_page_read_time)
+    
     def _process_log_line(self, line: str):
         """Process log line and extract progress information"""
         # Add to log buffer
         self.log_lines.append({
-            'timestamp': datetime.now().isoformat(),
+            'timestamp': datetime.now(EST).isoformat(),
             'message': line
         })
         
@@ -382,6 +460,33 @@ class ScraperManager:
             
             if any(pattern in line_lower for pattern in success_patterns):
                 self.stats['success_count'] += 1
+                
+                # Track successful save timestamp for speed calculation
+                import time
+                current_timestamp = time.time()
+                self.recent_successful_saves.append(current_timestamp)
+                
+                # Keep only last 5 successful saves
+                if len(self.recent_successful_saves) > self.max_recent_saves:
+                    self.recent_successful_saves = self.recent_successful_saves[-self.max_recent_saves:]
+                
+                # Update counter for time between page reads
+                if self.last_page_read_time is not None:
+                    counter_value = int(current_timestamp - self.last_page_read_time)
+                    # Store this counter value for average calculation
+                    self.recent_counter_values.append(counter_value)
+                    # Keep only last 5 counter values
+                    if len(self.recent_counter_values) > self.max_counter_values:
+                        self.recent_counter_values = self.recent_counter_values[-self.max_counter_values:]
+                    
+                    # Reset counter to 0 for next page
+                    self.seconds_since_last_read = 0
+                else:
+                    # First page read, initialize counter
+                    self.counter_start_time = current_timestamp
+                    self.seconds_since_last_read = 0
+                    
+                self.last_page_read_time = current_timestamp
                 
                 # Extract URL from success messages
                 if 'https://' in line:
@@ -475,7 +580,7 @@ class ScraperManager:
         """Get current acquisition status and statistics"""
         runtime = None
         if self.start_time:
-            runtime = (datetime.now() - self.start_time).total_seconds()
+            runtime = (datetime.now(EST) - self.start_time).total_seconds()
         
         # Reprocess logs to ensure accurate statistics
         self._reprocess_logs_for_stats()
@@ -490,7 +595,10 @@ class ScraperManager:
             'start_time': self.start_time.isoformat() if self.start_time else None,
             'runtime_seconds': runtime,
             'stats': enhanced_stats,
-            'recent_logs': self.log_lines[-10:] if self.log_lines else []
+            'recent_logs': self.log_lines[-10:] if self.log_lines else [],
+            'average_read_speed_pages_per_minute': self._calculate_average_read_speed(),
+            'counter_seconds_since_last_read': self._get_current_counter_value(),
+            'recent_save_count': len(self.recent_successful_saves)
         }
     
     def get_logs(self, lines: int = 50) -> List[Dict[str, str]]:
