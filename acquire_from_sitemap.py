@@ -100,7 +100,7 @@ def crawl_single_page(url, progress_callback=None):
         progress_callback('crawl_start', {'url': url, 'stage': 'submitting'})
     
     try:
-        # Optimized crawl configuration for speed
+        # Optimized crawl configuration for speed while preserving specifications data
         crawl_data = {
             "urls": [url],
             "formats": ["html", "markdown"],
@@ -108,8 +108,8 @@ def crawl_single_page(url, progress_callback=None):
             "wait_time": 8,  # Reduced from 15 to 8 seconds
             "page_timeout": 30000,  # Reduced from 45s to 30s
             "user_agent": "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36",
-            "css_selector": ".product-detail, .product-info, .product-specs, .product-title, .price",  # Target specific content
-            "exclude_tags": ["script", "style", "nav", "footer", "header", "aside"]  # Skip unnecessary content
+            # Removed css_selector to capture all product content including specifications
+            "exclude_tags": ["style", "nav", "footer", "header", "aside"]  # Skip unnecessary content but keep script tags for JSON-LD specs
         }
         
         submit_start = time.time()
@@ -122,8 +122,37 @@ def crawl_single_page(url, progress_callback=None):
                 progress_callback('crawl_error', {'url': url, 'error': error_msg, 'stage': 'submission'})
             return None, error_msg
         
-        task_id = response.json().get('task_id')
+        response_data = response.json()
         submit_time = time.time() - submit_start
+        
+        # Check if this is synchronous mode (immediate results) or asynchronous mode (task_id)
+        if 'results' in response_data and response_data.get('success'):
+            # Synchronous mode - results returned immediately
+            total_time = submit_time
+            print(f"  ⚡ Crawl completed immediately ({total_time:.2f}s)")
+            if progress_callback:
+                progress_callback('crawl_complete', {
+                    'url': url, 
+                    'total_time': total_time,
+                    'submit_time': submit_time,
+                    'mode': 'synchronous'
+                })
+            
+            main_result = response_data.get('results', [{}])[0] if response_data.get('results') else None
+            if main_result:
+                return {'main': main_result}, None
+            else:
+                return None, "No results returned in synchronous response"
+        
+        # Asynchronous mode - get task_id and poll for results
+        task_id = response_data.get('task_id')
+        if not task_id:
+            error_msg = "No task_id returned and no immediate results"
+            print(f"  ✗ {error_msg}")
+            if progress_callback:
+                progress_callback('crawl_error', {'url': url, 'error': error_msg, 'stage': 'submission'})
+            return None, error_msg
+            
         print(f"  📋 Task submitted: {task_id} ({submit_time:.2f}s)")
         if progress_callback:
             progress_callback('crawl_submitted', {'url': url, 'task_id': task_id, 'submit_time': submit_time})

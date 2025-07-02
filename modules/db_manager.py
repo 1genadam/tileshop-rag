@@ -690,3 +690,168 @@ class DatabaseManager:
         except Exception as e:
             logger.error(f"Error reading sitemap file: {e}")
             return 4775  # Fallback to last known count
+
+    def get_product_by_sku(self, sku: str, db_type: str = 'relational_db') -> Dict[str, Any]:
+        """Get product information by SKU"""
+        try:
+            if db_type == 'supabase':
+                return self._get_product_by_sku_docker_exec(sku)
+            
+            conn = self.get_connection('relational_db')
+            cursor = conn.cursor(cursor_factory=psycopg2.extras.RealDictCursor)
+            
+            cursor.execute("""
+                SELECT * FROM product_data WHERE sku = %s
+            """, (sku,))
+            
+            product = cursor.fetchone()
+            cursor.close()
+            conn.close()
+            
+            if product:
+                product_dict = dict(product)
+                
+                # Format dates
+                if product_dict['scraped_at']:
+                    product_dict['scraped_at'] = product_dict['scraped_at'].isoformat()
+                if product_dict['updated_at']:
+                    product_dict['updated_at'] = product_dict['updated_at'].isoformat()
+                
+                # Parse JSON fields
+                if product_dict['specifications'] and isinstance(product_dict['specifications'], str):
+                    try:
+                        product_dict['specifications'] = json.loads(product_dict['specifications'])
+                    except json.JSONDecodeError:
+                        pass
+                
+                # Parse images field if it exists
+                if product_dict.get('images') and isinstance(product_dict['images'], str):
+                    try:
+                        product_dict['images'] = json.loads(product_dict['images'])
+                    except json.JSONDecodeError:
+                        pass
+                
+                # Parse collection_links field if it exists
+                if product_dict.get('collection_links') and isinstance(product_dict['collection_links'], str):
+                    try:
+                        product_dict['collection_links'] = json.loads(product_dict['collection_links'])
+                    except json.JSONDecodeError:
+                        pass
+                
+                # Parse resources field if it exists
+                if product_dict.get('resources') and isinstance(product_dict['resources'], str):
+                    try:
+                        product_dict['resources'] = json.loads(product_dict['resources'])
+                    except json.JSONDecodeError:
+                        pass
+                
+                # Parse color_images field if it exists  
+                if product_dict.get('color_images') and isinstance(product_dict['color_images'], str):
+                    try:
+                        product_dict['color_images'] = json.loads(product_dict['color_images'])
+                    except json.JSONDecodeError:
+                        pass
+                
+                return {
+                    'success': True,
+                    'product': product_dict,
+                    'found': True
+                }
+            else:
+                return {
+                    'success': True,
+                    'product': None,
+                    'found': False,
+                    'message': f'No product found with SKU: {sku}'
+                }
+                
+        except Exception as e:
+            logger.error(f"Error getting product by SKU: {e}")
+            return {
+                'success': False,
+                'error': str(e),
+                'found': False
+            }
+
+    def _get_product_by_sku_docker_exec(self, sku: str) -> Dict[str, Any]:
+        """Get product by SKU from Supabase using docker exec"""
+        try:
+            import subprocess
+            
+            # Escape the SKU for SQL
+            sku_escaped = sku.replace("'", "''")
+            
+            # Get product with simple SELECT query
+            product_sql = f"""
+                SELECT id, url, sku, title, description, price_per_box, price_per_sqft, 
+                       coverage, finish, color, size_shape, specifications,
+                       scraped_at, updated_at
+                FROM product_data 
+                WHERE sku = '{sku_escaped}'
+                LIMIT 1;
+            """
+            
+            result = subprocess.run([
+                'docker', 'exec', 'supabase',
+                'psql', '-U', 'postgres', '-d', 'postgres',
+                '-t', '-c', product_sql
+            ], capture_output=True, text=True, check=True)
+            
+            # Parse result
+            if result.stdout.strip():
+                # Split the row by pipe separator
+                values = [v.strip() for v in result.stdout.strip().split('|')]
+                
+                if len(values) >= 12:  # We expect at least 12 fields
+                    product_dict = {
+                        'id': values[0] if values[0] != '' else None,
+                        'url': values[1] if values[1] != '' else None,
+                        'sku': values[2] if values[2] != '' else None,
+                        'title': values[3] if values[3] != '' else None,
+                        'description': values[4] if values[4] != '' else None,
+                        'price_per_box': float(values[5]) if values[5] and values[5] != '' else None,
+                        'price_per_sqft': float(values[6]) if values[6] and values[6] != '' else None,
+                        'coverage': values[7] if values[7] != '' else None,
+                        'finish': values[8] if values[8] != '' else None,
+                        'color': values[9] if values[9] != '' else None,
+                        'size_shape': values[10] if values[10] != '' else None,
+                        'specifications': values[11] if values[11] != '' else None,
+                        'scraped_at': values[12] if len(values) > 12 and values[12] != '' else None,
+                        'updated_at': values[13] if len(values) > 13 and values[13] != '' else None
+                    }
+                    
+                    # Parse JSON specifications if present
+                    if product_dict.get('specifications'):
+                        try:
+                            product_dict['specifications'] = json.loads(product_dict['specifications'])
+                        except json.JSONDecodeError:
+                            pass
+                    
+                    return {
+                        'success': True,
+                        'product': product_dict,
+                        'found': True
+                    }
+            
+            # No product found
+            return {
+                'success': True,
+                'product': None,
+                'found': False,
+                'message': f'No product found with SKU: {sku}'
+            }
+            
+        except subprocess.CalledProcessError as e:
+            logger.error(f"Docker exec failed for SKU lookup: {e.stderr}")
+            return {
+                'success': False,
+                'error': f'Database query failed: {e.stderr}',
+                'found': False
+            }
+        except Exception as e:
+            logger.error(f"Error getting product by SKU via docker exec: {e}")
+            return {
+                'success': False,
+                'error': str(e),
+                'found': False
+            }
