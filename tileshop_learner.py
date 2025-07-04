@@ -627,12 +627,20 @@ def extract_product_data(crawl_results, base_url, category=None):
                 missing_fields = []
                 if not data.get('color'): missing_fields.append('color')
                 if not data.get('price_per_sqft'): missing_fields.append('price_per_sqft')
+                if not data.get('price_per_box'): missing_fields.append('price_per_box')
+                if not data.get('coverage'): missing_fields.append('coverage')
                 
                 # Debug resources field state
                 resources_value = data.get('resources')
                 print(f"  🔍 Debug: resources field = {repr(resources_value)}")
                 if not resources_value or resources_value == '[]' or resources_value == '{}' or resources_value == 'null':
                     missing_fields.append('resources')
+                
+                # Debug all field states
+                print(f"  🔍 Debug: price_per_box = {repr(data.get('price_per_box'))}")
+                print(f"  🔍 Debug: coverage = {repr(data.get('coverage'))}")
+                print(f"  🔍 Debug: price_per_sqft = {repr(data.get('price_per_sqft'))}")
+                print(f"  🔍 Debug: color = {repr(data.get('color'))}")
                 
                 if missing_fields:
                     print(f"\n--- Enhanced Field Extraction (Missing Fields: {', '.join(missing_fields)}) ---")
@@ -681,25 +689,85 @@ def extract_product_data(crawl_results, base_url, category=None):
                         except Exception as e:
                             print(f"  ❌ Color extraction error: {e}")
                     
-                    # 2. Enhanced price per sqft extraction if missing
+                    # 2. Enhanced price_per_box extraction if missing
+                    if not data.get('price_per_box'):
+                        try:
+                            print("💰 Extracting price per box...")
+                            
+                            # Search in JSON-LD data and main HTML
+                            price_box_patterns = [
+                                r'"price":\s*([0-9]+\.?[0-9]*)',
+                                r'\$([0-9,]+\.?\d+)',
+                                r'price.*?([0-9]+\.?\d+)',
+                            ]
+                            
+                            for pattern in price_box_patterns:
+                                price_match = re.search(pattern, main_html, re.IGNORECASE)
+                                if price_match:
+                                    data['price_per_box'] = float(price_match.group(1).replace(',', ''))
+                                    print(f"  ✓ Found price per box: ${data['price_per_box']}")
+                                    break
+                        except Exception as e:
+                            print(f"  ❌ Price per box extraction error: {e}")
+                    
+                    # 3. Enhanced coverage extraction if missing
+                    if not data.get('coverage'):
+                        try:
+                            print("📐 Extracting coverage...")
+                            
+                            coverage_patterns = [
+                                r'Coverage\s*([0-9]+\.?\d*)\s*sq\.?\s*ft\.?\s*per\s*box',
+                                r'([0-9]+\.?\d*)\s*sq\.?\s*ft\.?\s*per\s*box',
+                                r'Coverage:\s*([0-9]+\.?\d*)',
+                            ]
+                            
+                            for pattern in coverage_patterns:
+                                coverage_match = re.search(pattern, main_html, re.IGNORECASE)
+                                if coverage_match:
+                                    coverage_num = coverage_match.group(1)
+                                    data['coverage'] = f"{coverage_num} sq ft"
+                                    print(f"  ✓ Found coverage: {data['coverage']}")
+                                    break
+                        except Exception as e:
+                            print(f"  ❌ Coverage extraction error: {e}")
+                    
+                    # 4. Enhanced price per sqft extraction - prioritize displayed over calculated
                     if not data.get('price_per_sqft'):
-                        print("💰 Extracting price per sqft...")
+                        print("💰 Extracting displayed price per sqft from all tabs...")
+                        
+                        # Search all available tabs for displayed price per sqft
+                        search_content = [main_html]
+                        if crawl_results:
+                            specs_html = crawl_results.get('specifications', {}).get('html', '')
+                            resources_html = crawl_results.get('resources', {}).get('html', '')
+                            if specs_html:
+                                search_content.append(specs_html)
+                            if resources_html:
+                                search_content.append(resources_html)
+                        
                         enhanced_sqft_patterns = [
                             r'\$([0-9,]+\.?\d+)\s*/\s*[Ss]q\.?\s*[Ff]t\.?',
+                            r'\$([0-9,]+\.?\d+)\s*[Pp]er\s*[Ss]q\.?\s*[Ff]t\.?',
                             r'\$([0-9,]+\.?\d+)/[Ss][Qq]\.\s*[Ff][Tt]\.',
                             r'([0-9,]+\.?\d+)\s*per\s*sq\.?\s*ft\.?',
                             r'"pricePerSqFt":\s*"?([0-9,]+\.?\d+)"?',
+                            r'Price\s*per\s*[Ss]q\.?\s*[Ff]t\.?\s*[:=]?\s*\$([0-9,]+\.?\d+)',
                         ]
                         
-                        for pattern in enhanced_sqft_patterns:
-                            price_match = re.search(pattern, main_html, re.IGNORECASE)
-                            if price_match:
-                                data['price_per_sqft'] = float(price_match.group(1).replace(',', ''))
-                                print(f"  ✓ Found price per sqft: ${data['price_per_sqft']}")
+                        found_displayed_price = False
+                        for content in search_content:
+                            for pattern in enhanced_sqft_patterns:
+                                price_match = re.search(pattern, content, re.IGNORECASE)
+                                if price_match:
+                                    data['price_per_sqft'] = float(price_match.group(1).replace(',', ''))
+                                    print(f"  ✓ Found DISPLAYED price per sqft: ${data['price_per_sqft']}")
+                                    found_displayed_price = True
+                                    break
+                            if found_displayed_price:
                                 break
                         
-                        # If no direct price per sqft found, calculate from price_per_box and coverage
-                        if not data.get('price_per_sqft') and data.get('price_per_box') and data.get('coverage'):
+                        # Only calculate if no displayed price was found
+                        if not found_displayed_price and data.get('price_per_box') and data.get('coverage'):
                             try:
                                 price_box = float(data['price_per_box'])
                                 coverage_text = str(data['coverage'])
@@ -708,7 +776,7 @@ def extract_product_data(crawl_results, base_url, category=None):
                                     coverage_num = float(coverage_match.group(1))
                                     calculated_per_sqft = round(price_box / coverage_num, 2)
                                     data['price_per_sqft'] = calculated_per_sqft
-                                    print(f"  ✓ Calculated price per sqft: ${calculated_per_sqft} (${price_box} ÷ {coverage_num})")
+                                    print(f"  ✓ CALCULATED price per sqft: ${calculated_per_sqft} (${price_box} ÷ {coverage_num}) - no displayed price found")
                             except Exception as e:
                                 print(f"  ❌ Price calculation error: {e}")
                     

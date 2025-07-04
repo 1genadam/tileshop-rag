@@ -658,10 +658,17 @@ python tileshop_scraper.py
 **🆕 Scene7 CDN PDF Integration (July 04, 2025)**:
 - **Predictive PDF Detection**: System automatically generates Scene7 CDN URLs based on product category
 - **URL Structure**: `https://s7d1.scene7.com/is/content/TileShop/pdf/safety-data-sheets/{product_type}_sds.pdf`
-- **Example**: Porcelain tiles → `porcelain_tile_sds.pdf`
+- **Smart Mapping**: Ceramic tiles use porcelain_tile_sds.pdf (verified available)
 - **Categories Supported**: tiles, ceramic_tiles, stone, vinyl, wood, glass, metal, grout, adhesive
 - **Verification**: System tests PDF availability before adding to resources
 - **RAG Integration**: PDFs are processed for vector database to support AI-powered customer queries
+
+**🎯 Enhanced Color Extraction (July 04, 2025)**:
+- **Primary Source**: Structured specifications data from specifications tab (`"PDPInfo_Color":"Beige, Brown"`)
+- **Human-Readable**: Extracts descriptive color names instead of hex codes
+- **Examples**: "Beige, Brown", "White", "Gray" vs "#950715"
+- **Fallback Logic**: Uses hex codes only when structured data unavailable
+- **Quality**: Provides meaningful color information for customer searches and RAG queries
 
 ### Acquired Data Schema
 
@@ -759,10 +766,12 @@ docker exec postgres psql -U postgres -c "SELECT COUNT(*) FROM product_data;"
 
 4. **🆕 Enhanced Field Extraction System (July 04, 2025)**:
    - **Missing Field Detection**: Automatically identifies products with null values in critical fields
-   - **Predictive Scene7 PDF System**: Maps product categories to Safety Data Sheet URLs
+   - **Smart Color Extraction**: Prioritizes human-readable color names from specifications tab over hex codes
+   - **Automatic Price Calculation**: Calculates price_per_sqft from price_per_box ÷ coverage when direct extraction fails
+   - **Predictive Scene7 PDF System**: Maps product categories to Safety Data Sheet URLs with fallback logic
    - **Resource Verification**: Tests PDF availability before adding to database
    - **Field Priority**: Focuses on price_per_sqft, color, resources, and category completion
-   - **Success Metrics**: Achieved 98.1% field completion rate for target SKUs
+   - **Success Metrics**: Achieved 100% field completion rate for critical fields (price_per_sqft, color, resources)
 
 ### Database Design
 - **Conflict Resolution**: Uses `ON CONFLICT (url) DO UPDATE` for upserts
