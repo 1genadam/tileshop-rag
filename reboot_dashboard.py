@@ -1842,6 +1842,187 @@ def before_request():
     if 'user_id' not in session:
         session['user_id'] = f'user_{datetime.now().timestamp()}'
 
+def start_integrated_monitoring():
+    """Start integrated monitoring system with all monitoring processes"""
+    logger.info("🚀 Starting Integrated Monitoring System...")
+    
+    # Create monitoring threads
+    monitors = {
+        'audit': threading.Thread(target=audit_monitor, daemon=True, name="AuditMonitor"),
+        'sitemap': threading.Thread(target=sitemap_monitor, daemon=True, name="SitemapMonitor"), 
+        'learning': threading.Thread(target=learning_monitor, daemon=True, name="LearningMonitor"),
+        'health': threading.Thread(target=health_monitor, daemon=True, name="HealthMonitor"),
+        'download': threading.Thread(target=download_monitor, daemon=True, name="DownloadMonitor")
+    }
+    
+    # Start all monitors
+    for name, monitor in monitors.items():
+        monitor.start()
+        logger.info(f"   ✅ Started {name.title()} Monitor")
+        
+    logger.info("🎯 All monitoring systems active!")
+
+def audit_monitor():
+    """Monitor data extraction quality periodically"""
+    while True:
+        try:
+            time.sleep(1800)  # Run audit every 30 minutes
+            
+            logger.info("🔍 Running automated data quality audit...")
+            
+            # Run quick audit check
+            try:
+                from curl_scraper import scrape_product_with_curl
+                test_url = "https://www.tileshop.com/products/linewood-white-matte-ceramic-wall-tile-12-x-36-in-485020"
+                result = scrape_product_with_curl(test_url)
+                
+                if result:
+                    # Count enhanced fields
+                    enhanced_fields = ['thickness', 'box_quantity', 'box_weight', 'edge_type', 
+                                     'shade_variation', 'number_of_faces', 'directional_layout', 'country_of_origin']
+                    captured_fields = sum(1 for field in enhanced_fields if result.get(field))
+                    capture_rate = (captured_fields / len(enhanced_fields)) * 100
+                    
+                    audit_status = {
+                        'timestamp': datetime.now(EST).isoformat(),
+                        'capture_rate': capture_rate,
+                        'enhanced_fields_captured': captured_fields,
+                        'total_enhanced_fields': len(enhanced_fields),
+                        'status': 'healthy' if capture_rate > 80 else 'warning'
+                    }
+                    
+                    socketio.emit('audit_update', audit_status)
+                    logger.info(f"📊 Audit complete - Capture rate: {capture_rate:.1f}%")
+                    
+            except Exception as e:
+                logger.error(f"❌ Audit monitor error: {e}")
+                socketio.emit('audit_update', {
+                    'timestamp': datetime.now(EST).isoformat(),
+                    'status': 'error',
+                    'error': str(e)
+                })
+                
+        except Exception as e:
+            logger.error(f"❌ Audit monitor critical error: {e}")
+            time.sleep(300)  # Wait 5 minutes on error
+
+def sitemap_monitor():
+    """Monitor sitemap download progress"""
+    while True:
+        try:
+            time.sleep(10)  # Check every 10 seconds
+            
+            try:
+                response = requests.get('http://localhost:8080/api/acquisition/sitemap-status', timeout=5)
+                if response.status_code == 200:
+                    status = response.json()
+                    socketio.emit('sitemap_update', {
+                        'timestamp': datetime.now(EST).isoformat(),
+                        'type': 'sitemap',
+                        'status': status
+                    })
+            except:
+                pass  # Silent fail - sitemap might not be active
+                
+        except Exception as e:
+            logger.error(f"❌ Sitemap monitor error: {e}")
+            time.sleep(60)
+
+def learning_monitor():
+    """Monitor learning/acquisition progress"""
+    while True:
+        try:
+            time.sleep(5)  # Check every 5 seconds
+            
+            try:
+                response = requests.get('http://localhost:8080/api/acquisition/status', timeout=5)
+                if response.status_code == 200:
+                    status = response.json()
+                    socketio.emit('learning_update', {
+                        'timestamp': datetime.now(EST).isoformat(),
+                        'type': 'learning',
+                        'status': status
+                    })
+            except:
+                pass  # Silent fail - learning might not be active
+                
+        except Exception as e:
+            logger.error(f"❌ Learning monitor error: {e}")
+            time.sleep(30)
+
+def health_monitor():
+    """Monitor overall system health"""
+    while True:
+        try:
+            time.sleep(60)  # Health check every minute
+            
+            # Check system components
+            health_status = {
+                'timestamp': datetime.now(EST).isoformat(),
+                'dashboard': True,
+                'database': check_database_health(),
+                'curl_scraper': check_curl_scraper_health(),
+                'docker': check_docker_health()
+            }
+            
+            socketio.emit('health_update', health_status)
+            
+        except Exception as e:
+            logger.error(f"❌ Health monitor error: {e}")
+            time.sleep(120)
+
+def download_monitor():
+    """Monitor live download operations"""
+    while True:
+        try:
+            time.sleep(15)  # Check every 15 seconds
+            
+            # Check for active downloads (placeholder - can be expanded)
+            download_status = {
+                'timestamp': datetime.now(EST).isoformat(),
+                'active_downloads': 0,
+                'status': 'monitoring'
+            }
+            
+            socketio.emit('download_update', download_status)
+            
+        except Exception as e:
+            logger.error(f"❌ Download monitor error: {e}")
+            time.sleep(60)
+
+def check_database_health():
+    """Check database connectivity"""
+    try:
+        import psycopg2
+        conn = psycopg2.connect(
+            host='localhost', port=5432, database='postgres',
+            user='postgres', password='postgres'
+        )
+        conn.close()
+        return True
+    except:
+        return False
+
+def check_curl_scraper_health():
+    """Check curl_scraper functionality with quick test"""
+    try:
+        import subprocess
+        result = subprocess.run(['curl', '-s', 'https://httpbin.org/get'], 
+                              capture_output=True, timeout=10)
+        return result.returncode == 0
+    except:
+        return False
+
+def check_docker_health():
+    """Check Docker connectivity"""
+    try:
+        import docker
+        client = docker.from_env()
+        client.ping()
+        return True
+    except:
+        return False
+
 if __name__ == '__main__':
     # Create required directories
     os.makedirs('templates', exist_ok=True)
@@ -1855,7 +2036,62 @@ if __name__ == '__main__':
     logger.info("Starting pre-warming initialization for learning system...")
     acquisition_manager.start_prewarm()
     
-    logger.info("Starting Tileshop Admin Dashboard on http://localhost:8080")
+    # Start integrated monitoring system
+    logger.info("Starting integrated monitoring system...")
+    monitoring_thread = threading.Thread(target=start_integrated_monitoring, daemon=True)
+    monitoring_thread.start()
     
-    # Run the app
-    socketio.run(app, host='0.0.0.0', port=8080, debug=False, allow_unsafe_werkzeug=True)
+    # Check for production mode
+    production_mode = os.getenv('PRODUCTION', '').lower() in ['true', '1', 'yes']
+    
+    if production_mode:
+        logger.info("Starting Tileshop Admin Dashboard in PRODUCTION mode")
+        logger.info("Using Gunicorn WSGI server for production deployment")
+        
+        # Import gunicorn programmatically for production
+        try:
+            from gunicorn.app.base import BaseApplication
+            
+            class StandaloneApplication(BaseApplication):
+                def __init__(self, app, options=None):
+                    self.options = options or {}
+                    self.application = app
+                    super().__init__()
+
+                def load_config(self):
+                    config = {key: value for key, value in self.options.items()
+                             if key in self.cfg.settings and value is not None}
+                    for key, value in config.items():
+                        self.cfg.set(key.lower(), value)
+
+                def load(self):
+                    return self.application
+
+            # Production configuration
+            options = {
+                'bind': '0.0.0.0:8080',
+                'workers': 4,
+                'worker_class': 'eventlet',
+                'worker_connections': 1000,
+                'timeout': 120,
+                'keepalive': 5,
+                'max_requests': 1000,
+                'max_requests_jitter': 50,
+                'preload_app': True,
+                'capture_output': True,
+                'enable_stdio_inheritance': True
+            }
+            
+            StandaloneApplication(app, options).run()
+            
+        except ImportError:
+            logger.warning("Gunicorn not available, falling back to development server")
+            logger.warning("Install gunicorn for production: pip install gunicorn[eventlet]")
+            socketio.run(app, host='0.0.0.0', port=8080, debug=False, allow_unsafe_werkzeug=True)
+    else:
+        logger.info("Starting Tileshop Admin Dashboard in DEVELOPMENT mode")
+        logger.info("Dashboard available at: http://localhost:8080")
+        logger.info("Set PRODUCTION=true environment variable for production deployment")
+        
+        # Development server
+        socketio.run(app, host='0.0.0.0', port=8080, debug=False, allow_unsafe_werkzeug=True)

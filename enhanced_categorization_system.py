@@ -213,7 +213,7 @@ class EnhancedCategorizer:
         best_subcategory = self._determine_subcategory(text_content, best_category)
         
         # Generate comprehensive category info
-        return self._build_category_info(best_category, best_subcategory, text_content)
+        return self._build_category_info(best_category, best_subcategory, text_content, product_data)
     
     def _extract_text_content(self, product_data: Dict[str, Any]) -> str:
         """Extract all relevant text content for analysis"""
@@ -289,7 +289,7 @@ class EnhancedCategorizer:
         
         return max(subcategory_scores, key=subcategory_scores.get)
     
-    def _build_category_info(self, category: str, subcategory: str, text_content: str) -> CategoryInfo:
+    def _build_category_info(self, category: str, subcategory: str, text_content: str, product_data: Dict[str, Any] = None) -> CategoryInfo:
         """Build comprehensive category information"""
         if category not in self.category_patterns:
             return CategoryInfo(
@@ -315,14 +315,25 @@ class EnhancedCategorizer:
         # Generate related products
         related_products = self._generate_related_products(category, subcategory)
         
-        # Build typical use cases
-        use_cases = subcat_data.get("applications", ["general use"])
+        # Prioritize extracted applications over hardcoded ones
+        extracted_applications = product_data.get('_extracted_applications') if product_data else None
+        
+        if extracted_applications:
+            # Use real extracted applications from specifications
+            use_cases = extracted_applications
+            application_areas = extracted_applications
+            print(f"  🎯 Using extracted applications: {extracted_applications}")
+        else:
+            # Fall back to hardcoded applications from category patterns
+            use_cases = subcat_data.get("applications", ["general use"])
+            application_areas = subcat_data.get("applications", ["general"])
+            print(f"  🔄 Using hardcoded applications: {application_areas}")
         
         return CategoryInfo(
             primary_category=category,
             subcategory=subcategory,
             product_type=f"{category}_{subcategory}",
-            application_areas=subcat_data.get("applications", ["general"]),
+            application_areas=application_areas,
             related_products=related_products,
             rag_keywords=subcat_data.get("rag_keywords", []),
             installation_complexity=complexity,

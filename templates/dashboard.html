@@ -2798,8 +2798,9 @@ Status: ${comp.is_in_sync ? 'In Sync' : 'Out of Sync'}`;
                     <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 1rem;">
         `;
 
-        // All available fields - comprehensive list
+        // All available fields - comprehensive list with enhanced auto-expanded specifications
         const productFields = [
+            // Basic Product Information
             { key: 'brand', label: 'Brand', icon: 'fas fa-tag' },
             { key: 'coverage', label: 'Coverage', icon: 'fas fa-ruler-combined' },
             { key: 'finish', label: 'Finish', icon: 'fas fa-paint-brush' },
@@ -2807,9 +2808,32 @@ Status: ${comp.is_in_sync ? 'In Sync' : 'Out of Sync'}`;
             { key: 'size_shape', label: 'Size & Shape', icon: 'fas fa-shapes' },
             { key: 'product_category', label: 'Category', icon: 'fas fa-folder' },
             { key: 'slip_rating', label: 'Slip Rating', icon: 'fas fa-shield-alt' },
+            
+            // Enhanced Auto-Expanded Specification Fields
+            { key: 'thickness', label: 'Thickness', icon: 'fas fa-ruler' },
+            { key: 'box_quantity', label: 'Box Quantity', icon: 'fas fa-boxes' },
+            { key: 'box_weight', label: 'Box Weight', icon: 'fas fa-weight-hanging' },
+            { key: 'edge_type', label: 'Edge Type', icon: 'fas fa-cut' },
+            { key: 'shade_variation', label: 'Shade Variation', icon: 'fas fa-adjust' },
+            { key: 'number_of_faces', label: 'Number of Faces', icon: 'fas fa-layer-group' },
+            { key: 'directional_layout', label: 'Directional Layout', icon: 'fas fa-arrows-alt', format: 'boolean' },
+            { key: 'country_of_origin', label: 'Country of Origin', icon: 'fas fa-globe-americas' },
+            { key: 'material_type', label: 'Material Type', icon: 'fas fa-hammer' },
+            
+            // Enhanced Categorization Fields
+            { key: 'category', label: 'Primary Category', icon: 'fas fa-folder-open' },
+            { key: 'subcategory', label: 'Subcategory', icon: 'fas fa-folder' },
+            { key: 'product_type', label: 'Product Type', icon: 'fas fa-cube' },
+            { key: 'application_areas', label: 'Applications', icon: 'fas fa-map-marker-alt', format: 'json_array' },
+            { key: 'typical_use_cases', label: 'Typical Use Cases', icon: 'fas fa-home', format: 'json_array' },
+            { key: 'installation_complexity', label: 'Installation Complexity', icon: 'fas fa-tools' },
+            
+            // Pricing
             { key: 'price_per_box', label: 'Price per Box', icon: 'fas fa-dollar-sign', format: 'currency' },
             { key: 'price_per_sqft', label: 'Price per Sq Ft', icon: 'fas fa-calculator', format: 'currency' },
             { key: 'price_per_piece', label: 'Price per Piece', icon: 'fas fa-coins', format: 'currency' },
+            
+            // System Information
             { key: 'scraped_at', label: 'Data Collected', icon: 'fas fa-clock', format: 'date' },
             { key: 'updated_at', label: 'Last Updated', icon: 'fas fa-sync-alt', format: 'date' }
         ];
@@ -2833,6 +2857,19 @@ Status: ${comp.is_in_sync ? 'In Sync' : 'Out of Sync'}`;
                         });
                     } catch (e) {
                         // Keep original value if date parsing fails
+                    }
+                } else if (field.format === 'boolean') {
+                    value = value ? 'Yes' : 'No';
+                } else if (field.format === 'json_array') {
+                    try {
+                        if (typeof value === 'string') {
+                            const parsed = JSON.parse(value);
+                            value = Array.isArray(parsed) ? parsed.join(', ') : value;
+                        } else if (Array.isArray(value)) {
+                            value = value.join(', ');
+                        }
+                    } catch (e) {
+                        // Keep original value if JSON parsing fails
                     }
                 } else if (field.key === 'slip_rating') {
                     value = value.replace('_', ' ').toLowerCase().replace(/\b\w/g, l => l.toUpperCase());

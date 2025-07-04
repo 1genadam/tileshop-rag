@@ -8,7 +8,7 @@ import requests
 import xml.etree.ElementTree as ET
 import json
 import time
-from tileshop_learner import extract_product_data, save_to_database, crawl_page_with_tabs
+from curl_scraper import scrape_product_with_curl, save_product_data
 
 # Configuration
 SITEMAP_URL = "https://www.tileshop.com/sitemap.xml"
@@ -79,16 +79,8 @@ def scrape_all_products(max_products=None):
         print('='*80)
         
         try:
-            # Crawl the page (simplified version - main page only)
-            crawl_results = crawl_single_page(url)
-            
-            if not crawl_results:
-                print(f"✗ Failed to crawl: {url}")
-                failed_scrapes += 1
-                continue
-            
-            # Extract product data
-            product_data = extract_product_data(crawl_results, url)
+            # Use curl-based enhanced extraction
+            product_data = scrape_product_with_curl(url)
             
             if not product_data:
                 print(f"✗ Failed to extract data from: {url}")
@@ -99,11 +91,14 @@ def scrape_all_products(max_products=None):
             print(f"\\n📊 Extracted data for SKU {product_data.get('sku', 'unknown')}:")
             print(f"  Title: {product_data.get('title', 'N/A')[:50]}...")
             print(f"  Price: ${product_data.get('price_per_box', 'N/A')}")
-            print(f"  Specifications: {len(product_data.get('specifications', {})) if product_data.get('specifications') else 0} fields")
+            print(f"  Enhanced Specs: {len(json.loads(product_data.get('specifications', '{}'))) if product_data.get('specifications') else 0} fields")
+            print(f"  Applications: {product_data.get('application_areas', 'N/A')}")
             
-            # Save to database
-            save_to_database(product_data, crawl_results)
-            successful_scrapes += 1
+            # Save to database using curl scraper's save function
+            if save_product_data(product_data):
+                successful_scrapes += 1
+            else:
+                failed_scrapes += 1
             
             # Rate limiting - be respectful
             print(f"⏳ Waiting 3 seconds before next request...")

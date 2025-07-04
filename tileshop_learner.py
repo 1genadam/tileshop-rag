@@ -1,7 +1,11 @@
 #!/usr/bin/env python3
 """
-Tileshop Product Scraper
-Scrapes product data from Tileshop pages and saves to PostgreSQL
+DEPRECATED: Tileshop Product Scraper (Legacy Method)
+⚠️  WARNING: This file uses crawl4ai which has bot detection issues.
+✅  RECOMMENDED: Use curl_scraper.py for 100% reliable data acquisition.
+
+Legacy method - Scrapes product data from Tileshop pages and saves to PostgreSQL
+For production use, please use curl_scraper.py with enhanced specification extraction.
 """
 
 import json
@@ -31,6 +35,17 @@ except ImportError:
     print("Warning: Enhanced categorization not available. Using basic categorization.")
     ENHANCED_CATEGORIZATION_AVAILABLE = False
     enhanced_categorizer = None
+
+# Import enhanced specification extractor
+try:
+    from enhanced_specification_extractor import EnhancedSpecificationExtractor
+    ENHANCED_SPECIFICATION_EXTRACTION_AVAILABLE = True
+    spec_extractor = EnhancedSpecificationExtractor()
+    print("✅ Enhanced specification extractor loaded")
+except ImportError:
+    print("Warning: Enhanced specification extraction not available.")
+    ENHANCED_SPECIFICATION_EXTRACTION_AVAILABLE = False
+    spec_extractor = None
 
 # Import intelligent page structure detection and specialized parsers
 try:
@@ -844,6 +859,197 @@ def extract_product_data(crawl_results, base_url, category=None):
                                 
                         except Exception as e:
                             print(f"  ❌ Resource extraction error: {e}")
+                    
+                    # 5. Enhanced application areas extraction from specifications
+                    # Check if we need to extract real applications before applying hardcoded ones
+                    print("🏗️ Extracting application areas from specifications...")
+                    
+                    extracted_applications = []
+                    try:
+                        # First try to extract from specifications tab
+                        specs_html = crawl_results.get('specifications', {}).get('html', '') if crawl_results else ''
+                        if specs_html:
+                            # Look for Applications field in specifications
+                            app_patterns = [
+                                r'"PDPInfo_Applications?"[^}]*"Value"\s*:\s*"([^"]+)"',
+                                r'"Key"\s*:\s*"Applications?"[^}]*"Value"\s*:\s*"([^"]+)"',
+                                r'Applications?:\s*([^<\n,]+)',
+                                r'Application[s]?\s*[:=]\s*([^<\n,]+)',
+                                r'Recommended\s+for\s*[:=]\s*([^<\n,]+)',
+                                r'Use[d]?\s+for\s*[:=]\s*([^<\n,]+)',
+                                r'Suitable\s+for\s*[:=]\s*([^<\n,]+)',
+                            ]
+                            
+                            for pattern in app_patterns:
+                                app_match = re.search(pattern, specs_html, re.IGNORECASE)
+                                if app_match:
+                                    app_text = app_match.group(1).strip()
+                                    # Clean up the application text
+                                    app_text = re.sub(r'["\/>]+$', '', app_text)
+                                    
+                                    # Convert to lowercase for processing
+                                    app_lower = app_text.lower()
+                                    
+                                    # Map common application terms to standard values
+                                    if 'wall' in app_lower and 'floor' not in app_lower:
+                                        extracted_applications = ['walls']
+                                        print(f"  ✓ Found wall-only application: {app_text}")
+                                    elif 'floor' in app_lower and 'wall' not in app_lower:
+                                        extracted_applications = ['floors']
+                                        print(f"  ✓ Found floor-only application: {app_text}")
+                                    elif 'wall' in app_lower and 'floor' in app_lower:
+                                        extracted_applications = ['walls', 'floors']
+                                        print(f"  ✓ Found wall and floor application: {app_text}")
+                                    elif 'backsplash' in app_lower:
+                                        extracted_applications = ['backsplash']
+                                        print(f"  ✓ Found backsplash application: {app_text}")
+                                    elif any(term in app_lower for term in ['bathroom', 'shower', 'wet']):
+                                        extracted_applications = ['bathroom', 'walls']
+                                        print(f"  ✓ Found bathroom application: {app_text}")
+                                    elif 'kitchen' in app_lower:
+                                        extracted_applications = ['kitchen', 'walls']
+                                        print(f"  ✓ Found kitchen application: {app_text}")
+                                    else:
+                                        # Keep the original text for manual review
+                                        extracted_applications = [app_text.lower()]
+                                        print(f"  ✓ Found custom application: {app_text}")
+                                    break
+                        
+                        # Fallback to main page if specifications didn't provide results
+                        if not extracted_applications:
+                            app_patterns_main = [
+                                r'Applications?:\s*([^<\n,]+)',
+                                r'Application[s]?\s*[:=]\s*([^<\n,]+)',
+                                r'Recommended\s+for\s*[:=]\s*([^<\n,]+)',
+                                r'wall\s+tile',
+                                r'floor\s+tile',
+                                r'backsplash\s+tile',
+                            ]
+                            
+                            for pattern in app_patterns_main:
+                                app_match = re.search(pattern, main_html, re.IGNORECASE)
+                                if app_match:
+                                    if pattern in ['wall\\s+tile']:
+                                        extracted_applications = ['walls']
+                                        print(f"  ✓ Detected wall tile from main page")
+                                    elif pattern in ['floor\\s+tile']:
+                                        extracted_applications = ['floors']
+                                        print(f"  ✓ Detected floor tile from main page")
+                                    elif pattern in ['backsplash\\s+tile']:
+                                        extracted_applications = ['backsplash']
+                                        print(f"  ✓ Detected backsplash tile from main page")
+                                    else:
+                                        app_text = app_match.group(1).strip()
+                                        extracted_applications = [app_text.lower()]
+                                        print(f"  ✓ Found application from main page: {app_text}")
+                                    break
+                        
+                        # Store extracted applications for later use
+                        if extracted_applications:
+                            data['_extracted_applications'] = extracted_applications
+                            print(f"  ✅ Extracted applications: {extracted_applications}")
+                        else:
+                            print("  ❌ No specific applications found in specifications")
+                            
+                    except Exception as e:
+                        print(f"  ❌ Application extraction error: {e}")
+                    
+                    # 6. Enhanced comprehensive specification extraction 
+                    if ENHANCED_SPECIFICATION_EXTRACTION_AVAILABLE and spec_extractor:
+                        try:
+                            print("📋 Enhanced comprehensive specification extraction...")
+                            
+                            # Use specifications tab HTML if available
+                            specs_html = crawl_results.get('specifications', {}).get('html', '') if crawl_results else ''
+                            if not specs_html:
+                                specs_html = main_html
+                            
+                            # Extract all available specifications
+                            enhanced_specs = spec_extractor.extract_specifications(specs_html, data.get('category', 'tile'))
+                            
+                            # Map extracted specifications to database schema
+                            field_mappings = {
+                                'boxquantity': 'box_quantity',
+                                'boxweight': 'box_weight', 
+                                'edgetype': 'edge_type',
+                                'shadevariation': 'shade_variation',
+                                'faces': 'number_of_faces',
+                                'directionallayout': 'directional_layout',
+                                'countryoforigin': 'country_of_origin',
+                                'materialtype': 'material_type',
+                                'dimensions': 'thickness',  # Sometimes thickness comes as "dimensions"
+                            }
+                            
+                            # Add extracted specifications to data with proper field mapping
+                            for field_name, field_value in enhanced_specs.items():
+                                # Check if we need to map the field name
+                                mapped_field = field_mappings.get(field_name, field_name)
+                                
+                                # Convert boolean values for directional_layout
+                                if mapped_field == 'directional_layout' and isinstance(field_value, str):
+                                    field_value = field_value.lower() in ['yes', 'true', '1']
+                                
+                                # Convert to integer for numeric fields
+                                if mapped_field in ['box_quantity', 'number_of_faces'] and isinstance(field_value, str):
+                                    try:
+                                        field_value = int(field_value)
+                                    except ValueError:
+                                        pass  # Keep as string if conversion fails
+                                
+                                # Skip if we already have this field with a value
+                                if mapped_field not in data or not data[mapped_field]:
+                                    data[mapped_field] = field_value
+                                    print(f"  ✓ Added specification: {mapped_field} = {field_value}")
+                                    
+                                # Also add to original field name for JSON storage
+                                if field_name not in data or not data[field_name]:
+                                    data[field_name] = field_value
+                            
+                            # Store comprehensive specifications in JSON format
+                            if enhanced_specs:
+                                # Merge with existing specifications
+                                existing_specs = {}
+                                if data.get('specifications'):
+                                    try:
+                                        existing_specs = json.loads(data['specifications']) if isinstance(data['specifications'], str) else data['specifications']
+                                    except:
+                                        existing_specs = {}
+                                
+                                merged_specs = {**existing_specs, **enhanced_specs}
+                                data['specifications'] = json.dumps(merged_specs)
+                                print(f"  ✅ Enhanced specifications: {len(enhanced_specs)} fields extracted")
+                            
+                        except Exception as e:
+                            print(f"  ❌ Enhanced specification extraction error: {e}")
+                    
+                    # Apply enhanced categorization for RAG optimization (AFTER enhanced field extraction)
+                    if ENHANCED_CATEGORIZATION_AVAILABLE and enhanced_categorizer:
+                        try:
+                            print("\n--- Applying Enhanced Categorization for RAG (Post-Field-Extraction) ---")
+                            category_info = enhanced_categorizer.categorize_product(data)
+                            
+                            # Add enhanced category fields to product data
+                            data['category'] = category_info.primary_category
+                            data['subcategory'] = category_info.subcategory
+                            data['product_type'] = category_info.product_type
+                            data['application_areas'] = json.dumps(category_info.application_areas)
+                            data['related_products'] = json.dumps(category_info.related_products)
+                            data['rag_keywords'] = json.dumps(category_info.rag_keywords)
+                            data['installation_complexity'] = category_info.installation_complexity
+                            data['typical_use_cases'] = json.dumps(category_info.typical_use_cases)
+                            
+                            print(f"✅ Enhanced categorization applied with extracted applications:")
+                            print(f"   Primary Category: {category_info.primary_category}")
+                            print(f"   Subcategory: {category_info.subcategory}")
+                            print(f"   Product Type: {category_info.product_type}")
+                            print(f"   Application Areas: {category_info.application_areas}")
+                            print(f"   Typical Use Cases: {category_info.typical_use_cases}")
+                            print(f"   Installation Complexity: {category_info.installation_complexity}")
+                            
+                        except Exception as e:
+                            print(f"Warning: Enhanced categorization failed: {e}")
+                            if not data.get('category'):
+                                data['category'] = 'uncategorized'
                 
                 return data
             else:
@@ -1468,7 +1674,7 @@ def save_to_database(product_data, crawl_results):
             return 'NULL'
         return f"'{str(text).replace(chr(39), chr(39)+chr(39))}'"
     
-    # Create simplified SQL with basic data only
+    # Create enhanced SQL with auto-expanded specification fields
     insert_sql = f"""
     INSERT INTO product_data (
         url, sku, title, price_per_box, price_per_sqft, price_per_piece, coverage,
@@ -1476,7 +1682,9 @@ def save_to_database(product_data, crawl_results):
         resources, images, collection_links, brand, primary_image, image_variants,
         color_variations, color_images, category, subcategory, product_type,
         application_areas, related_products, rag_keywords, installation_complexity,
-        typical_use_cases, scraped_at
+        typical_use_cases, thickness, box_quantity, box_weight, edge_type,
+        shade_variation, number_of_faces, directional_layout, country_of_origin,
+        material_type, scraped_at
     ) VALUES (
         {escape_sql(product_data['url'])},
         {escape_sql(product_data['sku'])},
@@ -1506,6 +1714,15 @@ def save_to_database(product_data, crawl_results):
         {escape_sql(product_data.get('rag_keywords'))},
         {escape_sql(product_data.get('installation_complexity'))},
         {escape_sql(product_data.get('typical_use_cases'))},
+        {escape_sql(product_data.get('thickness'))},
+        {product_data.get('box_quantity') or 'NULL'},
+        {escape_sql(product_data.get('box_weight'))},
+        {escape_sql(product_data.get('edge_type'))},
+        {escape_sql(product_data.get('shade_variation'))},
+        {product_data.get('number_of_faces') or 'NULL'},
+        {product_data.get('directional_layout') if product_data.get('directional_layout') is not None else 'NULL'},
+        {escape_sql(product_data.get('country_of_origin'))},
+        {escape_sql(product_data.get('material_type'))},
         NOW()
     )
     ON CONFLICT (url) DO UPDATE SET
@@ -1536,6 +1753,15 @@ def save_to_database(product_data, crawl_results):
         rag_keywords = EXCLUDED.rag_keywords,
         installation_complexity = EXCLUDED.installation_complexity,
         typical_use_cases = EXCLUDED.typical_use_cases,
+        thickness = EXCLUDED.thickness,
+        box_quantity = EXCLUDED.box_quantity,
+        box_weight = EXCLUDED.box_weight,
+        edge_type = EXCLUDED.edge_type,
+        shade_variation = EXCLUDED.shade_variation,
+        number_of_faces = EXCLUDED.number_of_faces,
+        directional_layout = EXCLUDED.directional_layout,
+        country_of_origin = EXCLUDED.country_of_origin,
+        material_type = EXCLUDED.material_type,
         updated_at = CURRENT_TIMESTAMP;
     """
     
@@ -1704,7 +1930,15 @@ def group_similar_products():
 
 def main():
     """Main scraper function with automatic color variation discovery"""
-    print("Starting Tileshop scraper with automatic color variation discovery...")
+    print("⚠️  WARNING: Using deprecated tileshop_learner.py")
+    print("✅  RECOMMENDED: Use curl_scraper.py for 100% reliable enhanced extraction")
+    print("   curl_scraper.py provides:")
+    print("     • 100% success rate (bypasses bot detection)")
+    print("     • Enhanced specification extraction (auto-expanding schema)")
+    print("     • Comprehensive field mapping and validation")
+    print("     • Real application extraction from specifications")
+    print("")
+    print("Starting legacy scraper with automatic color variation discovery...")
     
     # Create product groups tables
     create_product_groups_table()

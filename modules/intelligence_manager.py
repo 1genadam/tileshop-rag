@@ -899,11 +899,11 @@ class ScraperManager:
             # Update status file
             self.update_scraper_status(url, 'processing')
             
-            # Start subprocess for single product learning
+            # Use curl-based enhanced extraction (only working method)
             try:
-                script_path = os.path.join(os.path.dirname(os.path.dirname(__file__)), 'tileshop_learner.py')
+                script_path = os.path.join(os.path.dirname(os.path.dirname(__file__)), 'curl_scraper.py')
                 
-                # Use subprocess to run learning with specific URL
+                # Use subprocess to run curl-based enhanced extraction with specific URL
                 self.current_process = subprocess.Popen(
                     [sys.executable, script_path, '--single-url', url],
                     stdout=subprocess.PIPE,

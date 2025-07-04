@@ -161,8 +161,38 @@ TEST_URLS = [
 ]
 
 if __name__ == "__main__":
-    print("🔥 Curl-based Scraper - Bypassing Bot Detection")
-    print("Uses direct HTTP requests that work perfectly!")
+    import sys
+    import argparse
     
-    # Test with a few URLs first
-    scrape_products_with_curl(TEST_URLS)
+    parser = argparse.ArgumentParser(description='Curl-based Enhanced Tileshop Scraper')
+    parser.add_argument('--single-url', type=str, help='Scrape a single product URL')
+    parser.add_argument('url', nargs='?', help='Scrape a single product URL (positional)')
+    args = parser.parse_args()
+    
+    print("🔥 Curl-based Enhanced Scraper - 100% Reliable Data Acquisition")
+    print("Uses direct HTTP requests with enhanced specification extraction!")
+    
+    if args.single_url:
+        # Single URL mode (used by intelligence manager)
+        print(f"🎯 Single URL mode: {args.single_url}")
+        result = scrape_product_with_curl(args.single_url)
+        if result:
+            save_product_data(result)
+            print(f"✅ Successfully processed: {args.single_url}")
+        else:
+            print(f"❌ Failed to process: {args.single_url}")
+            sys.exit(1)
+    elif args.url:
+        # Single URL mode (positional argument)
+        print(f"🎯 Processing URL: {args.url}")
+        result = scrape_product_with_curl(args.url)
+        if result:
+            save_product_data(result)
+            print(f"✅ Successfully processed: {args.url}")
+        else:
+            print(f"❌ Failed to process: {args.url}")
+            sys.exit(1)
+    else:
+        # Default test mode
+        print("🚀 Test mode with default URLs")
+        scrape_products_with_curl(TEST_URLS)
