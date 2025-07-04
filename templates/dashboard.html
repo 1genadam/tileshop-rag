@@ -326,6 +326,45 @@
     
 </div>
 
+<!-- Data Quality Alert -->
+<div class="card" id="quality-alert-card" style="display: block;">
+    <h3><i class="fas fa-exclamation-triangle"></i> Data Quality Alert</h3>
+    <div id="quality-alert-content">
+        <div style="display: flex; align-items: center; gap: 1rem; margin-bottom: 1rem;">
+            <div class="status-dot red" id="quality-alert-dot"></div>
+            <div>
+                <div style="font-weight: bold; color: #dc2626;" id="quality-alert-title">Data Extraction Issues Detected</div>
+                <div style="font-size: 0.875rem; color: #6b7280;" id="quality-alert-summary"></div>
+            </div>
+        </div>
+        <div style="background: #fef2f2; border: 1px solid #fecaca; border-radius: 6px; padding: 1rem; margin-bottom: 1rem;">
+            <div style="font-weight: 500; margin-bottom: 0.5rem;">Quality Statistics (Last 10 Records):</div>
+            <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)); gap: 1rem; font-size: 0.875rem;">
+                <div>
+                    <strong id="quality-total-products">0</strong> Total Products
+                </div>
+                <div>
+                    <strong id="quality-high-quality">0</strong> High Quality (≥10 fields)
+                </div>
+                <div>
+                    <strong id="quality-low-quality">0</strong> Poor Quality (&lt;10 fields)
+                </div>
+                <div>
+                    <strong id="quality-percentage">0%</strong> Success Rate
+                </div>
+            </div>
+        </div>
+        <div style="display: flex; gap: 0.5rem;">
+            <button class="btn btn-primary btn-sm" onclick="refreshQualityCheck()">
+                <i class="fas fa-sync"></i> Refresh Check
+            </button>
+            <button class="btn btn-secondary btn-sm" onclick="dismissQualityAlert()">
+                <i class="fas fa-times"></i> Dismiss
+            </button>
+        </div>
+    </div>
+</div>
+
 <!-- Data Acquisition Control -->
 <div class="card">
     <h3><i class="fas fa-download"></i> Data Acquisition Control</h3>
@@ -417,11 +456,31 @@
                 <select class="form-control" id="acquisition-mode">
                     <option value="test">Test Mode (10 URLs)</option>
                     <option value="sitemap" selected>Complete Sitemap Learning Mode</option>
+                    <option value="category">Category-Based Learning Mode</option>
                 </select>
+            </div>
+            <div class="form-group" id="category-selection-group" style="display: none;">
+                <label>Product Category:</label>
+                <select class="form-control" id="acquisition-category">
+                    <option value="">Loading categories...</option>
+                </select>
+                <small class="form-text text-muted">
+                    <i class="fas fa-info-circle"></i> 
+                    Select a specific product category to crawl with optimized parsing for that product type.
+                </small>
             </div>
             <div class="form-group">
                 <label>URL Limit:</label>
                 <input type="number" class="form-control" id="acquisition-limit" value="4775" min="1" max="4775">
+            </div>
+            <div class="form-group">
+                <label>Batch Size:</label>
+                <input type="number" class="form-control" id="acquisition-batch-size" value="10" min="1" max="100" 
+                       title="Number of URLs to process simultaneously in each batch">
+                <small class="form-text text-muted">
+                    <i class="fas fa-info-circle"></i> 
+                    Controls how many products are processed in parallel. Higher values = faster processing but more resource usage.
+                </small>
             </div>
             <div class="form-group">
                 <label>
@@ -702,7 +761,12 @@
     <div class="modal-content" style="max-width: 1000px;">
         <div class="modal-header">
             <h3>Product Database</h3>
-            <button class="modal-close" onclick="closeProducts()">&times;</button>
+            <div style="display: flex; gap: 0.5rem; align-items: center;">
+                <button class="btn btn-xs btn-primary" onclick="loadProductsTable()" style="display: flex; align-items: center; gap: 0.25rem;">
+                    <i class="fas fa-sync"></i> Refresh
+                </button>
+                <button class="modal-close" onclick="closeProducts()">&times;</button>
+            </div>
         </div>
         <div id="products-content">
             <div class="form-group">
@@ -953,6 +1017,9 @@
         if (sitemapStatus.success) {
             updateSitemapStats(sitemapStatus);
         }
+        
+        // Load category selection data
+        await loadCategorySelectionData();
     }
     
     function updateDockerStatus(containers) {
@@ -1171,6 +1238,11 @@
         
         const stats = sitemapData.stats;
         
+        // Update download progress if download is complete
+        if (sitemapData.download_complete && sitemapData.download_progress) {
+            updateSitemapProgress('completed', sitemapData.download_progress, sitemapData.message || 'Download complete');
+        }
+        
         // Store stats globally for use by other functions
         globalSitemapStats = stats;
         
@@ -1247,7 +1319,7 @@
             status.mode || '-';
         
         // Stabilize progress percentage to prevent jumping
-        const currentProgress = parseFloat(status.stats.progress_percent || 0);
+        const currentProgress = parseFloat((status.stats && status.stats.progress_percent) || 0);
         const displayProgress = Math.min(100, Math.max(0, currentProgress)); // Clamp between 0-100
         
         document.getElementById('acquisition-progress').textContent = 
@@ -1266,16 +1338,16 @@
         }
         
         document.getElementById('acquisition-count').textContent = 
-            status.stats.products_processed || 0;
+            (status.stats && status.stats.products_processed) || 0;
         
         document.getElementById('acquisition-total').textContent = 
-            status.stats.estimated_total || 0;
+            (status.stats && status.stats.estimated_total) || 0;
         
         document.getElementById('acquisition-success').textContent = 
-            status.stats.success_count || 0;
+            (status.stats && status.stats.success_count) || 0;
         
         document.getElementById('acquisition-errors').textContent = 
-            status.stats.error_count || 0;
+            (status.stats && status.stats.error_count) || 0;
         
         // Calculate and display runtime
         if (status.is_running) {
@@ -1292,24 +1364,31 @@
                 
                 // Use rolling average read speed from API
                 const avgReadSpeed = status.average_read_speed_pages_per_minute || 0;
-                const successful = status.stats.success_count || 0;
+                const successful = (status.stats && status.stats.success_count) || 0;
                 
                 // Update Average Read Speed
                 if (avgReadSpeed > 0) {
                     document.getElementById('acquisition-speed').textContent = avgReadSpeed + ' pages/min';
-                } else if (successful > 0) {
+                } else if (status.is_running && successful > 0) {
                     document.getElementById('acquisition-speed').textContent = 'Calculating...';
+                } else if (!status.is_running && successful > 0) {
+                    // When not running but has processed products, show completed status
+                    document.getElementById('acquisition-speed').textContent = 'Completed';
                 } else {
                     document.getElementById('acquisition-speed').textContent = 'Starting...';
                 }
                 
                 // Update Counter (seconds since last read)
                 const counterSeconds = status.counter_seconds_since_last_read || 0;
-                document.getElementById('acquisition-counter').textContent = counterSeconds;
+                if (status.is_running) {
+                    document.getElementById('acquisition-counter').textContent = counterSeconds;
+                } else {
+                    document.getElementById('acquisition-counter').textContent = '--';
+                }
                 
                 // Calculate ETA based on remaining items and average read speed
                 if (avgReadSpeed > 0 && successful > 0) {
-                    const remaining = (status.stats.estimated_total || 0) - successful;
+                    const remaining = ((status.stats && status.stats.estimated_total) || 0) - successful;
                     if (remaining > 0) {
                         const etaMinutes = Math.ceil(remaining / avgReadSpeed);
                         document.getElementById('acquisition-eta').textContent = 'ETA: ' + formatDuration(etaMinutes * 60);
@@ -1326,8 +1405,18 @@
                 document.getElementById('acquisition-eta').textContent = 'ETA: Calculating...';
             }
         } else {
+            // System is not running
+            const successful = (status.stats && status.stats.success_count) || 0;
+            
             document.getElementById('acquisition-runtime').textContent = '--';
-            document.getElementById('acquisition-speed').textContent = '-- pages/min';
+            
+            // Show "Completed" if we have processed products, otherwise show default
+            if (successful > 0) {
+                document.getElementById('acquisition-speed').textContent = 'Completed';
+            } else {
+                document.getElementById('acquisition-speed').textContent = '-- pages/min';
+            }
+            
             document.getElementById('acquisition-counter').textContent = '--';
             document.getElementById('acquisition-eta').textContent = 'ETA: --';
         }
@@ -1367,7 +1456,7 @@
             urlIndicator.style.backgroundColor = '#ff9800';
         } else {
             // Check if sitemap is ready by looking at estimated_total
-            if (status.stats.estimated_total && status.stats.estimated_total > 0) {
+            if (status.stats && status.stats.estimated_total && status.stats.estimated_total > 0) {
                 currentUrlDiv.textContent = 'Ready to learn';
                 urlIndicator.style.backgroundColor = '#4caf50';
             } else {
@@ -1493,6 +1582,39 @@
         setTimeout(loadDashboardData, 3000);
     }
     
+    async function loadCategorySelectionData() {
+        try {
+            const response = await fetch('/category_selection.json');
+            const categoryData = await response.json();
+            
+            const categorySelect = document.getElementById('acquisition-category');
+            categorySelect.innerHTML = '<option value="">Select a category...</option>';
+            
+            categoryData.categories.forEach(category => {
+                const option = document.createElement('option');
+                option.value = category.id;
+                option.textContent = `${category.name} (${category.count.toLocaleString()} products - ${category.percentage}%)`;
+                categorySelect.appendChild(option);
+            });
+            
+            // Set up mode change handler
+            const modeSelect = document.getElementById('acquisition-mode');
+            modeSelect.addEventListener('change', function() {
+                const categoryGroup = document.getElementById('category-selection-group');
+                if (this.value === 'category') {
+                    categoryGroup.style.display = 'block';
+                } else {
+                    categoryGroup.style.display = 'none';
+                }
+            });
+            
+        } catch (error) {
+            console.error('Failed to load category data:', error);
+            const categorySelect = document.getElementById('acquisition-category');
+            categorySelect.innerHTML = '<option value="">Error loading categories</option>';
+        }
+    }
+    
     async function startAcquisition() {
         const startBtn = document.getElementById('start-acquisition');
         const stopBtn = document.getElementById('stop-acquisition');
@@ -1549,10 +1671,18 @@
             const mode = document.getElementById('acquisition-mode').value;
             const limit = document.getElementById('acquisition-limit').value;
             const fresh = document.getElementById('acquisition-fresh').checked;
+            const batchSize = document.getElementById('acquisition-batch-size').value;
+            const category = document.getElementById('acquisition-category').value;
             
             const data = { mode, fresh };
             if (mode === 'test' && limit) {
                 data.limit = parseInt(limit);
+            }
+            if (mode === 'category' && category) {
+                data.category = category;
+            }
+            if (batchSize) {
+                data.batch_size = parseInt(batchSize);
             }
             
             const result = await apiCall('/api/acquisition/start', 'POST', data);
@@ -1663,14 +1793,18 @@
     async function loadProductsTable() {
         document.getElementById('products-table').innerHTML = 'Loading products...';
         
-        const result = await apiCall('/api/database/products?limit=50');
+        // Add cache-busting timestamp to force fresh data
+        const timestamp = new Date().getTime();
+        const result = await apiCall(`/api/database/products?limit=50&_t=${timestamp}`);
         
         if (result.success) {
             let html = '<table style="width: 100%; border-collapse: collapse;">';
             html += '<tr style="background: #f3f4f6;">';
             html += '<th style="padding: 0.5rem; border: 1px solid #d1d5db;">SKU</th>';
             html += '<th style="padding: 0.5rem; border: 1px solid #d1d5db;">Title</th>';
-            html += '<th style="padding: 0.5rem; border: 1px solid #d1d5db;">Price/Sq Ft</th>';
+            html += '<th style="padding: 0.5rem; border: 1px solid #d1d5db;">$/SF</th>';
+            html += '<th style="padding: 0.5rem; border: 1px solid #d1d5db;">$/BX</th>';
+            html += '<th style="padding: 0.5rem; border: 1px solid #d1d5db;">$/EA</th>';
             html += '<th style="padding: 0.5rem; border: 1px solid #d1d5db;">Learned Date & Time</th>';
             html += '</tr>';
             
@@ -1678,8 +1812,10 @@
                 html += '<tr>';
                 html += `<td style="padding: 0.5rem; border: 1px solid #d1d5db;">${product.sku || ''}</td>`;
                 html += `<td style="padding: 0.5rem; border: 1px solid #d1d5db;">${(product.title || '').substring(0, 50)}...</td>`;
-                html += `<td style="padding: 0.5rem; border: 1px solid #d1d5db;">$${product.price_per_sqft || 'N/A'}</td>`;
-                html += `<td style="padding: 0.5rem; border: 1px solid #d1d5db;">${product.scraped_at ? new Date(product.scraped_at).toLocaleString() : ''}</td>`;
+                html += `<td style="padding: 0.5rem; border: 1px solid #d1d5db;">${product.price_per_sqft ? '$' + parseFloat(product.price_per_sqft).toFixed(2) : 'N/A'}</td>`;
+                html += `<td style="padding: 0.5rem; border: 1px solid #d1d5db;">${product.price_per_box ? '$' + parseFloat(product.price_per_box).toFixed(2) : 'N/A'}</td>`;
+                html += `<td style="padding: 0.5rem; border: 1px solid #d1d5db;">${product.price_per_piece ? '$' + parseFloat(product.price_per_piece).toFixed(2) : 'N/A'}</td>`;
+                html += `<td style="padding: 0.5rem; border: 1px solid #d1d5db;">${product.scraped_at ? new Date(product.scraped_at).toLocaleString('en-US', {timeZone: 'America/New_York'}) : ''}</td>`;
                 html += '</tr>';
             });
             
@@ -2640,7 +2776,7 @@ Status: ${comp.is_in_sync ? 'In Sync' : 'Out of Sync'}`;
                             <div style="display: flex; flex-direction: column; gap: 0.25rem; align-items: flex-end;">
                                 ${product.price_per_sqft ? `<div style="font-size: 1.2rem; font-weight: bold; background: rgba(255,255,255,0.15); padding: 0.25rem 0.75rem; border-radius: 15px;">$${parseFloat(product.price_per_sqft).toFixed(2)} /sf</div>` : ''}
                                 ${product.price_per_box ? `<div style="font-size: 1.1rem; font-weight: 600; background: rgba(255,255,255,0.1); padding: 0.25rem 0.75rem; border-radius: 15px;">$${parseFloat(product.price_per_box).toFixed(2)} /bx</div>` : ''}
-                                ${product.price_each ? `<div style="font-size: 1.1rem; font-weight: 600; background: rgba(255,255,255,0.1); padding: 0.25rem 0.75rem; border-radius: 15px;">$${parseFloat(product.price_each).toFixed(2)} /each</div>` : ''}
+                                ${product.price_per_piece ? `<div style="font-size: 1.1rem; font-weight: 600; background: rgba(255,255,255,0.1); padding: 0.25rem 0.75rem; border-radius: 15px;">$${parseFloat(product.price_per_piece).toFixed(2)} /each</div>` : ''}
                             </div>
                         </div>
                     </div>
@@ -2662,22 +2798,49 @@ Status: ${comp.is_in_sync ? 'In Sync' : 'Out of Sync'}`;
                     <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 1rem;">
         `;
 
-        // All available fields
+        // All available fields - comprehensive list
         const productFields = [
+            { key: 'brand', label: 'Brand', icon: 'fas fa-tag' },
             { key: 'coverage', label: 'Coverage', icon: 'fas fa-ruler-combined' },
             { key: 'finish', label: 'Finish', icon: 'fas fa-paint-brush' },
             { key: 'color', label: 'Color', icon: 'fas fa-palette' },
             { key: 'size_shape', label: 'Size & Shape', icon: 'fas fa-shapes' },
+            { key: 'product_category', label: 'Category', icon: 'fas fa-folder' },
+            { key: 'slip_rating', label: 'Slip Rating', icon: 'fas fa-shield-alt' },
             { key: 'price_per_box', label: 'Price per Box', icon: 'fas fa-dollar-sign', format: 'currency' },
-            { key: 'price_per_sqft', label: 'Price per Sq Ft', icon: 'fas fa-calculator', format: 'currency' }
+            { key: 'price_per_sqft', label: 'Price per Sq Ft', icon: 'fas fa-calculator', format: 'currency' },
+            { key: 'price_per_piece', label: 'Price per Piece', icon: 'fas fa-coins', format: 'currency' },
+            { key: 'scraped_at', label: 'Data Collected', icon: 'fas fa-clock', format: 'date' },
+            { key: 'updated_at', label: 'Last Updated', icon: 'fas fa-sync-alt', format: 'date' }
         ];
 
+        let fieldsDisplayed = 0;
         productFields.forEach(field => {
             if (product[field.key]) {
                 let value = product[field.key];
                 if (field.format === 'currency') {
                     value = `$${parseFloat(value).toFixed(2)}`;
+                } else if (field.format === 'date') {
+                    try {
+                        const date = new Date(value);
+                        value = date.toLocaleString('en-US', {
+                            timeZone: 'America/New_York',
+                            year: 'numeric',
+                            month: 'short',
+                            day: 'numeric',
+                            hour: '2-digit',
+                            minute: '2-digit'
+                        });
+                    } catch (e) {
+                        // Keep original value if date parsing fails
+                    }
+                } else if (field.key === 'slip_rating') {
+                    value = value.replace('_', ' ').toLowerCase().replace(/\b\w/g, l => l.toUpperCase());
+                } else if (field.key === 'product_category') {
+                    value = value.replace('_', ' ').toLowerCase().replace(/\b\w/g, l => l.toUpperCase());
                 }
+                
+                fieldsDisplayed++;
                 html += `
                     <div style="display: flex; align-items: center; gap: 0.5rem; padding: 0.5rem; background: #f9fafb; border-radius: 6px;">
                         <i class="${field.icon}" style="color: #6b7280; width: 16px;"></i>
@@ -2689,6 +2852,23 @@ Status: ${comp.is_in_sync ? 'In Sync' : 'Out of Sync'}`;
                 `;
             }
         });
+
+        // Show warning if minimal data available
+        if (fieldsDisplayed < 3 || product.title === "The Tile Shop - High Quality Floor &amp; Wall Tile") {
+            html += `
+                <div style="grid-column: 1/-1; background: #fef3c7; border: 1px solid #f59e0b; padding: 1rem; border-radius: 6px; margin-top: 1rem;">
+                    <div style="display: flex; align-items: center; gap: 0.5rem; color: #92400e;">
+                        <i class="fas fa-exclamation-triangle"></i>
+                        <div>
+                            <div style="font-weight: 600;">Limited Product Data</div>
+                            <div style="font-size: 0.9rem; margin-top: 0.25rem;">
+                                This product appears to have minimal extracted data. The learning system may need to re-process this URL to capture complete product information including pricing, specifications, and images.
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            `;
+        }
 
         html += `
                     </div>
@@ -2950,11 +3130,22 @@ Status: ${comp.is_in_sync ? 'In Sync' : 'Out of Sync'}`;
                     <div style="display: grid; gap: 0.5rem; font-family: monospace; font-size: 0.85rem;">
         `;
 
-        // Show all fields from the database
+        // Show ALL fields from the database (including null/empty to show complete schema)
         Object.entries(product).forEach(([key, value]) => {
-            if (value !== null && value !== undefined && value !== '') {
-                let displayValue = value;
-                
+            let displayValue = value;
+            let valueStyle = 'color: #6b7280;';
+            
+            // Handle null/undefined/empty values
+            if (value === null) {
+                displayValue = 'null';
+                valueStyle = 'color: #9ca3af; font-style: italic;';
+            } else if (value === undefined) {
+                displayValue = 'undefined';
+                valueStyle = 'color: #9ca3af; font-style: italic;';
+            } else if (value === '') {
+                displayValue = '(empty string)';
+                valueStyle = 'color: #9ca3af; font-style: italic;';
+            } else {
                 // Format different data types
                 if (key.includes('_at') && typeof value === 'string') {
                     try {
@@ -2964,18 +3155,26 @@ Status: ${comp.is_in_sync ? 'In Sync' : 'Out of Sync'}`;
                         displayValue = value;
                     }
                 } else if (typeof value === 'object') {
-                    displayValue = JSON.stringify(value, null, 2);
+                    if (Array.isArray(value) && value.length === 0) {
+                        displayValue = '(empty array)';
+                        valueStyle = 'color: #9ca3af; font-style: italic;';
+                    } else if (typeof value === 'object' && Object.keys(value).length === 0) {
+                        displayValue = '(empty object)';
+                        valueStyle = 'color: #9ca3af; font-style: italic;';
+                    } else {
+                        displayValue = JSON.stringify(value, null, 2);
+                    }
                 } else if (typeof value === 'number') {
                     displayValue = value.toString();
                 }
-
-                html += `
-                    <div style="display: grid; grid-template-columns: 140px 1fr; gap: 1rem; padding: 0.5rem; background: ${key === 'id' || key === 'sku' ? '#eff6ff' : '#f9fafb'}; border-radius: 4px; border-left: 3px solid ${key === 'id' || key === 'sku' ? '#3b82f6' : '#e5e7eb'};">
-                        <span style="font-weight: 600; color: #374151; text-transform: uppercase; font-size: 0.75rem; letter-spacing: 0.05em;">${key.replace(/_/g, ' ')}</span>
-                        <span style="color: #6b7280; word-break: break-all;">${displayValue}</span>
-                    </div>
-                `;
             }
+
+            html += `
+                <div style="display: grid; grid-template-columns: 140px 1fr; gap: 1rem; padding: 0.5rem; background: ${key === 'id' || key === 'sku' ? '#eff6ff' : '#f9fafb'}; border-radius: 4px; border-left: 3px solid ${key === 'id' || key === 'sku' ? '#3b82f6' : '#e5e7eb'};">
+                    <span style="font-weight: 600; color: #374151; text-transform: uppercase; font-size: 0.75rem; letter-spacing: 0.05em;">${key.replace(/_/g, ' ')}</span>
+                    <span style="${valueStyle} word-break: break-all;">${displayValue}</span>
+                </div>
+            `;
         });
 
         html += `
@@ -2996,12 +3195,78 @@ Status: ${comp.is_in_sync ? 'In Sync' : 'Out of Sync'}`;
                     <div style="display: flex; flex-wrap: wrap; gap: 1rem;">
         `;
 
+        // Handle both single URLs and batch URLs for batch processing
+        const urls = [];
+        
+        // Primary URL
         if (product.url) {
-            html += `
-                <a href="${product.url}" target="_blank" class="btn btn-secondary" style="font-size: 0.9rem; display: flex; align-items: center; gap: 0.5rem;">
-                    <i class="fas fa-shopping-cart"></i> View Product Page
-                </a>
-            `;
+            urls.push({
+                url: product.url,
+                label: 'Primary Product',
+                icon: 'fas fa-shopping-cart'
+            });
+        }
+        
+        // Color variation URLs (batch processing)
+        if (product.color_variations && Array.isArray(product.color_variations)) {
+            product.color_variations.forEach((variation, index) => {
+                if (variation.url) {
+                    urls.push({
+                        url: variation.url,
+                        label: `${variation.color || 'Variation'} ${variation.sku ? '(SKU: ' + variation.sku + ')' : ''}`,
+                        icon: 'fas fa-palette'
+                    });
+                }
+            });
+        }
+        
+        // Batch URLs from processing (if stored as array)
+        if (product.batch_urls && Array.isArray(product.batch_urls)) {
+            product.batch_urls.forEach((batchUrl, index) => {
+                urls.push({
+                    url: batchUrl.url || batchUrl,
+                    label: batchUrl.label || `Batch Item ${index + 1}`,
+                    icon: 'fas fa-layer-group'
+                });
+            });
+        }
+        
+        // Display all URLs with responsive layout
+        if (urls.length > 0) {
+            html += `<div style="width: 100%; margin-bottom: 0.5rem;">`;
+            
+            if (urls.length === 1) {
+                // Single URL - show as primary button
+                const urlItem = urls[0];
+                html += `
+                    <a href="${urlItem.url}" target="_blank" class="btn btn-secondary" style="font-size: 0.9rem; display: flex; align-items: center; gap: 0.5rem; width: 100%;">
+                        <i class="${urlItem.icon}"></i> View ${urlItem.label}
+                    </a>
+                `;
+            } else {
+                // Multiple URLs - show batch processing layout
+                html += `<div style="margin-bottom: 0.5rem; color: #4f46e5; font-weight: 600; font-size: 0.9rem;">
+                    <i class="fas fa-layer-group"></i> Batch Processing (${urls.length} URLs)
+                </div>`;
+                
+                html += `<div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: 0.5rem;">`;
+                
+                urls.forEach((urlItem, index) => {
+                    const buttonStyle = index === 0 ? 'btn-primary' : 'btn-outline-secondary';
+                    html += `
+                        <a href="${urlItem.url}" target="_blank" class="btn ${buttonStyle}" 
+                           style="font-size: 0.8rem; display: flex; align-items: center; gap: 0.5rem; text-align: left; padding: 0.5rem 0.75rem;"
+                           title="${urlItem.url}">
+                            <i class="${urlItem.icon}" style="min-width: 12px;"></i> 
+                            <span style="overflow: hidden; text-overflow: ellipsis; white-space: nowrap;">${urlItem.label}</span>
+                        </a>
+                    `;
+                });
+                
+                html += `</div>`;
+            }
+            
+            html += `</div>`;
         }
 
         html += `
@@ -3011,6 +3276,18 @@ Status: ${comp.is_in_sync ? 'In Sync' : 'Out of Sync'}`;
                 <button onclick="copyToClipboard('${JSON.stringify(product, null, 2).replace(/'/g, "\\'")}'); showAlert('Product data copied to clipboard', 'success')" class="btn btn-secondary" style="font-size: 0.9rem; display: flex; align-items: center; gap: 0.5rem;">
                     <i class="fas fa-download"></i> Copy JSON Data
                 </button>
+        `;
+        
+        // Add re-learn button for products with limited data
+        if (fieldsDisplayed < 5 || product.title === "The Tile Shop - High Quality Floor &amp; Wall Tile") {
+            html += `
+                <button onclick="relearnProduct('${product.url}', '${product.sku}')" class="btn btn-warning" style="font-size: 0.9rem; display: flex; align-items: center; gap: 0.5rem;">
+                    <i class="fas fa-refresh"></i> Re-Learn Product
+                </button>
+            `;
+        }
+        
+        html += `
                     </div>
                 </div>
             </div>
@@ -3072,6 +3349,49 @@ Status: ${comp.is_in_sync ? 'In Sync' : 'Out of Sync'}`;
         }
     }
 
+    // Function to re-learn a specific product
+    async function relearnProduct(url, sku) {
+        if (!confirm(`Re-learn product ${sku}?\n\nThis will trigger the learning system to re-process this specific URL and update the product data. This may take 30-60 seconds.`)) {
+            return;
+        }
+        
+        try {
+            showAlert(`Starting re-learning process for SKU ${sku}...`, 'info');
+            
+            // Make API call to re-learn the specific product
+            const response = await fetch('/api/acquisition/relearn-product', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify({
+                    url: url,
+                    sku: sku
+                })
+            });
+            
+            const result = await response.json();
+            
+            if (result.success) {
+                showAlert(`Successfully started re-learning process for ${sku}. Check back in a few minutes for updated data.`, 'success');
+                // Close popup and refresh after a delay
+                setTimeout(() => {
+                    closeProductPopup();
+                    // Optionally refresh the product data
+                    setTimeout(() => {
+                        lookupSku(sku);
+                    }, 2000);
+                }, 2000);
+            } else {
+                showAlert(`Failed to start re-learning: ${result.error || 'Unknown error'}`, 'error');
+            }
+            
+        } catch (error) {
+            console.error('Re-learn error:', error);
+            showAlert(`Error starting re-learning process: ${error.message}`, 'error');
+        }
+    }
+
     // Helper function to copy text to clipboard
     function copyToClipboard(text) {
         navigator.clipboard.writeText(text).then(() => {
@@ -3080,5 +3400,88 @@ Status: ${comp.is_in_sync ? 'In Sync' : 'Out of Sync'}`;
             showAlert('Failed to copy to clipboard', 'error');
         });
     }
+
+    // Data Quality Check Functions
+    async function checkDataQuality() {
+        try {
+            const result = await apiCall('/api/database/quality-check');
+            
+            if (result.success) {
+                updateQualityDisplay(result);
+                
+                // Show alert if quality is poor
+                if (result.alert_level === 'critical' || result.alert_level === 'warning') {
+                    showQualityAlert(result);
+                } else {
+                    hideQualityAlert();
+                }
+            } else {
+                console.error('Quality check failed:', result.error);
+            }
+        } catch (error) {
+            console.error('Error checking data quality:', error);
+        }
+    }
+
+    function updateQualityDisplay(data) {
+        // Update quality statistics in any existing displays
+        const elements = {
+            'quality-total-products': data.total_recent_products || 0,
+            'quality-high-quality': data.high_quality_products || 0,
+            'quality-low-quality': data.low_quality_products || 0,
+            'quality-percentage': Math.round(data.quality_percentage || 0) + '%'
+        };
+
+        Object.entries(elements).forEach(([id, value]) => {
+            const element = document.getElementById(id);
+            if (element) {
+                element.textContent = value;
+            }
+        });
+    }
+
+    function showQualityAlert(data) {
+        const alertCard = document.getElementById('quality-alert-card');
+        const alertDot = document.getElementById('quality-alert-dot');
+        const alertTitle = document.getElementById('quality-alert-title');
+        const alertSummary = document.getElementById('quality-alert-summary');
+
+        if (alertCard) {
+            // Set alert level styling
+            alertDot.className = `status-dot ${data.alert_level === 'critical' ? 'red' : 'yellow'}`;
+            
+            // Update content
+            alertTitle.textContent = data.alert_level === 'critical' 
+                ? 'Critical: Data Extraction Failure' 
+                : 'Warning: Poor Data Quality';
+            
+            alertSummary.textContent = `${data.low_quality_products} of ${data.total_recent_products} sampled products have insufficient data (< 4 of 10 basic fields populated)`;
+            
+            // Show the alert
+            alertCard.style.display = 'block';
+        }
+    }
+
+    function hideQualityAlert() {
+        const alertCard = document.getElementById('quality-alert-card');
+        if (alertCard) {
+            alertCard.style.display = 'none';
+        }
+    }
+
+    function refreshQualityCheck() {
+        checkDataQuality();
+    }
+
+    function dismissQualityAlert() {
+        hideQualityAlert();
+    }
+
+    // Add quality check to the main dashboard update cycle
+    const originalLoadDashboardData2 = loadDashboardData;
+    loadDashboardData = async function() {
+        await originalLoadDashboardData2();
+        await checkDataQuality();
+    };
 </script>
 {% endblock %}

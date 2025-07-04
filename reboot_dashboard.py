@@ -14,15 +14,18 @@ import time
 import requests
 from dotenv import load_dotenv
 
-# Set EST timezone globally for the project
-EST = timezone(timedelta(hours=-5))  # EST is UTC-5
-# For automatic EST/EDT handling, use pytz if available
+# Set Eastern timezone globally for the project
 try:
     import pytz
-    EST = pytz.timezone('US/Eastern')
+    EST = pytz.timezone('US/Eastern')  # Automatically handles EST/EDT
 except ImportError:
-    # Fallback to manual EST timezone
-    EST = timezone(timedelta(hours=-5))
+    # Fallback to manual timezone (currently EDT during summer)
+    from datetime import datetime
+    import time
+    # Check if we're in daylight saving time
+    is_dst = time.daylight and time.localtime().tm_isdst > 0
+    offset_hours = -4 if is_dst else -5  # EDT is UTC-4, EST is UTC-5
+    EST = timezone(timedelta(hours=offset_hours))
 
 # Load environment variables from .env file
 load_dotenv()
@@ -202,8 +205,10 @@ def start_scraper():
         mode = data.get('mode', 'individual')
         limit = data.get('limit')
         fresh = data.get('fresh', False)
+        batch_size = data.get('batch_size', 10)  # Default batch size of 10
+        category = data.get('category')  # Category for category-based mode
         
-        result = acquisition_manager.start_acquisition(mode, limit, fresh)
+        result = acquisition_manager.start_acquisition(mode, limit, fresh, batch_size, category)
         return jsonify(result)
     except Exception as e:
         return jsonify({'success': False, 'error': str(e)})
@@ -213,6 +218,23 @@ def stop_scraper():
     """Stop scraping"""
     try:
         result = acquisition_manager.stop_acquisition()
+        return jsonify(result)
+    except Exception as e:
+        return jsonify({'success': False, 'error': str(e)})
+
+@app.route('/api/acquisition/relearn-product', methods=['POST'])
+def relearn_product():
+    """Re-learn a specific product by URL"""
+    try:
+        data = request.get_json()
+        if not data or 'url' not in data:
+            return jsonify({'success': False, 'error': 'URL is required'})
+        
+        url = data['url']
+        sku = data.get('sku', 'Unknown')
+        
+        # Start learning process for specific URL
+        result = acquisition_manager.learn_single_product(url, sku)
         return jsonify(result)
     except Exception as e:
         return jsonify({'success': False, 'error': str(e)})
@@ -583,7 +605,7 @@ def get_sitemap_status():
         # Calculate statistics
         total_urls = len(data.get('urls', []))
         pending = 0
-        completed = 0
+        completed_from_sitemap = 0
         failed = 0
         
         for url_data in data.get('urls', []):
@@ -591,9 +613,26 @@ def get_sitemap_status():
             if status == 'pending':
                 pending += 1
             elif status == 'completed':
-                completed += 1
+                completed_from_sitemap += 1
             elif status == 'failed':
                 failed += 1
+        
+        # Use intelligence manager's count if acquisition is running to prevent jumps
+        completed = completed_from_sitemap
+        try:
+            if acquisition_manager.is_running:
+                # Get current stats from intelligence manager (includes real-time counting)
+                current_stats = acquisition_manager.get_status()
+                if current_stats and 'stats' in current_stats:
+                    mgr_success = current_stats['stats'].get('success_count', 0)
+                    # Use the higher count to prevent backwards jumps
+                    if mgr_success > completed_from_sitemap:
+                        completed = mgr_success
+                        logger.debug(f"Using intelligence manager count {mgr_success} instead of sitemap count {completed_from_sitemap}")
+        except Exception as e:
+            logger.warning(f"Could not get intelligence manager stats: {e}")
+            # Fall back to sitemap count
+            completed = completed_from_sitemap
         
         completion_rate = (completed / total_urls * 100) if total_urls > 0 else 0
         
@@ -634,17 +673,28 @@ def get_sitemap_status():
             except:
                 pass
         
+        # Distinguish between download completion and scrape completion
+        download_complete = total_urls > 0 and downloaded_at is not None
+        download_progress = 100.0 if download_complete else 0.0
+        scrape_progress = round(completion_rate, 1)
+        
+        # Debug logging
+        logger.info(f"Sitemap status debug: total_urls={total_urls}, downloaded_at={downloaded_at}, download_complete={download_complete}")
+        
         return jsonify({
             'success': True,
             'status': 'ready' if total_urls > 0 else 'empty',
-            'message': f'Sitemap ready: {total_urls} URLs{age_info}' if total_urls > 0 else 'Sitemap downloaded but contains no product URLs',
+            'download_complete': download_complete,
+            'download_progress': download_progress,
+            'message': f'Download Complete: {total_urls:,} URLs discovered{age_info}' if download_complete else 'Sitemap download in progress...',
             'stats': {
                 'total_urls': total_urls,
                 'pending': pending,
                 'completed': completed,
                 'failed': failed,
                 'inserted': inserted,
-                'completion_rate': round(completion_rate, 1),
+                'completion_rate': scrape_progress,
+                'download_progress': download_progress,
                 'downloaded_at': downloaded_at,
                 'source_url': data.get('source_url', '')
             }
@@ -695,8 +745,8 @@ def get_products():
         if request.args.get('color'):
             filters['color'] = request.args.get('color')
         
-        # Use Supabase for external access after sync
-        result = db_manager.get_products(offset, limit, search, sort_by, sort_order, filters)
+        # Use relational_db (PostgreSQL) where color variations data is stored
+        result = db_manager.get_products(offset, limit, search, sort_by, sort_order, filters, 'relational_db')
         return jsonify(result)
     except Exception as e:
         return jsonify({'success': False, 'error': str(e)})
@@ -763,6 +813,15 @@ def get_unique_values(column):
     try:
         values = db_manager.get_unique_values(column)
         return jsonify({'success': True, 'values': values})
+    except Exception as e:
+        return jsonify({'success': False, 'error': str(e)})
+
+@app.route('/api/database/quality-check')
+def database_quality_check():
+    """Check recent products for data quality metrics"""
+    try:
+        quality_stats = db_manager.get_quality_stats('supabase')
+        return jsonify(quality_stats)
     except Exception as e:
         return jsonify({'success': False, 'error': str(e)})
 

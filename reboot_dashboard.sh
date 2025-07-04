@@ -1,9 +1,9 @@
 #!/bin/bash
 
 # Tileshop Dashboard Reboot Script
-# Stops current dashboard, clears cache, and restarts in autogen_env
+# Stops current dashboard, clears cache, and auto-starts in background with autogen_env
 
-echo "🔄 Rebooting Tileshop Dashboard..."
+echo "🔄 Rebooting Tileshop Dashboard (Auto-Background Mode)..."
 
 # Git update
 echo "📥 Updating code from git repository..."
@@ -43,9 +43,9 @@ if pgrep -f "reboot_dashboard.py" > /dev/null; then
     sleep 1
 fi
 
-# Start dashboard in autogen_env
-echo "🚀 Starting dashboard in autogen_env..."
-/Users/robertsher/Projects/autogen_env/bin/python reboot_dashboard.py > dashboard.log 2>&1 &
+# Start dashboard in autogen_env (background mode)
+echo "🚀 Starting dashboard in autogen_env (background mode)..."
+source ../autogen_env/bin/activate && python reboot_dashboard.py > dashboard.log 2>&1 &
 
 # Wait for startup
 sleep 3
