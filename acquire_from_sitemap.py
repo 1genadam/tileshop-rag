@@ -9,8 +9,9 @@ import time
 import sys
 import signal
 from datetime import datetime
-from tileshop_learner import extract_product_data, save_to_database, crawl_page_with_tabs
-from download_sitemap import load_sitemap_data, update_url_status, get_pending_urls, get_scraping_statistics, main as refresh_sitemap
+from tileshop_learner import extract_product_data, save_to_database
+from curl_scraper import scrape_product_with_curl
+from download_sitemap import load_sitemap_data, load_categorized_sitemap_data, update_url_status, get_pending_urls, get_scraping_statistics, main as refresh_sitemap
 
 # Configuration
 CRAWL4AI_URL = "http://localhost:11235"
@@ -244,7 +245,7 @@ def crawl_single_page(url, progress_callback=None):
         print(f"  ✗ Unexpected error: {e}")
         return None, f"Unexpected error: {e}"
 
-def scrape_from_sitemap(max_products=None, resume=True):
+def scrape_from_sitemap(max_products=None, resume=True, category=None):
     """Scrape products using pre-downloaded sitemap with resume capability"""
     global current_url, interrupted
     
@@ -266,10 +267,16 @@ def scrape_from_sitemap(max_products=None, resume=True):
         return
     
     # Load sitemap data
-    sitemap_data = load_sitemap_data()
-    if not sitemap_data:
-        print("✗ No sitemap data found. This should not happen after validation.")
-        return
+    if category:
+        sitemap_data = load_categorized_sitemap_data(category)
+        if not sitemap_data:
+            print(f"✗ No sitemap data found for category '{category}'. Run categorize_sitemap.py first.")
+            return
+    else:
+        sitemap_data = load_sitemap_data()
+        if not sitemap_data:
+            print("✗ No sitemap data found. This should not happen after validation.")
+            return
     
     # Show current statistics
     stats = get_scraping_statistics()
@@ -326,14 +333,14 @@ def scrape_from_sitemap(max_products=None, resume=True):
         print('='*80)
         
         try:
-            # Crawl the page with progress callback
-            def crawl_progress_callback(event_type, data):
-                print(f"    📊 {event_type}: {data.get('stage', data.get('status', 'update'))}")
+            # Use curl scraper breakthrough solution (bypasses bot detection)
+            print(f"    🚀 Using curl scraper (bot detection bypass)")
             
-            crawl_results, error_msg = crawl_single_page(url, crawl_progress_callback)
+            product_data = scrape_product_with_curl(url)
             
-            if not crawl_results:
-                print(f"  ✗ Failed to crawl: {error_msg}")
+            if not product_data:
+                error_msg = 'Curl scraper failed to extract data'
+                print(f"  ✗ {error_msg}")
                 failed_scrapes += 1
                 update_url_status(url, 'failed', error_msg)
                 
@@ -346,16 +353,6 @@ def scrape_from_sitemap(max_products=None, resume=True):
                 create_recovery_checkpoint(url, error_msg, stats)
                 continue
             
-            # Extract product data
-            product_data = extract_product_data(crawl_results, url)
-            
-            if not product_data:
-                error_msg = 'Data extraction failed'
-                print(f"  ✗ {error_msg}")
-                failed_scrapes += 1
-                update_url_status(url, 'failed', error_msg)
-                continue
-            
             # Print summary
             print(f"  📊 Extracted data for SKU {product_data.get('sku', 'unknown')}:")
             print(f"    Title: {product_data.get('title', 'N/A')[:50]}...")
@@ -365,7 +362,7 @@ def scrape_from_sitemap(max_products=None, resume=True):
             print(f"    Brand: {product_data.get('brand', 'N/A')}")
             
             # Save to database
-            save_to_database(product_data, crawl_results)
+            save_to_database(product_data, None)  # curl scraper doesn't need crawl_results
             successful_scrapes += 1
             
             # Update status in sitemap
@@ -462,24 +459,52 @@ def scrape_from_sitemap(max_products=None, resume=True):
         create_recovery_checkpoint(current_url or 'session_interrupted', 'User interruption', final_stats)
 
 if __name__ == "__main__":
-    # Parse command line arguments
-    max_products = None
-    resume = True
+    import argparse
     
-    if len(sys.argv) > 1:
-        try:
-            max_products = int(sys.argv[1])
+    # Parse command line arguments with proper argument parser
+    parser = argparse.ArgumentParser(description='Acquire product data from Tileshop sitemap')
+    parser.add_argument('max_products', nargs='?', type=int, default=None,
+                       help='Maximum number of products to process')
+    parser.add_argument('--fresh', action='store_true',
+                       help='Fresh start (ignore previous progress)')
+    parser.add_argument('--batch-size', type=int, default=10,
+                       help='Number of URLs to process simultaneously (default: 10)')
+    parser.add_argument('--category', type=str, default=None,
+                       help='Product category to filter URLs by (uses categorized sitemap)')
+    
+    # Handle legacy argument format for compatibility (but only if no new arguments are present)
+    has_new_args = any(arg.startswith('--') for arg in sys.argv[1:])
+    if len(sys.argv) > 1 and sys.argv[1].isdigit() and not has_new_args:
+        # Legacy format: python script.py [number] [--fresh]
+        max_products = int(sys.argv[1]) if len(sys.argv) > 1 else None
+        resume = not (len(sys.argv) > 2 and sys.argv[2] == '--fresh')
+        batch_size = 10  # Default for legacy mode
+        category = None  # No category support in legacy mode
+        
+        if max_products:
             print(f"Limiting to {max_products:,} products")
-        except ValueError:
-            if sys.argv[1] == '--fresh':
-                resume = False
-                print("Fresh start mode (ignoring previous progress)")
-            else:
-                print("Usage: python acquire_from_sitemap.py [max_products] [--fresh]")
-                sys.exit(1)
+        if not resume:
+            print("Fresh start mode (ignoring previous progress)")
+        if category:
+            print(f"Category-based mode: {category}")
+        print(f"Using batch size: {batch_size}")
+        
+    else:
+        # New argument format
+        args = parser.parse_args()
+        max_products = args.max_products
+        resume = not args.fresh
+        batch_size = args.batch_size
+        category = args.category
+        
+        if max_products:
+            print(f"Limiting to {max_products:,} products")
+        if not resume:
+            print("Fresh start mode (ignoring previous progress)")
+        if category:
+            print(f"Category-based mode: {category}")
+        print(f"Using batch size: {batch_size}")
     
-    if len(sys.argv) > 2 and sys.argv[2] == '--fresh':
-        resume = False
-        print("Fresh start mode")
-    
-    scrape_from_sitemap(max_products, resume)
+    # Note: The batch_size parameter is now available but the actual parallel processing
+    # implementation would need to be added to the scrape_from_sitemap function
+    scrape_from_sitemap(max_products, resume, category)

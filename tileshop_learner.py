@@ -13,6 +13,37 @@ import time
 from urllib.parse import urlparse, urljoin
 import sys
 
+# Import category-specific parsers
+try:
+    from category_parsers import parse_product_with_category, get_category_parser
+    CATEGORY_PARSING_AVAILABLE = True
+except ImportError:
+    print("Warning: Category parsing not available. Using default parsing.")
+    CATEGORY_PARSING_AVAILABLE = False
+
+# Import enhanced categorization system
+try:
+    from enhanced_categorization_system import EnhancedCategorizer
+    ENHANCED_CATEGORIZATION_AVAILABLE = True
+    enhanced_categorizer = EnhancedCategorizer()
+    print("✅ Enhanced categorization system loaded")
+except ImportError:
+    print("Warning: Enhanced categorization not available. Using basic categorization.")
+    ENHANCED_CATEGORIZATION_AVAILABLE = False
+    enhanced_categorizer = None
+
+# Import intelligent page structure detection and specialized parsers
+try:
+    from page_structure_detector import PageStructureDetector
+    from specialized_parsers import get_parser_for_page_type
+    INTELLIGENT_PARSING_AVAILABLE = True
+    page_detector = PageStructureDetector()
+    print("✅ Intelligent page structure detection loaded")
+except ImportError:
+    print("Warning: Intelligent parsing not available. Using fallback parsing.")
+    INTELLIGENT_PARSING_AVAILABLE = False
+    page_detector = None
+
 # Set EST timezone globally for the project
 EST = timezone(timedelta(hours=-5))  # EST is UTC-5
 # For automatic EST/EDT handling, use pytz if available
@@ -56,12 +87,12 @@ def crawl_page_with_tabs(url):
         'Content-Type': 'application/json'
     }
     
-    # URLs to crawl (including specifications tab for color variations)
+    # URLs to crawl - TESTING: Single request only to avoid bot detection
     urls_to_crawl = [
         url,
-        f"{url}#specifications",  # Enable to capture color variations
+        # f"{url}#specifications",  # DISABLED: May trigger bot detection
         # f"{url}#description", 
-        f"{url}#resources"  # Enable to capture PDF links and installation guides
+        # f"{url}#resources"  # DISABLED: May trigger bot detection
     ]
     
     results = {}
@@ -70,19 +101,83 @@ def crawl_page_with_tabs(url):
         tab_name = crawl_url.split('#')[-1] if '#' in crawl_url else 'main'
         print(f"Crawling {tab_name}: {crawl_url}")
         
-        # Submit crawl request with JavaScript execution
+        # Submit crawl request with JavaScript execution - Enhanced for Next.js/React apps
         crawl_data = {
             "urls": [crawl_url],
             "formats": ["html", "markdown"],
             "javascript": True,
-            "wait_time": 20,  # Longer wait for JS to load tab content
-            "page_timeout": 60000,
-            "user_agent": "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36",
+            "wait_time": 60,  # Enhanced wait for complete content loading
+            "page_timeout": 120000,  # Increased timeout for slow rendering
+            "user_agent": "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/138.0.0.0 Safari/537.36",
+            # "session_id": "tileshop_session",  # Disabled - may cause URL caching issues
+            "headers": {
+                "Accept": "text/html,application/xhtml+xml,application/xml;q=0.9,image/avif,image/webp,image/apng,*/*;q=0.8,application/signed-exchange;v=b3;q=0.7",
+                "Accept-Language": "en-US,en;q=0.9",
+                "Accept-Encoding": "gzip, deflate, br, zstd",
+                "Connection": "keep-alive",
+                "Upgrade-Insecure-Requests": "1",
+                "Dnt": "1",
+                "Priority": "u=0, i",
+                "Sec-Fetch-Dest": "document",
+                "Sec-Fetch-Mode": "navigate",
+                "Sec-Fetch-Site": "none",
+                "Sec-Fetch-User": "?1",
+                "Sec-Ch-Ua": '"Not)A;Brand";v="8", "Chromium";v="138", "Google Chrome";v="138"',
+                "Sec-Ch-Ua-Mobile": "?0",
+                "Sec-Ch-Ua-Platform": '"macOS"',
+                "Referer": "https://www.tileshop.com/"
+            },
             "js_code": [
                 # Enhanced JavaScript for color carousel interaction
                 f"""
-                // Wait for page to load
-                await new Promise(resolve => setTimeout(resolve, 5000));
+                // Enhanced wait for Next.js app hydration and product data loading
+                console.log('Starting enhanced wait for Next.js app...');
+                
+                // Wait for initial React hydration
+                await new Promise(resolve => setTimeout(resolve, 12000));
+                
+                // Enhanced skeleton detection and content loading detection
+                let attempts = 0;
+                const maxAttempts = 25;
+                while (attempts < maxAttempts) {{
+                    const title = document.title;
+                    
+                    // Check for skeleton loaders (indicates still loading)
+                    const skeletons = document.querySelectorAll('.skeleton, [class*="skeleton"], .animate-pulse');
+                    const hasSkeletons = skeletons.length > 0;
+                    
+                    // Check for actual product content
+                    const hasProductTitle = title && !title.includes('High Quality Floor') && title !== 'The Tile Shop' && title.length > 10;
+                    const hasJSONLD = document.querySelector('script[type="application/ld+json"]');
+                    
+                    // Look for price display (not in skeleton form)
+                    const priceElements = document.querySelectorAll('*');
+                    let hasPriceText = false;
+                    for (let el of priceElements) {{
+                        if (el.textContent && el.textContent.includes('$') && el.textContent.match(/\\$[0-9]+/)) {{
+                            hasPriceText = true;
+                            break;
+                        }}
+                    }}
+                    
+                    // Check if product content is fully loaded
+                    const contentLoaded = hasProductTitle && hasJSONLD && !hasSkeletons;
+                    const hasBasicContent = hasProductTitle && (hasPriceText || hasJSONLD);
+                    
+                    if (contentLoaded || hasBasicContent) {{
+                        console.log('Product content fully loaded - skeletons gone:', !hasSkeletons, 'title:', hasProductTitle, 'JSON-LD:', !!hasJSONLD, 'price:', hasPriceText);
+                        // Additional wait to ensure all dynamic content is loaded
+                        await new Promise(resolve => setTimeout(resolve, 5000));
+                        break;
+                    }}
+                    
+                    console.log(`Attempt ${{attempts + 1}}: Still loading - skeletons: ${{skeletons.length}}, title: "${{title}}", JSON-LD: ${{!!hasJSONLD}}`);
+                    await new Promise(resolve => setTimeout(resolve, 4000));
+                    attempts++;
+                }}
+                
+                // Additional wait for dynamic content
+                await new Promise(resolve => setTimeout(resolve, 3000));
                 
                 // Try to click on the specific tab - enhanced selectors
                 const tabSelectors = [
@@ -153,30 +248,84 @@ def crawl_page_with_tabs(url):
             print(f"Failed to submit crawl request for {tab_name}: {response.status_code}")
             continue
         
-        task_id = response.json().get('task_id')
+        response_data = response.json()
+        task_id = response_data.get('task_id')
         print(f"Task ID for {tab_name}: {task_id}")
         
-        # Wait for completion
-        max_attempts = 20
-        for attempt in range(max_attempts):
-            result_response = requests.get(f"{CRAWL4AI_URL}/task/{task_id}", headers=headers)
-            
-            if result_response.status_code == 200:
-                result = result_response.json()
-                if result.get('status') == 'completed':
-                    results[tab_name] = result.get('results', [{}])[0] if result.get('results') else None
-                    print(f"✓ {tab_name} completed")
-                    break
-                elif result.get('status') == 'failed':
-                    print(f"✗ {tab_name} failed: {result}")
-                    break
-            
-            time.sleep(2)
+        # Handle both synchronous and asynchronous responses
+        if task_id is None:
+            # Synchronous response - results are immediate
+            if response_data.get('success') and response_data.get('results'):
+                results[tab_name] = response_data['results'][0]
+                print(f"✓ {tab_name} completed (synchronous)")
+            else:
+                print(f"✗ {tab_name} failed (synchronous): {response_data}")
+        else:
+            # Asynchronous response - wait for completion
+            max_attempts = 20
+            for attempt in range(max_attempts):
+                result_response = requests.get(f"{CRAWL4AI_URL}/task/{task_id}", headers=headers)
+                
+                if result_response.status_code == 200:
+                    result = result_response.json()
+                    if result.get('status') == 'completed':
+                        results[tab_name] = result.get('results', [{}])[0] if result.get('results') else None
+                        print(f"✓ {tab_name} completed (asynchronous)")
+                        break
+                    elif result.get('status') == 'failed':
+                        print(f"✗ {tab_name} failed (asynchronous): {result}")
+                        break
+                
+                time.sleep(2)
         
-        # Small delay between requests
-        time.sleep(1)
+        # Realistic human-like delay between requests (15-30 seconds)
+        import random
+        delay = random.uniform(15, 30)
+        print(f"  ⏳ Human-like delay: {delay:.1f} seconds")
+        time.sleep(delay)
     
     return results
+
+def discover_color_variations(crawl_results, main_html, base_url):
+    """
+    TEST IMPLEMENTATION: Extract color variations from crawl4ai results
+    Simple version to test the parsing fix
+    """
+    try:
+        # Get specifications tab data if available
+        specs_html = crawl_results.get('specifications', {}).get('html', '') if crawl_results else ''
+        
+        # Use existing find_color_variations function logic
+        return find_color_variations(main_html, base_url, specs_html)
+    except Exception as e:
+        print(f"discover_color_variations error: {e}")
+        return []
+
+def extract_resources_from_tabs(crawl_results):
+    """
+    TEST IMPLEMENTATION: Extract resources from tab data
+    Simple version to test the parsing fix
+    """
+    try:
+        resources = []
+        
+        # Check resources tab if available
+        if crawl_results and 'resources' in crawl_results:
+            resources_html = crawl_results['resources'].get('html', '')
+            if resources_html:
+                # Simple PDF detection
+                pdf_matches = re.findall(r'href="([^"]*\.pdf[^"]*)"[^>]*>([^<]+)', resources_html)
+                for url, title in pdf_matches:
+                    resources.append({
+                        'type': 'PDF',
+                        'title': title.strip(),
+                        'url': url
+                    })
+        
+        return resources
+    except Exception as e:
+        print(f"extract_resources_from_tabs error: {e}")
+        return []
 
 def find_color_variations(html_content, base_url, specs_html=None):
     """Find color variation URLs using pattern generation and validation"""
@@ -327,8 +476,8 @@ def find_color_variations(html_content, base_url, specs_html=None):
     
     return color_variations
 
-def extract_product_data(crawl_results, base_url):
-    """Extract structured product data from crawled content"""
+def extract_product_data(crawl_results, base_url, category=None):
+    """Extract structured product data from crawled content with intelligent page-specific parsing"""
     main_html = crawl_results.get('main', {}).get('html', '') if crawl_results.get('main') else ''
     
     data = {
@@ -357,6 +506,95 @@ def extract_product_data(crawl_results, base_url):
     if not main_html:
         print("No main HTML content found")
         return None
+    
+    # Apply intelligent page structure detection and specialized parsing
+    if INTELLIGENT_PARSING_AVAILABLE and page_detector:
+        try:
+            print("\n--- Intelligent Page Structure Detection ---")
+            page_structure = page_detector.detect_page_structure(main_html, base_url)
+            
+            print(f"✅ {page_detector.get_page_type_summary(page_structure)}")
+            
+            # Use specialized parser based on detected page type
+            specialized_parser = get_parser_for_page_type(page_structure.page_type)
+            
+            print(f"🔧 Applying {specialized_parser.__class__.__name__} for high-precision extraction")
+            
+            # Extract JSON-LD data first for the specialized parser
+            json_ld_data = {}
+            json_ld_matches = re.findall(r'<script[^>]*type=["\']application/ld\+json["\'][^>]*>(.*?)</script>', main_html, re.IGNORECASE | re.DOTALL)
+            for json_ld in json_ld_matches:
+                try:
+                    json_data = json.loads(json_ld.strip())
+                    if json_data.get('@type') == 'Product':
+                        json_ld_data = json_data
+                        break
+                except json.JSONDecodeError:
+                    continue
+            
+            # Use specialized parser to extract product data
+            specialized_data = specialized_parser.parse_product_data(main_html, base_url, json_ld_data)
+            
+            # Merge specialized data with our data structure, prioritizing specialized results
+            for key, value in specialized_data.items():
+                if value is not None and value != "" and value != {}:
+                    data[key] = value
+            
+            print(f"✅ Specialized parsing completed. Extracted {len([v for v in specialized_data.values() if v])} fields")
+            
+            # If specialized parsing was successful, we can skip the legacy extraction
+            if specialized_data.get('title') and specialized_data.get('sku'):
+                print("🚀 High-quality extraction achieved. Skipping legacy fallback methods.")
+                # Still run color variation and resource extraction
+                try:
+                    color_variations = discover_color_variations(crawl_results, main_html, base_url)
+                    if color_variations:
+                        data['color_variations'] = json.dumps(color_variations)
+                        print(f"   Color variations: {len(color_variations)} found")
+                except Exception as e:
+                    print(f"   Warning: Color variation extraction failed: {e}")
+                
+                try:
+                    resources = extract_resources_from_tabs(crawl_results)
+                    if resources:
+                        data['resources'] = json.dumps(resources) if isinstance(resources, list) else resources
+                        print(f"   Resources: {len(resources) if isinstance(resources, list) else 1} found")
+                except Exception as e:
+                    print(f"   Warning: Resource extraction failed: {e}")
+                
+                # Apply enhanced categorization
+                if ENHANCED_CATEGORIZATION_AVAILABLE and enhanced_categorizer:
+                    try:
+                        print("\n--- Applying Enhanced Categorization for RAG ---")
+                        category_info = enhanced_categorizer.categorize_product(data)
+                        
+                        # Add enhanced category fields to product data
+                        data['category'] = category_info.primary_category
+                        data['subcategory'] = category_info.subcategory
+                        data['product_type'] = category_info.product_type
+                        data['application_areas'] = json.dumps(category_info.application_areas)
+                        data['related_products'] = json.dumps(category_info.related_products)
+                        data['rag_keywords'] = json.dumps(category_info.rag_keywords)
+                        data['installation_complexity'] = category_info.installation_complexity
+                        data['typical_use_cases'] = json.dumps(category_info.typical_use_cases)
+                        
+                        print(f"✅ Enhanced categorization applied:")
+                        print(f"   Primary Category: {category_info.primary_category}")
+                        print(f"   Subcategory: {category_info.subcategory}")
+                        print(f"   Installation Complexity: {category_info.installation_complexity}")
+                        
+                    except Exception as e:
+                        print(f"Warning: Enhanced categorization failed: {e}")
+                        if not data.get('category'):
+                            data['category'] = 'uncategorized'
+                
+                return data
+            else:
+                print("⚠️ Specialized parsing incomplete. Falling back to legacy extraction methods.")
+                
+        except Exception as e:
+            print(f"Warning: Intelligent parsing failed: {e}")
+            print("🔄 Falling back to legacy extraction methods.")
     
     # Debug: Save HTML to file for examination
     sku_debug = data.get('sku') or 'unknown'
@@ -890,6 +1128,55 @@ def extract_product_data(crawl_results, base_url):
     else:
         print("No resources tab content found")
     
+    # Apply category-specific parsing if available and category is specified
+    if category and CATEGORY_PARSING_AVAILABLE:
+        try:
+            print(f"Applying category-specific parsing for: {category}")
+            category_data = parse_product_with_category(main_html, base_url, category)
+            
+            # Merge category-specific data with existing data, prioritizing category-specific fields
+            for key, value in category_data.items():
+                if value and value != "Unknown Product" and value != "not specified":
+                    # Only override if we got a meaningful value from category parser
+                    data[key] = value
+                    
+            print(f"Category-specific parsing completed. Updated {len(category_data)} fields.")
+            
+            # Add category information to data
+            data['category'] = category
+            
+        except Exception as e:
+            print(f"Warning: Category-specific parsing failed: {e}")
+            print("Falling back to default parsing.")
+    
+    # Apply enhanced categorization for RAG optimization
+    if ENHANCED_CATEGORIZATION_AVAILABLE and enhanced_categorizer:
+        try:
+            print("\n--- Applying Enhanced Categorization for RAG ---")
+            category_info = enhanced_categorizer.categorize_product(data)
+            
+            # Add enhanced category fields to product data
+            data['category'] = category_info.primary_category
+            data['subcategory'] = category_info.subcategory
+            data['product_type'] = category_info.product_type
+            data['application_areas'] = json.dumps(category_info.application_areas)
+            data['related_products'] = json.dumps(category_info.related_products)
+            data['rag_keywords'] = json.dumps(category_info.rag_keywords)
+            data['installation_complexity'] = category_info.installation_complexity
+            data['typical_use_cases'] = json.dumps(category_info.typical_use_cases)
+            
+            print(f"✅ Enhanced categorization applied:")
+            print(f"   Primary Category: {category_info.primary_category}")
+            print(f"   Subcategory: {category_info.subcategory}")
+            print(f"   Product Type: {category_info.product_type}")
+            print(f"   RAG Keywords: {', '.join(category_info.rag_keywords[:5])}...")
+            print(f"   Installation Complexity: {category_info.installation_complexity}")
+            
+        except Exception as e:
+            print(f"Warning: Enhanced categorization failed: {e}")
+            if not data.get('category'):
+                data['category'] = 'uncategorized'
+    
     return data
 
 def save_to_database(product_data, crawl_results):
@@ -899,8 +1186,11 @@ def save_to_database(product_data, crawl_results):
     import os
     
     # Prepare the raw content - limit to reasonable size for SQL
-    raw_html = crawl_results.get('main', {}).get('html', '') if crawl_results.get('main') else ''
-    raw_markdown = crawl_results.get('main', {}).get('markdown', '') if crawl_results.get('main') else ''
+    raw_html = ''
+    raw_markdown = ''
+    if crawl_results and crawl_results.get('main'):
+        raw_html = crawl_results.get('main', {}).get('html', '')
+        raw_markdown = crawl_results.get('main', {}).get('markdown', '')
     
     # Truncate if too large for SQL injection safety
     if raw_html and len(raw_html) > 500000:  # 500KB limit for SQL
@@ -920,7 +1210,9 @@ def save_to_database(product_data, crawl_results):
         url, sku, title, price_per_box, price_per_sqft, price_per_piece, coverage,
         finish, color, size_shape, description, specifications,
         resources, images, collection_links, brand, primary_image, image_variants,
-        color_variations, color_images, scraped_at
+        color_variations, color_images, category, subcategory, product_type,
+        application_areas, related_products, rag_keywords, installation_complexity,
+        typical_use_cases, scraped_at
     ) VALUES (
         {escape_sql(product_data['url'])},
         {escape_sql(product_data['sku'])},
@@ -942,6 +1234,14 @@ def save_to_database(product_data, crawl_results):
         {escape_sql(product_data['image_variants'])},
         {escape_sql(product_data.get('color_variations'))},
         {escape_sql(product_data.get('color_images'))},
+        {escape_sql(product_data.get('category'))},
+        {escape_sql(product_data.get('subcategory'))},
+        {escape_sql(product_data.get('product_type'))},
+        {escape_sql(product_data.get('application_areas'))},
+        {escape_sql(product_data.get('related_products'))},
+        {escape_sql(product_data.get('rag_keywords'))},
+        {escape_sql(product_data.get('installation_complexity'))},
+        {escape_sql(product_data.get('typical_use_cases'))},
         NOW()
     )
     ON CONFLICT (url) DO UPDATE SET
@@ -964,6 +1264,14 @@ def save_to_database(product_data, crawl_results):
         image_variants = EXCLUDED.image_variants,
         color_variations = EXCLUDED.color_variations,
         color_images = EXCLUDED.color_images,
+        category = EXCLUDED.category,
+        subcategory = EXCLUDED.subcategory,
+        product_type = EXCLUDED.product_type,
+        application_areas = EXCLUDED.application_areas,
+        related_products = EXCLUDED.related_products,
+        rag_keywords = EXCLUDED.rag_keywords,
+        installation_complexity = EXCLUDED.installation_complexity,
+        typical_use_cases = EXCLUDED.typical_use_cases,
         updated_at = CURRENT_TIMESTAMP;
     """
     
@@ -1066,8 +1374,8 @@ def group_similar_products():
         conn = get_db_connection()
         cursor = conn.cursor()
         
-        # Get all products
-        cursor.execute("SELECT sku, url, title, color, finish FROM product_data")
+        # Get all products with valid SKUs (exclude null SKUs to prevent constraint errors)
+        cursor.execute("SELECT sku, url, title, color, finish FROM product_data WHERE sku IS NOT NULL")
         products = cursor.fetchall()
         
         print(f"\n🔗 Grouping {len(products)} products...")

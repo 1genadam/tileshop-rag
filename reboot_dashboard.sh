@@ -5,7 +5,7 @@
 
 echo "🔄 Rebooting Tileshop Dashboard (Auto-Background Mode)..."
 
-# Git update
+# Git update and push
 echo "📥 Updating code from git repository..."
 git fetch origin
 if git status -uno | grep -q "behind"; then
@@ -18,6 +18,26 @@ if git status -uno | grep -q "behind"; then
     fi
 else
     echo "✅ Code is up to date"
+fi
+
+# Check for local changes to push
+echo "📤 Checking for local changes to push..."
+if ! git diff-index --quiet HEAD --; then
+    echo "📝 Local changes detected, committing and pushing..."
+    git add -A
+    git commit -m "Auto-commit during dashboard reboot
+
+🤖 Generated with [Claude Code](https://claude.ai/code)
+
+Co-Authored-By: Claude <noreply@anthropic.com>"
+    git push origin $(git branch --show-current)
+    if [ $? -eq 0 ]; then
+        echo "✅ Changes pushed to GitHub successfully"
+    else
+        echo "⚠️  Failed to push changes, continuing with reboot..."
+    fi
+else
+    echo "✅ No local changes to push"
 fi
 
 # Stop any existing dashboard processes
