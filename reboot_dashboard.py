@@ -70,6 +70,72 @@ def acquisition_progress_callback(event_type, data):
 
 acquisition_manager = ScraperManager(progress_callback=acquisition_progress_callback)
 
+# Git Auto-Push Functionality for Production
+def auto_git_push(commit_message="Dashboard: Auto-commit system changes"):
+    """
+    Auto-commit and push changes when system makes modifications
+    For production deployment tracking and backup
+    """
+    try:
+        import subprocess
+        import os
+        
+        # Check if we're in a git repository
+        result = subprocess.run(['git', 'rev-parse', '--git-dir'], 
+                              capture_output=True, text=True, cwd='/Users/robertsher/Projects/tileshop_rag')
+        if result.returncode != 0:
+            logger.warning("Not in a git repository - skipping auto-push")
+            return False
+            
+        # Check if there are any changes
+        result = subprocess.run(['git', 'status', '--porcelain'], 
+                              capture_output=True, text=True, cwd='/Users/robertsher/Projects/tileshop_rag')
+        if not result.stdout.strip():
+            logger.debug("No git changes to commit")
+            return False
+            
+        # Add all changes
+        subprocess.run(['git', 'add', '.'], 
+                      cwd='/Users/robertsher/Projects/tileshop_rag', check=True)
+        
+        # Commit changes
+        full_commit_message = f"{commit_message}\n\n🤖 Auto-committed by reboot_dashboard.py\nTimestamp: {datetime.now(EST).isoformat()}"
+        subprocess.run(['git', 'commit', '-m', full_commit_message], 
+                      cwd='/Users/robertsher/Projects/tileshop_rag', check=True)
+        
+        # Push to origin
+        subprocess.run(['git', 'push', 'origin', 'HEAD'], 
+                      cwd='/Users/robertsher/Projects/tileshop_rag', check=True)
+        
+        logger.info(f"✅ Auto-pushed git changes: {commit_message}")
+        return True
+        
+    except subprocess.CalledProcessError as e:
+        logger.warning(f"Git auto-push failed: {e}")
+        return False
+    except Exception as e:
+        logger.error(f"Git auto-push error: {e}")
+        return False
+
+def trigger_auto_push_if_changes(operation_description="System operation"):
+    """
+    Check for changes and auto-push if any exist
+    Call this after operations that might modify files
+    """
+    try:
+        # Only auto-push in production mode or if explicitly enabled
+        production_mode = os.getenv('PRODUCTION', '').lower() in ['true', '1', 'yes']
+        auto_push_enabled = os.getenv('AUTO_GIT_PUSH', '').lower() in ['true', '1', 'yes']
+        
+        if production_mode or auto_push_enabled:
+            return auto_git_push(f"Dashboard: {operation_description}")
+        else:
+            logger.debug("Auto git push disabled (not in production mode)")
+            return False
+    except Exception as e:
+        logger.error(f"Auto-push trigger error: {e}")
+        return False
+
 # Routes
 @app.route('/')
 def dashboard():
@@ -235,6 +301,11 @@ def relearn_product():
         
         # Start learning process for specific URL
         result = acquisition_manager.learn_single_product(url, sku)
+        
+        # Trigger auto-push if relearn was successful
+        if result.get('success'):
+            trigger_auto_push_if_changes(f"Product relearn - SKU {sku} updated from {url}")
+        
         return jsonify(result)
     except Exception as e:
         return jsonify({'success': False, 'error': str(e)})
@@ -803,6 +874,11 @@ def cleanup_database():
         data = request.get_json()
         days = data.get('days', 30)
         result = db_manager.cleanup_old_data(days)
+        
+        # Trigger auto-push if cleanup was successful
+        if result.get('success'):
+            trigger_auto_push_if_changes(f"Database cleanup - removed data older than {days} days")
+            
         return jsonify(result)
     except Exception as e:
         return jsonify({'success': False, 'error': str(e)})
@@ -1834,6 +1910,84 @@ def background_status_updates():
         except Exception as e:
             logger.error(f"Error in background updates: {e}")
             time.sleep(10)  # Wait longer on error
+
+# Git Auto-Push API Endpoints
+@app.route('/api/git/status')
+def git_status():
+    """Get git repository status"""
+    try:
+        import subprocess
+        
+        # Check if we're in a git repo
+        result = subprocess.run(['git', 'rev-parse', '--git-dir'], 
+                              capture_output=True, text=True, cwd='/Users/robertsher/Projects/tileshop_rag')
+        if result.returncode != 0:
+            return jsonify({'error': 'Not in a git repository'}), 400
+            
+        # Get status
+        status_result = subprocess.run(['git', 'status', '--porcelain'], 
+                                     capture_output=True, text=True, cwd='/Users/robertsher/Projects/tileshop_rag')
+        
+        # Get current branch
+        branch_result = subprocess.run(['git', 'branch', '--show-current'], 
+                                     capture_output=True, text=True, cwd='/Users/robertsher/Projects/tileshop_rag')
+        
+        # Get last commit
+        commit_result = subprocess.run(['git', 'log', '-1', '--oneline'], 
+                                     capture_output=True, text=True, cwd='/Users/robertsher/Projects/tileshop_rag')
+        
+        return jsonify({
+            'success': True,
+            'in_git_repo': True,
+            'has_changes': bool(status_result.stdout.strip()),
+            'changes': status_result.stdout.strip().split('\n') if status_result.stdout.strip() else [],
+            'current_branch': branch_result.stdout.strip(),
+            'last_commit': commit_result.stdout.strip(),
+            'auto_push_enabled': os.getenv('PRODUCTION', '').lower() in ['true', '1', 'yes'] or os.getenv('AUTO_GIT_PUSH', '').lower() in ['true', '1', 'yes']
+        })
+        
+    except Exception as e:
+        return jsonify({'error': str(e)}), 500
+
+@app.route('/api/git/push', methods=['POST'])
+def manual_git_push():
+    """Manually trigger git push"""
+    try:
+        data = request.get_json() or {}
+        commit_message = data.get('message', 'Dashboard: Manual commit from admin interface')
+        
+        result = auto_git_push(commit_message)
+        
+        if result:
+            return jsonify({
+                'success': True,
+                'message': 'Changes committed and pushed successfully',
+                'timestamp': datetime.now(EST).isoformat()
+            })
+        else:
+            return jsonify({
+                'success': False,
+                'message': 'No changes to commit or push failed'
+            })
+            
+    except Exception as e:
+        return jsonify({'error': str(e)}), 500
+
+@app.route('/api/git/auto-push/<operation>', methods=['POST'])
+def trigger_auto_push(operation):
+    """Trigger auto-push for specific operations"""
+    try:
+        result = trigger_auto_push_if_changes(operation)
+        
+        return jsonify({
+            'success': True,
+            'auto_pushed': result,
+            'operation': operation,
+            'timestamp': datetime.now(EST).isoformat()
+        })
+        
+    except Exception as e:
+        return jsonify({'error': str(e)}), 500
 
 # Initialize session
 @app.before_request

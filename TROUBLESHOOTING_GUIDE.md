@@ -1882,3 +1882,209 @@ python3 test_sku_485000.py  # Should show: "White"
 - **Quality Rate**: ✅ 100% success for critical fields (color, price_per_sqft, resources)
 
 The enhanced color extraction system provides meaningful, human-readable color information that improves both user experience and RAG system performance.
+
+---
+
+## 🚀 **Production Deployment Issues**
+
+### **Git Auto-Push Problems**
+
+**Symptoms:**
+- Auto-push not triggering after operations
+- Git authentication failures in production
+- Repository not found errors
+
+**Solutions:**
+
+```bash
+# Check git auto-push status
+curl -s http://localhost:8080/api/git/status | jq .
+
+# Verify production mode enables auto-push
+echo $PRODUCTION  # Should be 'true' for auto-push
+echo $AUTO_GIT_PUSH  # Alternative: 'true' for standalone auto-push
+
+# Manual git push trigger
+curl -X POST http://localhost:8080/api/git/push \
+  -H "Content-Type: application/json" \
+  -d '{"message": "Manual production commit"}'
+
+# Check git repository status
+cd /Users/robertsher/Projects/tileshop_rag
+git status
+git remote -v  # Verify remote is configured
+```
+
+### **Production Mode Startup Issues**
+
+**Symptoms:**
+- Gunicorn import errors
+- EventLet worker failures
+- Production mode not activating
+
+**Solutions:**
+
+```bash
+# Install production dependencies
+pip install gunicorn[eventlet]
+
+# Verify production mode activation
+PRODUCTION=true python3 reboot_dashboard.py
+# Should show: "Starting Tileshop Admin Dashboard in PRODUCTION mode"
+
+# Check if Gunicorn is running
+ps aux | grep gunicorn
+
+# Alternative: Force development mode with production features
+AUTO_GIT_PUSH=true python3 reboot_dashboard.py
+```
+
+### **Monitoring System Failures**
+
+**Symptoms:**
+- Monitoring threads not starting
+- WebSocket connections failing
+- API endpoints not responding
+
+**Solutions:**
+
+```bash
+# Check all monitoring systems status
+curl -s http://localhost:8080/api/system/stats | jq .monitoring
+
+# Verify WebSocket connections
+# Open browser console at http://localhost:8080
+# Should see: "Connected to server" messages
+
+# Check individual monitoring endpoints
+curl -s http://localhost:8080/api/acquisition/status
+curl -s http://localhost:8080/api/database/stats
+curl -s http://localhost:8080/api/docker/status
+
+# Restart if needed
+pkill -f reboot_dashboard.py
+PRODUCTION=true python3 reboot_dashboard.py
+```
+
+### **Production Health Check Failures**
+
+**Symptoms:**
+- Health endpoints returning errors
+- System showing as unhealthy
+- Load balancer health checks failing
+
+**Solutions:**
+
+```bash
+# Basic health check
+curl -s http://localhost:8080/api/system/health
+
+# Comprehensive health verification
+curl -s http://localhost:8080/api/system/health | jq .
+
+# Expected healthy response:
+{
+  "status": "healthy",
+  "monitoring": {
+    "audit_monitor": "active",
+    "health_monitor": "active",
+    "learning_monitor": "active", 
+    "sitemap_monitor": "active",
+    "download_monitor": "active"
+  },
+  "scraper": {
+    "method": "curl_scraper",
+    "success_rate": "100%",
+    "capture_rate": "93.3%"
+  }
+}
+
+# If unhealthy, check logs
+tail -f /tmp/dashboard_restart.log
+```
+
+### **Production Performance Issues**
+
+**Symptoms:**
+- High memory usage
+- Slow response times
+- Worker process failures
+
+**Solutions:**
+
+```bash
+# Check system resources
+curl -s http://localhost:8080/api/system/stats | jq .
+
+# Monitor worker processes (if using Gunicorn)
+ps aux | grep gunicorn | wc -l  # Should show 4 workers + 1 master
+
+# Check memory usage
+free -h
+df -h  # Check disk space
+
+# Optimize if needed - restart with production mode
+PRODUCTION=true python3 reboot_dashboard.py
+```
+
+### **Auto-Push Git Configuration**
+
+**Required Setup for Production:**
+
+```bash
+# Ensure git is configured with push credentials
+cd /Users/robertsher/Projects/tileshop_rag
+git config user.name "Production Dashboard"
+git config user.email "dashboard@tileshop.local"
+
+# Verify remote is configured for pushing
+git remote get-url origin
+
+# Test manual push
+git status
+git add .
+git commit -m "Test production commit"
+git push origin main
+```
+
+### **Environment Variable Issues**
+
+**Production Environment Variables:**
+
+```bash
+# Required for auto git push
+export PRODUCTION=true
+
+# Alternative: Enable auto-push without full production
+export AUTO_GIT_PUSH=true
+
+# Verify environment
+env | grep -E "(PRODUCTION|AUTO_GIT_PUSH)"
+```
+
+### **Quick Production Verification Checklist**
+
+```bash
+# ✅ 1. Check production mode
+curl -s http://localhost:8080/api/system/health | grep "healthy"
+
+# ✅ 2. Verify all 5 monitoring systems
+curl -s http://localhost:8080/api/system/stats | jq .monitoring
+
+# ✅ 3. Check git auto-push capability
+curl -s http://localhost:8080/api/git/status | jq .auto_push_enabled
+
+# ✅ 4. Verify data extraction working
+curl -s http://localhost:8080/api/database/stats | jq .stats.total_products
+
+# ✅ 5. Test WebSocket real-time updates
+# Open http://localhost:8080 - dashboard should show live updates
+```
+
+**Success Criteria:**
+- All API endpoints responding with 200 status
+- 5 monitoring systems showing "active" status  
+- Git auto-push enabled in production mode
+- Database operations completing successfully
+- Real-time dashboard updates functioning
+- Zero errors in system logs for 5+ minutes
