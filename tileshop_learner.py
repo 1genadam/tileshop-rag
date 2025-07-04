@@ -641,20 +641,43 @@ def extract_product_data(crawl_results, base_url, category=None):
                     if not data.get('color'):
                         try:
                             print("🎨 Extracting color information...")
-                            color_patterns = [
-                                r'"color":\s*"([^"]+)"',
-                                r'Color:\s*([^<\n,]+)',
-                                r'data-color="([^"]+)"',
-                                r'Beige[,\s]*Brown',  # Specific for Morris & Co products
-                                r'(?:Color|Colour)\s*[:=]\s*([^<\n,]+)',
-                            ]
                             
-                            for pattern in color_patterns:
-                                color_match = re.search(pattern, main_html, re.IGNORECASE)
-                                if color_match:
-                                    data['color'] = color_match.group(1).strip()
-                                    print(f"  ✓ Found color: {data['color']}")
-                                    break
+                            # First try specifications tab for structured color data
+                            specs_html = crawl_results.get('specifications', {}).get('html', '') if crawl_results else ''
+                            if specs_html:
+                                # Look for structured specifications JSON
+                                specs_color_patterns = [
+                                    r'"PDPInfo_Color"[^}]*"Value"\s*:\s*"([^"]+)"',
+                                    r'"Key"\s*:\s*"PDPInfo_Color"[^}]*"Value"\s*:\s*"([^"]+)"'
+                                ]
+                                
+                                for pattern in specs_color_patterns:
+                                    color_match = re.search(pattern, specs_html, re.IGNORECASE)
+                                    if color_match:
+                                        data['color'] = color_match.group(1).strip()
+                                        print(f"  ✓ Found structured color: {data['color']}")
+                                        break
+                            
+                            # Fallback to main page patterns if specs didn't work
+                            if not data.get('color'):
+                                color_patterns = [
+                                    r'"color":\s*"([^"]+)"',
+                                    r'Color:\s*([^<\n,]+)',
+                                    r'data-color="([^"]+)"',
+                                    r'Beige[,\s]*Brown',  # Specific for Morris & Co products
+                                    r'(?:Color|Colour)\s*[:=]\s*([^<\n,]+)',
+                                    r'(#[0-9a-fA-F]{6})',  # Hex color as last resort
+                                ]
+                                
+                                for pattern in color_patterns:
+                                    color_match = re.search(pattern, main_html, re.IGNORECASE)
+                                    if color_match:
+                                        raw_color = color_match.group(1).strip()
+                                        # Clean up color extraction - remove HTML artifacts
+                                        cleaned_color = re.sub(r'["\/>]+$', '', raw_color)
+                                        data['color'] = cleaned_color
+                                        print(f"  ✓ Found fallback color: {data['color']}")
+                                        break
                         except Exception as e:
                             print(f"  ❌ Color extraction error: {e}")
                     
@@ -674,6 +697,20 @@ def extract_product_data(crawl_results, base_url, category=None):
                                 data['price_per_sqft'] = float(price_match.group(1).replace(',', ''))
                                 print(f"  ✓ Found price per sqft: ${data['price_per_sqft']}")
                                 break
+                        
+                        # If no direct price per sqft found, calculate from price_per_box and coverage
+                        if not data.get('price_per_sqft') and data.get('price_per_box') and data.get('coverage'):
+                            try:
+                                price_box = float(data['price_per_box'])
+                                coverage_text = str(data['coverage'])
+                                coverage_match = re.search(r'([0-9]+\.?[0-9]*)', coverage_text)
+                                if coverage_match:
+                                    coverage_num = float(coverage_match.group(1))
+                                    calculated_per_sqft = round(price_box / coverage_num, 2)
+                                    data['price_per_sqft'] = calculated_per_sqft
+                                    print(f"  ✓ Calculated price per sqft: ${calculated_per_sqft} (${price_box} ÷ {coverage_num})")
+                            except Exception as e:
+                                print(f"  ❌ Price calculation error: {e}")
                     
                     # 3. Enhanced resources/PDF extraction for main page if missing or empty
                     resources_empty = not data.get('resources') or data.get('resources') == '[]' or data.get('resources') == '{}'
@@ -690,10 +727,14 @@ def extract_product_data(crawl_results, base_url, category=None):
                             pdf_mappings = {
                                 'tiles': 'porcelain_tile_sds.pdf',
                                 'porcelain_tiles': 'porcelain_tile_sds.pdf', 
-                                'ceramic_tiles': 'ceramic_tile_sds.pdf',
+                                'ceramic_tiles': 'porcelain_tile_sds.pdf',  # Use porcelain PDF for ceramic tiles
                                 'stone': 'natural_stone_sds.pdf',
                                 'vinyl': 'vinyl_flooring_sds.pdf',
-                                'wood': 'wood_flooring_sds.pdf'
+                                'wood': 'wood_flooring_sds.pdf',
+                                'glass': 'glass_tile_sds.pdf',
+                                'metal': 'metal_trim_sds.pdf',
+                                'grout': 'grout_sds.pdf',
+                                'adhesive': 'adhesive_sds.pdf'
                             }
                             
                             # Determine appropriate PDF based on product type

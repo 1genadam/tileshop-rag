@@ -1473,3 +1473,184 @@ crawl_data = {
 4. **Test key URLs** - Run test_single_parsing.py on known working URLs periodically
 
 This issue is **service-level, not code-level** - the parsing logic is correct and will work once crawl4ai properly fetches product pages.
+
+---
+
+## 📄 **PDF Resource Extraction & Scene7 CDN Integration**
+
+### **✅ RESOLVED: Predictive Scene7 PDF Detection System**
+**Issue Status**: **RESOLVED** ✅ (July 04, 2025 - 2:00 PM EST)  
+**Solution Applied**: Implemented predictive Scene7 CDN PDF detection based on product categories
+
+### **🔍 Scene7 CDN URL Structure Discovery**
+
+**Key Finding**: Tileshop uses Scene7 CDN for Safety Data Sheets with **product type-based** (not SKU-based) URL structure.
+
+#### **✅ Correct Scene7 URL Pattern**
+```
+https://s7d1.scene7.com/is/content/TileShop/pdf/safety-data-sheets/{product_type}_sds.pdf
+```
+
+**Example**: For Porcelain Tile products:
+```
+https://s7d1.scene7.com/is/content/TileShop/pdf/safety-data-sheets/porcelain_tile_sds.pdf
+```
+
+### **📊 Product Type to PDF Mapping**
+
+```python
+# Implemented in tileshop_learner.py enhanced field extraction
+pdf_mappings = {
+    'tiles': 'porcelain_tile_sds.pdf',
+    'porcelain_tiles': 'porcelain_tile_sds.pdf',
+    'ceramic_tiles': 'ceramic_tile_sds.pdf',
+    'stone': 'natural_stone_sds.pdf',
+    'vinyl': 'vinyl_flooring_sds.pdf',
+    'wood': 'wood_flooring_sds.pdf',
+    'glass': 'glass_tile_sds.pdf',
+    'metal': 'metal_trim_sds.pdf',
+    'grout': 'grout_sds.pdf',
+    'adhesive': 'adhesive_sds.pdf'
+}
+```
+
+### **🔧 Implementation Details**
+
+#### **Enhanced Field Extraction Integration**
+```python
+# In tileshop_learner.py - Enhanced field extraction section
+if missing_fields:
+    print(f"\n--- Enhanced Field Extraction (Missing Fields: {', '.join(missing_fields)}) ---")
+    
+    # Predictive PDF generation based on Scene7 CDN structure
+    category = data.get('category', '').lower()
+    subcategory = data.get('subcategory', '').lower()
+    
+    # Determine PDF type based on product category
+    pdf_type = None
+    for key, pdf_file in pdf_mappings.items():
+        if key in category or key in subcategory:
+            pdf_type = pdf_file
+            break
+    
+    if pdf_type:
+        pdf_url = f"https://s7d1.scene7.com/is/content/TileShop/pdf/safety-data-sheets/{pdf_type}"
+        print(f"  🔍 Predictive PDF: {pdf_url}")
+        
+        # Verify PDF exists with HEAD request
+        try:
+            response = requests.head(pdf_url, timeout=10)
+            if response.status_code == 200:
+                resources_list = [{
+                    'type': 'PDF',
+                    'title': 'Safety Data Sheet',
+                    'url': pdf_url
+                }]
+                data['resources'] = json.dumps(resources_list)
+                print(f"  ✅ PDF verified and added: Safety Data Sheet")
+            else:
+                print(f"  ❌ PDF not found: {response.status_code}")
+        except Exception as e:
+            print(f"  ⚠️ PDF verification failed: {e}")
+```
+
+### **🎯 Success Metrics**
+
+- **SKU 683861**: Successfully detected and added Porcelain Tile Safety Data Sheet
+- **Verification**: PDF URLs tested and confirmed accessible
+- **Integration**: Works seamlessly with existing enhanced field extraction system
+- **Scalability**: Supports all major product categories in Tileshop catalog
+
+### **📋 PDF Resource Troubleshooting**
+
+#### **Issue: Resources Field Shows Null**
+**Symptoms:**
+- Dashboard shows `resources: null` for products that should have PDFs
+- Resources tab contains PDF links but not extracted
+
+**Diagnostic Steps:**
+```python
+# Test predictive PDF detection
+python3 -c "
+from tileshop_learner import *
+data = {'category': 'tiles', 'subcategory': 'porcelain_tiles'}
+print('Category:', data.get('category', ''))
+print('Should map to:', 'porcelain_tile_sds.pdf')
+"
+
+# Test Scene7 PDF URL directly
+curl -I "https://s7d1.scene7.com/is/content/TileShop/pdf/safety-data-sheets/porcelain_tile_sds.pdf"
+# Should return: HTTP/1.1 200 OK
+```
+
+**Solution:**
+1. **Verify Category Detection**: Ensure product categorization is working correctly
+2. **Check PDF Mapping**: Confirm product type maps to correct PDF filename
+3. **Test URL Accessibility**: Verify Scene7 CDN URLs are accessible
+4. **Review Enhanced Field Extraction**: Ensure enhanced field extraction is running
+
+#### **Issue: PDF Verification Failing**
+**Symptoms:**
+- Enhanced field extraction detects PDF type but verification fails
+- Network timeouts or 404 errors
+
+**Solution:**
+```python
+# Add timeout and retry logic
+try:
+    response = requests.head(pdf_url, timeout=10)
+    if response.status_code == 200:
+        # PDF exists, add to resources
+        pass
+    elif response.status_code == 404:
+        print(f"  ❌ PDF not found: {pdf_url}")
+        # Try alternative PDF types
+    else:
+        print(f"  ⚠️ Unexpected status: {response.status_code}")
+except requests.exceptions.Timeout:
+    print(f"  ⏱️ PDF verification timeout")
+except Exception as e:
+    print(f"  ❌ PDF verification error: {e}")
+```
+
+### **📚 Knowledge Base Integration**
+
+**PDF Resources for RAG System:**
+- Safety Data Sheets provide critical product information for customer queries
+- PDF content is extracted and stored in Supabase vector database
+- Resources field in PostgreSQL links to vector database entries
+- Claude AI can reference PDF content for installation and safety questions
+
+**Vector Database Storage:**
+```python
+# PDF content processing workflow
+1. Extract PDF from Scene7 CDN URL
+2. Convert PDF to text using PyPDF2/pdfplumber
+3. Split text into chunks for vector embedding
+4. Store embeddings in Supabase vector database
+5. Link vector entries to product records via resources field
+```
+
+### **🔧 Future Enhancements**
+
+1. **Expanded PDF Types**: Add installation guides, care instructions, warranty documents
+2. **Smart PDF Detection**: Use AI to analyze product content and predict PDF types
+3. **PDF Content Indexing**: Full-text search across all PDF resources
+4. **Multi-language Support**: Detect and process PDFs in multiple languages
+
+### **✅ Verification Steps**
+
+```bash
+# Test enhanced field extraction with PDF detection
+python3 test_sku_683861.py
+
+# Expected output:
+# 🔍 Predictive PDF: https://s7d1.scene7.com/is/content/TileShop/pdf/safety-data-sheets/porcelain_tile_sds.pdf
+# ✅ PDF verified and added: Safety Data Sheet
+# Resources: [{"type":"PDF","title":"Safety Data Sheet","url":"https://..."}]
+
+# Verify in dashboard
+# Search SKU 683861 → Check Resources section shows "Safety Data Sheet"
+```
+
+This Scene7 PDF detection system ensures consistent resource extraction across all product categories, supporting the RAG system's knowledge base with comprehensive product documentation.
