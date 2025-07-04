@@ -1,0 +1,62 @@
+{
+  "categories": [
+    {
+      "id": "tiles",
+      "name": "Tiles",
+      "description": "Floor and wall tiles (ceramic, porcelain, natural stone)",
+      "count": 3863,
+      "percentage": 80.8
+    },
+    {
+      "id": "uncategorized",
+      "name": "Uncategorized",
+      "description": "Products that do not match other categories",
+      "count": 495,
+      "percentage": 10.4
+    },
+    {
+      "id": "trim_molding",
+      "name": "Trim Molding",
+      "description": "Trim and molding pieces (reducers, quarter rounds, stairs)",
+      "count": 243,
+      "percentage": 5.1
+    },
+    {
+      "id": "grout",
+      "name": "Grout",
+      "description": "Grout products (sanded, unsanded, epoxy)",
+      "count": 90,
+      "percentage": 1.9
+    },
+    {
+      "id": "tools_accessories",
+      "name": "Tools Accessories",
+      "description": "Installation tools and accessories",
+      "count": 48,
+      "percentage": 1.0
+    },
+    {
+      "id": "natural_stone",
+      "name": "Natural Stone",
+      "description": "Natural stone products",
+      "count": 17,
+      "percentage": 0.4
+    },
+    {
+      "id": "metal_glass",
+      "name": "Metal Glass",
+      "description": "Metal and glass tiles",
+      "count": 14,
+      "percentage": 0.3
+    },
+    {
+      "id": "decorative",
+      "name": "Decorative",
+      "description": "Decorative and accent pieces",
+      "count": 8,
+      "percentage": 0.2
+    }
+  ],
+  "total_products": 4778,
+  "generated_at": "2025-07-03T12:00:00Z"
+}

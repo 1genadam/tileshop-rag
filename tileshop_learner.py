@@ -87,12 +87,11 @@ def crawl_page_with_tabs(url):
         'Content-Type': 'application/json'
     }
     
-    # URLs to crawl - TESTING: Single request only to avoid bot detection
+    # URLs to crawl - Using curl scraper breakthrough for bot detection bypass
     urls_to_crawl = [
         url,
-        # f"{url}#specifications",  # DISABLED: May trigger bot detection
-        # f"{url}#description", 
-        # f"{url}#resources"  # DISABLED: May trigger bot detection
+        f"{url}#specifications",  # RE-ENABLED: curl scraper bypasses bot detection
+        f"{url}#resources"       # RE-ENABLED: curl scraper bypasses bot detection
     ]
     
     results = {}
@@ -303,8 +302,7 @@ def discover_color_variations(crawl_results, main_html, base_url):
 
 def extract_resources_from_tabs(crawl_results):
     """
-    TEST IMPLEMENTATION: Extract resources from tab data
-    Simple version to test the parsing fix
+    Extract resources from tab data with enhanced debugging
     """
     try:
         resources = []
@@ -313,14 +311,51 @@ def extract_resources_from_tabs(crawl_results):
         if crawl_results and 'resources' in crawl_results:
             resources_html = crawl_results['resources'].get('html', '')
             if resources_html:
-                # Simple PDF detection
-                pdf_matches = re.findall(r'href="([^"]*\.pdf[^"]*)"[^>]*>([^<]+)', resources_html)
-                for url, title in pdf_matches:
-                    resources.append({
-                        'type': 'PDF',
-                        'title': title.strip(),
-                        'url': url
-                    })
+                print(f"  📄 Resources tab HTML length: {len(resources_html)} chars")
+                
+                # Enhanced PDF detection patterns
+                pdf_patterns = [
+                    r'href="([^"]*\.pdf[^"]*)"[^>]*>([^<]+)',  # Original pattern
+                    r'href="([^"]*\.pdf[^"]*)"',  # URL only
+                    r'data-href="([^"]*\.pdf[^"]*)"',  # Data attribute
+                    r'onclick="[^"]*\'([^\']*\.pdf[^\']*)\'',  # JavaScript links
+                    r'window\.open\(["\']([^"\']*\.pdf[^"\']*)["\']',  # Window.open
+                ]
+                
+                for i, pattern in enumerate(pdf_patterns):
+                    matches = re.findall(pattern, resources_html, re.IGNORECASE)
+                    if matches:
+                        print(f"  ✓ Pattern {i+1} found {len(matches)} PDF(s)")
+                        for match in matches:
+                            if isinstance(match, tuple):
+                                url, title = match[0], match[1].strip()
+                                resources.append({
+                                    'type': 'PDF',
+                                    'title': title or 'PDF Document',
+                                    'url': url
+                                })
+                            else:
+                                resources.append({
+                                    'type': 'PDF', 
+                                    'title': 'PDF Document',
+                                    'url': match
+                                })
+                        break  # Stop after first successful pattern
+                
+                if not resources:
+                    print("  ❌ No PDFs found with any pattern")
+                    # Debug: Show a sample of the HTML content
+                    sample = resources_html[:500] if len(resources_html) > 500 else resources_html
+                    print(f"  📋 Resources HTML sample: {sample}")
+            else:
+                print("  ⚠️ Resources tab HTML is empty")
+        else:
+            print("  ⚠️ No resources tab in crawl results")
+        
+        if resources:
+            print(f"  ✅ Found {len(resources)} resource(s)")
+            for res in resources:
+                print(f"    - {res['title']}: {res['url']}")
         
         return resources
     except Exception as e:
@@ -588,6 +623,119 @@ def extract_product_data(crawl_results, base_url, category=None):
                         if not data.get('category'):
                             data['category'] = 'uncategorized'
                 
+                # ENHANCED FIELD EXTRACTION - Post-processing for missing critical fields  
+                missing_fields = []
+                if not data.get('color'): missing_fields.append('color')
+                if not data.get('price_per_sqft'): missing_fields.append('price_per_sqft')
+                
+                # Debug resources field state
+                resources_value = data.get('resources')
+                print(f"  🔍 Debug: resources field = {repr(resources_value)}")
+                if not resources_value or resources_value == '[]' or resources_value == '{}' or resources_value == 'null':
+                    missing_fields.append('resources')
+                
+                if missing_fields:
+                    print(f"\n--- Enhanced Field Extraction (Missing Fields: {', '.join(missing_fields)}) ---")
+                
+                    # 1. Enhanced color extraction if missing
+                    if not data.get('color'):
+                        try:
+                            print("🎨 Extracting color information...")
+                            color_patterns = [
+                                r'"color":\s*"([^"]+)"',
+                                r'Color:\s*([^<\n,]+)',
+                                r'data-color="([^"]+)"',
+                                r'Beige[,\s]*Brown',  # Specific for Morris & Co products
+                                r'(?:Color|Colour)\s*[:=]\s*([^<\n,]+)',
+                            ]
+                            
+                            for pattern in color_patterns:
+                                color_match = re.search(pattern, main_html, re.IGNORECASE)
+                                if color_match:
+                                    data['color'] = color_match.group(1).strip()
+                                    print(f"  ✓ Found color: {data['color']}")
+                                    break
+                        except Exception as e:
+                            print(f"  ❌ Color extraction error: {e}")
+                    
+                    # 2. Enhanced price per sqft extraction if missing
+                    if not data.get('price_per_sqft'):
+                        print("💰 Extracting price per sqft...")
+                        enhanced_sqft_patterns = [
+                            r'\$([0-9,]+\.?\d+)\s*/\s*[Ss]q\.?\s*[Ff]t\.?',
+                            r'\$([0-9,]+\.?\d+)/[Ss][Qq]\.\s*[Ff][Tt]\.',
+                            r'([0-9,]+\.?\d+)\s*per\s*sq\.?\s*ft\.?',
+                            r'"pricePerSqFt":\s*"?([0-9,]+\.?\d+)"?',
+                        ]
+                        
+                        for pattern in enhanced_sqft_patterns:
+                            price_match = re.search(pattern, main_html, re.IGNORECASE)
+                            if price_match:
+                                data['price_per_sqft'] = float(price_match.group(1).replace(',', ''))
+                                print(f"  ✓ Found price per sqft: ${data['price_per_sqft']}")
+                                break
+                    
+                    # 3. Enhanced resources/PDF extraction for main page if missing or empty
+                    resources_empty = not data.get('resources') or data.get('resources') == '[]' or data.get('resources') == '{}'
+                    if resources_empty:
+                        try:
+                            print("📋 Extracting resources from main page...")
+                            print("  🔍 Attempting predictive Scene7 PDF detection...")
+                            
+                            # Predictive PDF generation based on Scene7 CDN structure (product type-based)
+                            category = data.get('category', '').lower()
+                            subcategory = data.get('subcategory', '').lower()
+                            
+                            # Map product categories to PDF types
+                            pdf_mappings = {
+                                'tiles': 'porcelain_tile_sds.pdf',
+                                'porcelain_tiles': 'porcelain_tile_sds.pdf', 
+                                'ceramic_tiles': 'ceramic_tile_sds.pdf',
+                                'stone': 'natural_stone_sds.pdf',
+                                'vinyl': 'vinyl_flooring_sds.pdf',
+                                'wood': 'wood_flooring_sds.pdf'
+                            }
+                            
+                            # Determine appropriate PDF based on product type
+                            pdf_filename = None
+                            if subcategory and subcategory in pdf_mappings:
+                                pdf_filename = pdf_mappings[subcategory]
+                            elif category and category in pdf_mappings:
+                                pdf_filename = pdf_mappings[category]
+                            else:
+                                # Default to porcelain tile for tiles category
+                                if 'tile' in category or 'tile' in data.get('title', '').lower():
+                                    pdf_filename = 'porcelain_tile_sds.pdf'
+                            
+                            resources = []
+                            if pdf_filename:
+                                predictive_url = f'https://s7d1.scene7.com/is/content/TileShop/pdf/safety-data-sheets/{pdf_filename}'
+                                
+                                # Test PDF availability
+                                import requests
+                                try:
+                                    response = requests.head(predictive_url, timeout=5)
+                                    if response.status_code == 200:
+                                        resources.append({
+                                            'url': predictive_url,
+                                            'title': 'Safety Data Sheet (PDF)', 
+                                            'type': 'safety_data_sheet'
+                                        })
+                                        print(f"  ✓ Found Safety Data Sheet: {predictive_url}")
+                                    else:
+                                        print(f"  ❌ PDF not available (HTTP {response.status_code}): {predictive_url}")
+                                except Exception as e:
+                                    print(f"  ❌ Error checking PDF: {e}")
+                            
+                            if resources:
+                                data['resources'] = json.dumps(resources)
+                                print(f"  ✅ Saved {len(resources)} resource(s) to database")
+                            else:
+                                print("  ❌ No predictive PDFs found")
+                                
+                        except Exception as e:
+                            print(f"  ❌ Resource extraction error: {e}")
+                
                 return data
             else:
                 print("⚠️ Specialized parsing incomplete. Falling back to legacy extraction methods.")
@@ -746,6 +894,12 @@ def extract_product_data(crawl_results, base_url, category=None):
         r'([0-9,]+\.?\d*)\s*per\s*sq\.?\s*ft\.?',
         # Look for the specific format you mentioned
         r'\$([0-9,]+\.?\d*)/Sq\. Ft\.',
+        # JSON-LD price per sqft patterns
+        r'"pricePerSqFt":\s*"?([0-9,]+\.?\d*)"?',
+        r'"price":\s*"?([0-9,]+\.?\d*)"?.*?"unit":\s*"sqft"',
+        # More flexible sqft patterns
+        r'\$([0-9,]+\.?\d+)\s*/\s*[Ss]q\.?\s*[Ff]t\.?',
+        r'\$([0-9,]+\.?\d+)/[Ss][Qq]\.\s*[Ff][Tt]\.',
     ]
     for pattern in sqft_patterns:
         price_sqft_match = re.search(pattern, main_html, re.IGNORECASE)
@@ -1176,6 +1330,7 @@ def extract_product_data(crawl_results, base_url, category=None):
             print(f"Warning: Enhanced categorization failed: {e}")
             if not data.get('category'):
                 data['category'] = 'uncategorized'
+    
     
     return data
 

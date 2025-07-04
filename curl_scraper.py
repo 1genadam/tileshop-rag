@@ -39,9 +39,10 @@ def get_page_with_curl(url, user_agent=None):
         return None
 
 def scrape_product_with_curl(url):
-    """Scrape a single product using curl"""
+    """Scrape a single product using curl including tabs for complete data"""
     print(f"\n🌐 Fetching with curl: {url}")
     
+    # Fetch main page
     html_content = get_page_with_curl(url)
     
     if not html_content:
@@ -64,6 +65,26 @@ def scrape_product_with_curl(url):
             'markdown': ''
         }
     }
+    
+    # Fetch additional tabs for complete resource extraction
+    tabs_to_fetch = ['resources', 'specifications']
+    
+    for tab in tabs_to_fetch:
+        tab_url = f"{url}#{tab}"
+        print(f"  📋 Fetching {tab} tab...")
+        
+        # Add small delay between requests
+        time.sleep(random.uniform(1, 3))
+        
+        tab_html = get_page_with_curl(tab_url)
+        if tab_html:
+            crawl_results[tab] = {
+                'html': tab_html,
+                'markdown': ''
+            }
+            print(f"  ✓ Got {tab} tab content")
+        else:
+            print(f"  ⚠️ Failed to get {tab} tab content")
     
     # Extract product data using existing functions
     print("  🔍 Extracting product data...")

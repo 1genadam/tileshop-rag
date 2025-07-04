@@ -172,6 +172,101 @@ class DatabaseManager:
                 'error': str(e)
             }
     
+    def get_quality_stats(self, db_type: str = 'relational_db') -> Dict[str, Any]:
+        """Get data quality statistics for products scraped in the last 24 hours"""
+        try:
+            if db_type == 'supabase':
+                return self._get_quality_stats_docker_exec('supabase')
+            elif db_type == 'relational_db':
+                return self._get_quality_stats_docker_exec('postgres')
+            
+            conn = self.get_connection(db_type)
+            cursor = conn.cursor()
+            
+            # Check if product_data table exists
+            cursor.execute("""
+                SELECT EXISTS (
+                    SELECT FROM information_schema.tables 
+                    WHERE table_name = 'product_data'
+                );
+            """)
+            
+            if not cursor.fetchone()[0]:
+                cursor.close()
+                conn.close()
+                return {
+                    'table_exists': False,
+                    'error': 'product_data table does not exist'
+                }
+            
+            # Get recent products (last 24 hours) - limit to 10 for quality analysis
+            cursor.execute("""
+                SELECT sku, title, price_per_box, price_per_sqft, coverage, finish, color, 
+                       size_shape, description, specifications, images, brand, primary_image, 
+                       collection_links
+                FROM product_data 
+                WHERE scraped_at > NOW() - INTERVAL '24 hours'
+                ORDER BY scraped_at DESC
+                LIMIT 10
+            """)
+            
+            recent_products = cursor.fetchall()
+            total_recent_products = len(recent_products)
+            
+            # Define key fields to check (excluding first column which is sku for identification)
+            key_fields = ['title', 'price_per_box', 'price_per_sqft', 'coverage', 'finish', 
+                         'color', 'size_shape', 'description', 'specifications', 'images', 
+                         'brand', 'primary_image', 'collection_links']
+            
+            high_quality_products = 0
+            low_quality_products = 0
+            poor_products = []
+            
+            for product in recent_products:
+                sku = product[0]  # First column is SKU
+                product_data = product[1:]  # Rest are the key fields
+                
+                # Count non-null fields
+                non_null_count = sum(1 for field in product_data if field is not None and str(field).strip() != '')
+                
+                if non_null_count >= 10:
+                    high_quality_products += 1
+                else:
+                    low_quality_products += 1
+                    if sku:  # Only add if SKU exists
+                        poor_products.append(sku)
+            
+            # Calculate quality percentage
+            quality_percentage = (high_quality_products / total_recent_products * 100) if total_recent_products > 0 else 100.0
+            
+            # Determine alert level
+            if quality_percentage >= 80:
+                alert_level = 'good'
+            elif quality_percentage >= 60:
+                alert_level = 'warning'
+            else:
+                alert_level = 'critical'
+            
+            cursor.close()
+            conn.close()
+            
+            return {
+                'success': True,
+                'total_recent_products': total_recent_products,
+                'high_quality_products': high_quality_products,
+                'low_quality_products': low_quality_products,
+                'quality_percentage': round(quality_percentage, 2),
+                'poor_products': poor_products,
+                'alert_level': alert_level
+            }
+            
+        except Exception as e:
+            logger.error(f"Error getting quality stats: {e}")
+            return {
+                'success': False,
+                'error': str(e)
+            }
+    
     def get_products(self, 
                     offset: int = 0, 
                     limit: int = 25, 
@@ -233,8 +328,10 @@ class DatabaseManager:
                 sort_order = 'DESC'
             
             products_query = f"""
-                SELECT id, url, sku, title, price_per_box, price_per_sqft, 
-                       coverage, finish, color, size_shape, 
+                SELECT id, url, sku, title, price_per_box, price_per_sqft, price_per_piece,
+                       coverage, finish, color, size_shape, brand, specifications,
+                       description, resources, images, collection_links, primary_image,
+                       image_variants, color_variations, color_images,
                        scraped_at, updated_at
                 FROM product_data 
                 WHERE {where_clause}
@@ -253,6 +350,41 @@ class DatabaseManager:
                     product_dict['scraped_at'] = product_dict['scraped_at'].isoformat()
                 if product_dict['updated_at']:
                     product_dict['updated_at'] = product_dict['updated_at'].isoformat()
+                
+                # Parse JSON string fields
+                import json
+                if product_dict.get('color_variations'):
+                    try:
+                        product_dict['color_variations'] = json.loads(product_dict['color_variations'])
+                    except (json.JSONDecodeError, TypeError):
+                        product_dict['color_variations'] = None
+                
+                if product_dict.get('color_images'):
+                    try:
+                        product_dict['color_images'] = json.loads(product_dict['color_images'])
+                    except (json.JSONDecodeError, TypeError):
+                        product_dict['color_images'] = None
+                
+                if product_dict.get('images'):
+                    try:
+                        product_dict['images'] = json.loads(product_dict['images'])
+                    except (json.JSONDecodeError, TypeError):
+                        product_dict['images'] = None
+                
+                if product_dict.get('collection_links'):
+                    try:
+                        product_dict['collection_links'] = json.loads(product_dict['collection_links'])
+                    except (json.JSONDecodeError, TypeError):
+                        product_dict['collection_links'] = None
+                
+                if product_dict.get('image_variants'):
+                    try:
+                        product_dict['image_variants'] = json.loads(product_dict['image_variants'])
+                    except (json.JSONDecodeError, TypeError):
+                        product_dict['image_variants'] = None
+                
+                # specifications is already JSONB, no need to parse
+                
                 formatted_products.append(product_dict)
             
             cursor.close()
@@ -690,6 +822,101 @@ class DatabaseManager:
         except Exception as e:
             logger.error(f"Error reading sitemap file: {e}")
             return 4775  # Fallback to last known count
+
+    def _get_quality_stats_docker_exec(self, container_name: str) -> Dict[str, Any]:
+        """Get quality statistics using docker exec"""
+        try:
+            import subprocess
+            
+            # Simplified quality analysis using basic fields that exist in all databases
+            quality_sql = """
+                SELECT sku,
+                       CASE WHEN title IS NOT NULL AND title != '' THEN 1 ELSE 0 END +
+                       CASE WHEN brand IS NOT NULL AND brand != '' THEN 1 ELSE 0 END +
+                       CASE WHEN price_per_box IS NOT NULL OR price_per_sqft IS NOT NULL OR price_per_piece IS NOT NULL THEN 1 ELSE 0 END +
+                       CASE WHEN description IS NOT NULL AND description != '' THEN 1 ELSE 0 END +
+                       CASE WHEN size_shape IS NOT NULL AND size_shape != '' THEN 1 ELSE 0 END +
+                       CASE WHEN finish IS NOT NULL AND finish != '' THEN 1 ELSE 0 END +
+                       CASE WHEN coverage IS NOT NULL AND coverage != '' THEN 1 ELSE 0 END +
+                       CASE WHEN color IS NOT NULL AND color != '' THEN 1 ELSE 0 END +
+                       CASE WHEN primary_image IS NOT NULL AND primary_image != '' THEN 1 ELSE 0 END +
+                       CASE WHEN specifications IS NOT NULL AND CAST(specifications AS TEXT) != '{}' AND CAST(specifications AS TEXT) != '' THEN 1 ELSE 0 END
+                       as field_count
+                FROM product_data 
+                WHERE scraped_at > NOW() - INTERVAL '24 hours'
+                ORDER BY scraped_at DESC
+                LIMIT 50
+            """
+            
+            result = subprocess.run([
+                'docker', 'exec', container_name,
+                'psql', '-U', 'postgres', '-d', 'postgres',
+                '-t', '-c', quality_sql
+            ], capture_output=True, text=True, check=True)
+            
+            # Parse results
+            total_recent_products = 0
+            high_quality_products = 0
+            low_quality_products = 0
+            poor_products = []
+            
+            if result.stdout.strip():
+                lines = result.stdout.strip().split('\n')
+                for line in lines:
+                    if line.strip():
+                        parts = line.strip().split('|')
+                        if len(parts) >= 2:
+                            sku = parts[0].strip()
+                            try:
+                                field_count = int(parts[1].strip())
+                                total_recent_products += 1
+                                
+                                # Realistic quality scoring: require at least 4 out of 10 basic fields
+                                quality_threshold = 4
+                                
+                                if field_count >= quality_threshold:
+                                    high_quality_products += 1
+                                else:
+                                    low_quality_products += 1
+                                    if sku and sku != '':
+                                        poor_products.append(f"{sku} ({field_count}/10 fields)")
+                            except (ValueError, IndexError):
+                                # Skip malformed lines
+                                continue
+            
+            # Calculate quality percentage
+            quality_percentage = (high_quality_products / total_recent_products * 100) if total_recent_products > 0 else 100.0
+            
+            # Determine alert level
+            if quality_percentage >= 80:
+                alert_level = 'good'
+            elif quality_percentage >= 60:
+                alert_level = 'warning'
+            else:
+                alert_level = 'critical'
+            
+            return {
+                'success': True,
+                'total_recent_products': total_recent_products,
+                'high_quality_products': high_quality_products,
+                'low_quality_products': low_quality_products,
+                'quality_percentage': round(quality_percentage, 2),
+                'poor_products': poor_products,
+                'alert_level': alert_level
+            }
+            
+        except subprocess.CalledProcessError as e:
+            logger.error(f"Docker exec failed for quality stats: {e.stderr}")
+            return {
+                'success': False,
+                'error': f'Database query failed: {e.stderr}'
+            }
+        except Exception as e:
+            logger.error(f"Error getting quality stats via docker exec: {e}")
+            return {
+                'success': False,
+                'error': str(e)
+            }
 
     def get_product_by_sku(self, sku: str, db_type: str = 'relational_db') -> Dict[str, Any]:
         """Get product information by SKU"""

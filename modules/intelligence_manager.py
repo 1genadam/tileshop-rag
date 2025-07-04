@@ -13,15 +13,17 @@ import logging
 from typing import Dict, Any, Optional, Callable, List
 from datetime import datetime, timezone, timedelta
 
-# Set EST timezone globally for the project
-EST = timezone(timedelta(hours=-5))  # EST is UTC-5
-# For automatic EST/EDT handling, use pytz if available
+# Set Eastern timezone globally for the project
 try:
     import pytz
-    EST = pytz.timezone('US/Eastern')
+    EST = pytz.timezone('US/Eastern')  # Automatically handles EST/EDT
 except ImportError:
-    # Fallback to manual EST timezone
-    EST = timezone(timedelta(hours=-5))
+    # Fallback to manual timezone (currently EDT during summer)
+    import time
+    # Check if we're in daylight saving time
+    is_dst = time.daylight and time.localtime().tm_isdst > 0
+    offset_hours = -4 if is_dst else -5  # EDT is UTC-4, EST is UTC-5
+    EST = timezone(timedelta(hours=offset_hours))
 
 # Add parent directory to path for imports
 sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
@@ -40,6 +42,11 @@ class ScraperManager:
         'sitemap': {
             'script': 'acquire_from_sitemap.py',
             'description': 'Full sitemap acquisition with recovery',
+            'args': []
+        },
+        'category': {
+            'script': 'acquire_from_sitemap.py',
+            'description': 'Category-based acquisition with optimized parsing',
             'args': []
         }
     }
@@ -179,7 +186,7 @@ class ScraperManager:
             'prewarm_in_progress': self.prewarm_thread and self.prewarm_thread.is_alive()
         }
         
-    def start_acquisition(self, mode: str, limit: Optional[int] = None, fresh: bool = False) -> Dict[str, Any]:
+    def start_acquisition(self, mode: str, limit: Optional[int] = None, fresh: bool = False, batch_size: Optional[int] = None, category: Optional[str] = None) -> Dict[str, Any]:
         """Start data acquisition in specified mode"""
         if self.is_running:
             return {
@@ -205,6 +212,15 @@ class ScraperManager:
                 args.append(str(limit))
             if fresh:
                 args.append('--fresh')
+        elif mode == 'category':
+            if category:
+                args.extend(['--category', category])
+            if fresh:
+                args.append('--fresh')
+        
+        # Add batch size parameter if provided
+        if batch_size:
+            args.extend(['--batch-size', str(batch_size)])
         
         self.current_mode = mode
         self.current_args = args
@@ -267,6 +283,9 @@ class ScraperManager:
                 if line:
                     line_stripped = line.strip()
                     self._process_log_line(line_stripped)
+                    
+                    # Debug: Log every line to help diagnose issues
+                    logger.debug(f"Acquisition subprocess output: {line_stripped}")
                     
                     # Enhanced progress callback with detailed parsing
                     if self.progress_callback:
@@ -410,12 +429,20 @@ class ScraperManager:
     
     def _get_current_counter_value(self) -> int:
         """Get current counter value (seconds since last page read)"""
-        if not self.is_running or self.last_page_read_time is None:
+        if not self.is_running:
             return 0
-        
+            
         import time
         current_time = time.time()
-        return int(current_time - self.last_page_read_time)
+        
+        # If we have a last page read time, count from there
+        if self.last_page_read_time is not None:
+            return int(current_time - self.last_page_read_time)
+        # If we haven't read any pages yet but are running, count from start
+        elif self.start_time is not None:
+            return int(current_time - self.start_time.timestamp())
+        else:
+            return 0
     
     def _process_log_line(self, line: str):
         """Process log line and extract progress information"""
@@ -453,9 +480,11 @@ class ScraperManager:
             
             # Look for success patterns (broader patterns)
             success_patterns = [
-                '✓ saved product data', 'successfully extracted', 'success', 
+                '✓ saved product data', 'saved product data for:', 'successfully extracted', 'success', 
                 '✅ product scraped', 'completed successfully', 'saved to database',
-                'product data saved', 'extraction complete', 'successfully processed'
+                'product data saved', 'extraction complete', 'successfully processed',
+                'inserted product', 'data extraction complete', 'saved product',
+                'product stored', 'database insert', 'successfully saved'
             ]
             
             if any(pattern in line_lower for pattern in success_patterns):
@@ -582,6 +611,22 @@ class ScraperManager:
         if self.start_time:
             runtime = (datetime.now(EST) - self.start_time).total_seconds()
         
+        # Check scraper status file to get real-time status
+        scraper_is_running = self.is_running
+        try:
+            with open('/tmp/tileshop_scraper_status.json', 'r') as f:
+                scraper_status = json.load(f)
+                scraper_file_status = scraper_status.get('status', 'idle')
+                
+                # If scraper status file indicates processing, update is_running
+                if scraper_file_status in ['starting', 'processing']:
+                    scraper_is_running = True
+                elif scraper_file_status in ['completed', 'idle'] and not self.current_process:
+                    scraper_is_running = False
+        except (FileNotFoundError, json.JSONDecodeError, KeyError):
+            # Fall back to internal is_running state
+            pass
+        
         # Reprocess logs to ensure accurate statistics
         self._reprocess_logs_for_stats()
         
@@ -589,7 +634,7 @@ class ScraperManager:
         enhanced_stats = self._enhance_stats_with_sitemap()
         
         return {
-            'is_running': self.is_running,
+            'is_running': scraper_is_running,
             'mode': self.current_mode,
             'args': self.current_args,
             'start_time': self.start_time.isoformat() if self.start_time else None,
@@ -648,7 +693,7 @@ class ScraperManager:
             
             # Count successes (use same patterns as _process_log_line)
             success_patterns = [
-                '✓ saved product data', 'successfully extracted', 'success', 
+                '✓ saved product data', 'saved product data for:', 'successfully extracted', 'success', 
                 '✅ product scraped', 'completed successfully', 'saved to database',
                 'product data saved', 'extraction complete', 'successfully processed'
             ]
@@ -718,28 +763,50 @@ class ScraperManager:
                 pending_count = len([url for url in urls if url.get('scrape_status') == 'pending'])
                 failed_count = len([url for url in urls if url.get('scrape_status') == 'failed'])
                 
-                # Update enhanced stats with sitemap data
+                # Update enhanced stats with sitemap data - preserve real-time counts if higher
                 enhanced_stats['estimated_total'] = total_urls
-                enhanced_stats['success_count'] = completed_count
-                enhanced_stats['error_count'] = failed_count
-                enhanced_stats['products_processed'] = completed_count + failed_count
                 
-                # Calculate accurate progress percentage
-                if total_urls > 0:
-                    enhanced_stats['progress_percent'] = (completed_count / total_urls) * 100
+                # Use the higher of real-time log count vs sitemap count to prevent jumps
+                current_success = enhanced_stats.get('success_count', 0)
+                current_error = enhanced_stats.get('error_count', 0)
                 
-                # If scraper is running but no current URL from logs, try to get from sitemap
-                if self.is_running and not enhanced_stats['current_url']:
-                    # Find the first pending URL as likely current processing
-                    for url_data in urls:
-                        if url_data.get('scrape_status') == 'pending':
-                            enhanced_stats['current_url'] = url_data.get('url', '')
-                            break
+                # Only update counts if sitemap shows more progress (prevents backwards jumps)
+                if completed_count > current_success:
+                    logger.debug(f"Success count updated: {current_success} → {completed_count}")
+                    enhanced_stats['success_count'] = completed_count
+                if failed_count > current_error:
+                    logger.debug(f"Error count updated: {current_error} → {failed_count}")
+                    enhanced_stats['error_count'] = failed_count
                     
-                    if not enhanced_stats['current_url']:
-                        enhanced_stats['current_url'] = 'Starting scraper...'
-                elif not self.is_running:
-                    enhanced_stats['current_url'] = ''
+                enhanced_stats['products_processed'] = enhanced_stats['success_count'] + enhanced_stats['error_count']
+                
+                # Calculate accurate progress percentage using consistent success count
+                if total_urls > 0:
+                    enhanced_stats['progress_percent'] = (enhanced_stats['success_count'] / total_urls) * 100
+                
+                # Try to get current URL from scraper status file first
+                try:
+                    with open('/tmp/tileshop_scraper_status.json', 'r') as f:
+                        scraper_status = json.load(f)
+                        if self.is_running and scraper_status.get('current_url'):
+                            enhanced_stats['current_url'] = scraper_status['current_url']
+                        elif scraper_status.get('status') == 'starting':
+                            enhanced_stats['current_url'] = 'Starting scraper...'
+                        elif scraper_status.get('status') == 'processing' and scraper_status.get('current_url'):
+                            enhanced_stats['current_url'] = scraper_status['current_url']
+                except (FileNotFoundError, json.JSONDecodeError, KeyError):
+                    # Fall back to original logic if status file is not available
+                    if self.is_running and not enhanced_stats['current_url']:
+                        # Find the first pending URL as likely current processing
+                        for url_data in urls:
+                            if url_data.get('scrape_status') == 'pending':
+                                enhanced_stats['current_url'] = url_data.get('url', '')
+                                break
+                        
+                        if not enhanced_stats['current_url']:
+                            enhanced_stats['current_url'] = 'Starting scraper...'
+                    elif not self.is_running:
+                        enhanced_stats['current_url'] = ''
                     
         except Exception as e:
             logger.warning(f"Could not enhance stats with sitemap data: {e}")
@@ -807,3 +874,115 @@ class ScraperManager:
     def get_available_modes(self) -> Dict[str, Dict[str, str]]:
         """Get all available acquisition modes"""
         return self.ACQUISITION_MODES.copy()
+    
+    def learn_single_product(self, url: str, sku: str = 'Unknown') -> Dict[str, Any]:
+        """Learn a single product by URL"""
+        try:
+            logger.info(f"Starting single product learning for SKU {sku}: {url}")
+            
+            if self.is_running:
+                return {
+                    'success': False,
+                    'error': 'Acquisition system is currently running. Please wait for it to complete or stop it first.'
+                }
+            
+            # Prepare single URL for learning
+            self.is_running = True
+            self.stats = {
+                'total_processed': 0,
+                'successful': 0,
+                'errors': 0,
+                'start_time': datetime.now(EST).isoformat(),
+                'current_url': url
+            }
+            
+            # Update status file
+            self.update_scraper_status(url, 'processing')
+            
+            # Start subprocess for single product learning
+            try:
+                script_path = os.path.join(os.path.dirname(os.path.dirname(__file__)), 'tileshop_learner.py')
+                
+                # Use subprocess to run learning with specific URL
+                self.current_process = subprocess.Popen(
+                    [sys.executable, script_path, '--single-url', url],
+                    stdout=subprocess.PIPE,
+                    stderr=subprocess.STDOUT,
+                    universal_newlines=True,
+                    bufsize=1,
+                    cwd=os.path.dirname(os.path.dirname(__file__))
+                )
+                
+                # Monitor progress in background thread
+                def monitor_learning():
+                    try:
+                        for line in iter(self.current_process.stdout.readline, ''):
+                            if line:
+                                line_stripped = line.strip()
+                                logger.info(f"Single product learning: {line_stripped}")
+                                
+                                # Update stats based on output
+                                if 'saved product data' in line_stripped.lower():
+                                    self.stats['successful'] += 1
+                                elif 'error' in line_stripped.lower() or 'failed' in line_stripped.lower():
+                                    self.stats['errors'] += 1
+                                
+                                self.stats['total_processed'] += 1
+                        
+                        # Wait for completion
+                        return_code = self.current_process.wait()
+                        self.is_running = False
+                        
+                        if return_code == 0:
+                            self.update_scraper_status(None, 'idle')
+                            logger.info(f"Successfully completed learning for SKU {sku}")
+                        else:
+                            self.update_scraper_status(None, 'error')
+                            logger.error(f"Learning failed for SKU {sku} with return code {return_code}")
+                            
+                    except Exception as e:
+                        logger.error(f"Error in single product learning monitor: {e}")
+                        self.is_running = False
+                        self.update_scraper_status(None, 'error')
+                
+                # Start monitoring thread
+                monitor_thread = threading.Thread(target=monitor_learning, daemon=True)
+                monitor_thread.start()
+                
+                return {
+                    'success': True,
+                    'message': f'Started learning process for SKU {sku}. This will take 30-60 seconds.',
+                    'url': url,
+                    'sku': sku,
+                    'process_id': self.current_process.pid
+                }
+                
+            except Exception as e:
+                self.is_running = False
+                self.update_scraper_status(None, 'error')
+                return {
+                    'success': False,
+                    'error': f'Failed to start learning process: {str(e)}'
+                }
+                
+        except Exception as e:
+            logger.error(f"Error in learn_single_product: {e}")
+            self.is_running = False
+            return {
+                'success': False,
+                'error': f'Single product learning failed: {str(e)}'
+            }
+    
+    def update_scraper_status(self, current_url=None, status='idle'):
+        """Update scraper status file for dashboard communication"""
+        try:
+            status_file = '/tmp/tileshop_scraper_status.json'
+            status_data = {
+                'current_url': current_url or '',
+                'status': status,
+                'timestamp': datetime.now().isoformat()
+            }
+            with open(status_file, 'w') as f:
+                json.dump(status_data, f)
+        except Exception as e:
+            logger.error(f"Failed to update scraper status: {e}")

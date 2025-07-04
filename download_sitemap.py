@@ -108,6 +108,56 @@ def load_sitemap_data():
         print(f"✗ Failed to load sitemap data: {e}")
         return None
 
+def load_categorized_sitemap_data(category):
+    """Load sitemap data filtered by category"""
+    CATEGORIZED_SITEMAP_FILE = "categorized_sitemap.json"
+    
+    if not os.path.exists(CATEGORIZED_SITEMAP_FILE):
+        print(f"✗ Categorized sitemap file {CATEGORIZED_SITEMAP_FILE} not found")
+        print("  Run 'python categorize_sitemap.py' first to create categorized data")
+        return None
+    
+    try:
+        with open(CATEGORIZED_SITEMAP_FILE, 'r', encoding='utf-8') as f:
+            data = json.load(f)
+        
+        # Get category data
+        category_key = category.upper()
+        if category_key not in data['categorized_products']:
+            print(f"✗ Category '{category}' not found in categorized data")
+            available_categories = list(data['categorized_products'].keys())
+            print(f"  Available categories: {', '.join(available_categories)}")
+            return None
+        
+        category_urls = data['categorized_products'][category_key]
+        
+        # Convert to standard sitemap format
+        sitemap_data = {
+            'downloaded_at': datetime.now().isoformat(),
+            'total_urls': len(category_urls),
+            'status': 'ready',
+            'category': category,
+            'urls': []
+        }
+        
+        for product in category_urls:
+            url_data = {
+                'url': product['url'],
+                'lastmod': None,
+                'scraped_at': None,
+                'scrape_status': 'pending'
+            }
+            sitemap_data['urls'].append(url_data)
+        
+        print(f"✓ Loaded category '{category}' sitemap data")
+        print(f"  Category: {category}")
+        print(f"  Total URLs: {len(category_urls):,}")
+        
+        return sitemap_data
+    except (json.JSONDecodeError, KeyError) as e:
+        print(f"✗ Failed to load categorized sitemap data: {e}")
+        return None
+
 def update_url_status(url, status, error_msg=None):
     """Update the status of a specific URL in the sitemap file"""
     data = load_sitemap_data()

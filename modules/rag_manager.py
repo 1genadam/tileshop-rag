@@ -12,6 +12,13 @@ import glob
 from typing import Dict, List, Any, Optional
 from pathlib import Path
 
+try:
+    from .pdf_processor import PDFProcessor
+    PDF_KNOWLEDGE_BASE_AVAILABLE = True
+except ImportError:
+    PDFProcessor = None
+    PDF_KNOWLEDGE_BASE_AVAILABLE = False
+
 # Add parent directory for imports
 sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 
@@ -30,8 +37,10 @@ class RAGManager:
         self.conversation_history = []
         self.max_history = 50
         self.knowledge_base = {}
+        self.pdf_processor = None
         self._initialize_rag()
         self._load_knowledge_base()
+        self._initialize_pdf_knowledge_base()
     
     def _initialize_rag(self):
         """Initialize RAG system"""
@@ -95,8 +104,40 @@ class RAGManager:
             }
         
         try:
+            # Check if query might benefit from PDF knowledge base
+            pdf_results = []
+            query_lower = query.lower()
+            
+            # Keywords that suggest PDF knowledge base search
+            pdf_keywords = [
+                'install', 'installation', 'how to install',
+                'care', 'clean', 'cleaning', 'maintenance', 'maintain',
+                'warranty', 'guarantee', 'protection',
+                'specification', 'specs', 'technical', 'dimensions',
+                'guide', 'instructions', 'manual', 'steps'
+            ]
+            
+            if any(keyword in query_lower for keyword in pdf_keywords) and self.pdf_processor:
+                # Determine category based on query
+                category = None
+                if any(word in query_lower for word in ['install', 'installation']):
+                    category = 'installation_guide'
+                elif any(word in query_lower for word in ['care', 'clean', 'maintenance']):
+                    category = 'care_instructions'
+                elif any(word in query_lower for word in ['warranty', 'guarantee']):
+                    category = 'warranty_info'
+                elif any(word in query_lower for word in ['spec', 'technical', 'dimension']):
+                    category = 'specification_sheet'
+                
+                pdf_results = self.search_pdf_knowledge_base(query, category)
+            
             # Get response from RAG system
             response = self.rag_system.chat(query.strip())
+            
+            # Enhance response with PDF knowledge if available
+            if pdf_results:
+                enhanced_response = self._enhance_response_with_pdf_knowledge(response, pdf_results)
+                response = enhanced_response
             
             # Add to conversation history
             self._add_to_history(user_id, query, response)
@@ -105,6 +146,7 @@ class RAGManager:
                 'success': True,
                 'query': query,
                 'response': response,
+                'pdf_sources': len(pdf_results),
                 'timestamp': self._get_timestamp()
             }
             
@@ -333,6 +375,40 @@ class RAGManager:
             
         except Exception as e:
             logger.error(f"Error loading knowledge base: {e}")
+    
+    def _initialize_pdf_knowledge_base(self):
+        """Initialize PDF knowledge base processor"""
+        try:
+            if PDF_KNOWLEDGE_BASE_AVAILABLE:
+                self.pdf_processor = PDFProcessor()
+                logger.info("PDF knowledge base processor initialized")
+            else:
+                logger.warning("PDF knowledge base not available - install PyPDF2 and pdfplumber")
+        except Exception as e:
+            logger.error(f"Failed to initialize PDF knowledge base: {e}")
+    
+    def search_pdf_knowledge_base(self, query: str, category: Optional[str] = None) -> List[Dict]:
+        """Search PDF knowledge base for relevant content"""
+        if not self.pdf_processor:
+            return []
+        
+        try:
+            results = self.pdf_processor.search_knowledge_base(query, category)
+            return results
+        except Exception as e:
+            logger.error(f"Error searching PDF knowledge base: {e}")
+            return []
+    
+    def get_pdf_knowledge_summary(self) -> Dict:
+        """Get summary of PDF knowledge base"""
+        if not self.pdf_processor:
+            return {'total_documents': 0, 'categories': {}}
+        
+        try:
+            return self.pdf_processor.get_knowledge_base_summary()
+        except Exception as e:
+            logger.error(f"Error getting PDF knowledge summary: {e}")
+            return {'total_documents': 0, 'categories': {}}
     
     def _extract_title(self, content: str) -> str:
         """Extract title from markdown content"""
@@ -713,3 +789,27 @@ Would you like me to help you find tiles that meet these requirements?"""
         union = query_words.union(content_words)
         
         return len(intersection) / len(union) if union else 0
+    
+    def _enhance_response_with_pdf_knowledge(self, response: str, pdf_results: List[Dict]) -> str:
+        """Enhance RAG response with relevant PDF knowledge base content"""
+        if not pdf_results:
+            return response
+        
+        # Create enhanced response with PDF sources
+        enhanced_response = response + "\n\n**📚 Additional Resources from Installation Guides:**\n\n"
+        
+        for i, result in enumerate(pdf_results[:3], 1):  # Limit to top 3 results
+            enhanced_response += f"**{i}. {result['title']}** ({result['category']})\n"
+            
+            # Add matched sections
+            if result.get('matched_sections'):
+                for section in result['matched_sections'][:2]:  # Top 2 sections per document
+                    section_content = section.get('content', '')[:300]  # First 300 chars
+                    if section_content:
+                        enhanced_response += f"• {section.get('header', 'Section')}: {section_content}...\n"
+            
+            enhanced_response += "\n"
+        
+        enhanced_response += "_💡 For complete installation guides and detailed instructions, refer to the full documents above._"
+        
+        return enhanced_response
