@@ -96,6 +96,49 @@ Users → Dashboard (Flask) → curl_scraper.py → Database
 - **Real-time monitoring** of acquisition status
 - **Schema auto-scaling** (performance optimized)
 
+## 🔄 Process Inventory & Management
+
+### Dashboard Built-in Processes
+| **Process** | **Status** | **Resource Impact** | **When to Enable** |
+|-------------|------------|-------------------|-------------------|
+| **Background Status Updates** | ✅ Always Active | LOW | Required for dashboard |
+| **Integrated Monitoring System** | 🚫 Disabled (fast-boot) | MEDIUM | Production environments |
+| **Pre-warming System** | 🚫 On-demand only | HIGH (brief) | Before bulk operations |
+| **Audit Monitor** | 🚫 Disabled (fast-boot) | MEDIUM | During sitemap processing |
+
+### Standalone Monitoring Tools
+| **Script** | **Purpose** | **Usage** | **Resource Impact** |
+|------------|-------------|-----------|-------------------|
+| `monitor_sitemap.py` | Watch sitemap download progress | Manual execution | MEDIUM (300 API calls) |
+| `monitor_full_process.py` | Complete workflow monitoring | Production validation | HIGH (30min monitoring) |
+| `monitor_learning_start.py` | Learning process startup | Manual monitoring | MEDIUM (API polling) |
+| `monitor_live_download.py` | Live download progress | Real-time monitoring | MEDIUM (active polling) |
+| `audit_tile_data_extraction.py` | Data quality audit | Quality assurance | HIGH (full analysis) |
+| `schema_expansion_summary.py` | Schema analysis report | Documentation | LOW (report only) |
+
+### Process Usage Guidelines
+```bash
+# Fast startup (default - recommended)
+python3 reboot_dashboard.py  # Monitoring disabled for speed
+
+# Enable monitoring for production
+# Edit reboot_dashboard.py line 2189: start_integrated_monitoring()
+
+# Manual monitoring during operations
+python3 monitor_sitemap.py           # Watch sitemap downloads
+python3 monitor_full_process.py      # Full workflow validation
+python3 audit_tile_data_extraction.py  # Quality audit
+
+# On-demand system checks
+python3 db_connection_test.py        # Database health
+```
+
+### Performance Optimizations
+- **Fast-boot mode**: Monitoring disabled on startup for 5x faster initialization
+- **On-demand activation**: Heavy processes only run when explicitly needed
+- **Lightweight core**: Only essential WebSocket updates active by default
+- **Manual tools**: All monitoring scripts require explicit execution
+
 ## 📋 Troubleshooting
 
 For detailed issue resolution, see: [troubleshooting_guide.md](troubleshooting_guide.md)
