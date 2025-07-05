@@ -404,6 +404,9 @@
                         <button class="btn btn-primary btn-xs" id="download-sitemap-btn" onclick="downloadSitemap()" disabled>
                             <i class="fas fa-download"></i> Download Sitemap
                         </button>
+                        <button class="btn btn-secondary btn-xs" onclick="refreshSitemapStatus()" style="margin-left: 0.5rem;">
+                            <i class="fas fa-refresh"></i> Refresh
+                        </button>
                     </div>
                 </div>
             </div>
@@ -807,18 +810,15 @@
     let globalSitemapStats = null;
     
     function initPage() {
-        // Initial load and start periodic refresh
+        // Initial load and start periodic refresh (optimized for performance)
         loadDashboardData();
-        setInterval(loadDashboardData, 30000); // Refresh every 30 seconds
+        setInterval(loadDashboardData, 60000); // Refresh every 60 seconds (reduced frequency)
         
         // Initialize sitemap detection on page load
         detectSitemapOnLoad();
         
-        // Auto-start learning process after dashboard loads
-        setTimeout(function() {
-            console.log('Auto-starting learning process...');
-            startAcquisition();
-        }, 5000); // Wait 5 seconds for dashboard to load completely
+        // Auto-start disabled for faster dashboard loading
+        // Users can manually start learning when needed
         
         // Add URL input listener for automatic sitemap detection
         const urlInput = document.getElementById('target-url');
@@ -982,44 +982,38 @@
     }
     
     async function loadDashboardData() {
-        // Load Docker status
-        const dockerStatus = await apiCall('/api/docker/status');
-        if (dockerStatus.success) {
-            updateDockerStatus(dockerStatus.containers);
+        try {
+            // Load only essential data for better performance
+            
+            // Load acquisition status (most important for user)
+            const acquisitionStatus = await apiCall('/api/acquisition/status');
+            if (acquisitionStatus.success) {
+                updateAcquisitionStatus(acquisitionStatus.status);
+            }
+            
+            // Load sitemap status (important for learning)
+            const sitemapStatus = await apiCall('/api/acquisition/sitemap-status');
+            if (sitemapStatus.success) {
+                updateSitemapStats(sitemapStatus);
+            }
+            
+            // Load database stats (lightweight)
+            const dbStats = await apiCall('/api/database/stats');
+            if (dbStats.success && dbStats.stats.table_exists) {
+                updateDatabaseStats(dbStats.stats);
+            }
+            
+            // Load Docker status less frequently
+            if (Math.random() < 0.3) { // Only 30% of the time
+                const dockerStatus = await apiCall('/api/docker/status');
+                if (dockerStatus.success) {
+                    updateDockerStatus(dockerStatus.containers);
+                }
+            }
+            
+        } catch (error) {
+            console.error('Dashboard data loading error:', error);
         }
-        
-        // Load sync status
-        const syncStatus = await apiCall('/api/sync/status');
-        if (syncStatus.success) {
-            updateSyncStatus(syncStatus.status);
-        }
-        
-        // Load database stats
-        const dbStats = await apiCall('/api/database/stats');
-        if (dbStats.success && dbStats.stats.table_exists) {
-            updateDatabaseStats(dbStats.stats);
-        }
-        
-        // Load acquisition status
-        const acquisitionStatus = await apiCall('/api/acquisition/status');
-        if (acquisitionStatus.success) {
-            updateAcquisitionStatus(acquisitionStatus.status);
-        }
-        
-        // Load system stats
-        const systemStats = await apiCall('/api/system/stats');
-        if (systemStats.success) {
-            updateSystemStats(systemStats.stats);
-        }
-        
-        // Load sitemap status
-        const sitemapStatus = await apiCall('/api/acquisition/sitemap-status');
-        if (sitemapStatus.success) {
-            updateSitemapStats(sitemapStatus);
-        }
-        
-        // Load category selection data
-        await loadCategorySelectionData();
     }
     
     function updateDockerStatus(containers) {
@@ -1238,9 +1232,25 @@
         
         const stats = sitemapData.stats;
         
-        // Update download progress if download is complete
-        if (sitemapData.download_complete && sitemapData.download_progress) {
-            updateSitemapProgress('completed', sitemapData.download_progress, sitemapData.message || 'Download complete');
+        // Update sitemap download progress display to match backend status
+        if (sitemapData.download_complete && sitemapData.download_progress === 100) {
+            updateSitemapProgress('completed', 100, sitemapData.message || 'Download complete');
+        } else if (sitemapData.download_progress > 0) {
+            updateSitemapProgress('downloading', sitemapData.download_progress, sitemapData.message || 'Downloading...');
+        }
+        
+        // Update sitemap URL display if we have a source URL from the downloaded sitemap
+        if (stats && stats.source_url) {
+            const sitemapDisplay = document.getElementById('sitemap-url');
+            const sitemapStatus = document.getElementById('sitemap-status');
+            const downloadBtn = document.getElementById('download-sitemap-btn');
+            
+            if (sitemapDisplay && sitemapDisplay.textContent.includes('Enter URL above')) {
+                sitemapDisplay.textContent = stats.source_url;
+                sitemapDisplay.style.color = '#10b981';
+                if (sitemapStatus) sitemapStatus.innerHTML = `<span style="color: #10b981;">✓ Sitemap found</span>`;
+                if (downloadBtn) downloadBtn.disabled = false;
+            }
         }
         
         // Store stats globally for use by other functions
@@ -2542,6 +2552,21 @@ Status: ${comp.is_in_sync ? 'In Sync' : 'Out of Sync'}`;
         const typingDiv = document.getElementById(typingId);
         if (typingDiv) {
             typingDiv.remove();
+        }
+    }
+    
+    // Refresh sitemap status to sync frontend with backend
+    async function refreshSitemapStatus() {
+        try {
+            const sitemapStatus = await apiCall('/api/acquisition/sitemap-status');
+            if (sitemapStatus.success) {
+                updateSitemapStats(sitemapStatus);
+                showAlert('Sitemap status refreshed', 'success');
+            } else {
+                showAlert('Failed to refresh sitemap status', 'error');
+            }
+        } catch (error) {
+            showAlert('Error refreshing sitemap status: ' + error.message, 'error');
         }
     }
     

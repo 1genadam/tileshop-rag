@@ -20,6 +20,7 @@ class EnhancedSpecificationExtractor:
         return {
             # Dimensions & Physical Properties
             "thickness": [
+                r'"PDPInfo_Thickness"[^}]*"Value"\s*:\s*"([^"]+)"',
                 r'Thickness[:\s]*([0-9.]+\s*mm)',
                 r'"thickness"[:\s]*"([^"]+)"',
                 r'Thickness:\s*([^<\n,]+)',
@@ -98,6 +99,18 @@ class EnhancedSpecificationExtractor:
                 r'"installationMethod"[:\s]*"([^"]+)"',
                 r'Installation[:\s]*([^<\n,]+)',
             ],
+            "finish": [
+                r'"PDPInfo_Finish"[^}]*"Value"\s*:\s*"([^"]+)"',
+                r'Finish[:\s]*([^<\n,]+)',
+                r'"finish"[:\s]*"([^"]+)"',
+                r'Surface Finish[:\s]*([^<\n,]+)',
+            ],
+            "recommended_grout": [
+                r'"PDPInfo_RecommendedGrout"[^}]*"Value"\s*:\s*"([^"]+)"',
+                r'Recommended Grout[:\s]*([^<\n,]+)',
+                r'"recommendedGrout"[:\s]*"([^"]+)"',
+                r'Grout[:\s]*([^<\n,]+)',
+            ],
             # Design Properties  
             "texture": [
                 r'Texture[:\s]*([^<\n,]+)',
@@ -118,9 +131,14 @@ class EnhancedSpecificationExtractor:
     def _build_generic_patterns(self) -> List[str]:
         """Build patterns for auto-detecting unknown specification fields"""
         return [
-            # Tileshop-specific PDPInfo patterns
+            # Tileshop-specific PDPInfo patterns - PRIORITY PATTERNS
             r'"PDPInfo_([^"]+)"[^}]*"Value"\s*:\s*"([^"]+)"',
             r'"Key"\s*:\s*"PDPInfo_([^"]+)"[^}]*"Value"\s*:\s*"([^"]+)"',
+            
+            # Specific field patterns for known issues
+            r'"PDPInfo_Thickness"[^}]*"Value"\s*:\s*"([^"]+)"',
+            r'"PDPInfo_Finish"[^}]*"Value"\s*:\s*"([^"]+)"',
+            r'"PDPInfo_RecommendedGrout"[^}]*"Value"\s*:\s*"([^"]+)"',
             
             # Standard specification patterns
             r'([A-Z][a-z]+(?: [A-Z][a-z]+)*)\s*:\s*([^<\n,]{1,50})',
@@ -233,7 +251,7 @@ class EnhancedSpecificationExtractor:
         if len(field_name) > 50 or len(field_value) > 200:
             return False
         
-        # Skip common non-specification patterns
+        # Skip common non-specification patterns and corrupted data
         invalid_patterns = [
             'class', 'id', 'href', 'src', 'alt', 'title', 'data',
             'script', 'style', 'meta', 'link', 'button', 'input',
@@ -250,9 +268,26 @@ class EnhancedSpecificationExtractor:
             'status', 'locale', 'language', 'hostname', 'version'
         ]
         
+        # Additional patterns for corrupted/HTML data
+        corrupted_patterns = [
+            '-care/installation/tools', 'Asset_Grid_All_V2', '_Detail:',
+            'Installation Guidelines', 'Samples Sent to', 'Piece Count',
+            'Commercial Warranty', 'Frost Resistance', 'Wear Layer', 
+            'External Links', 'Image', '/>', 'ed', 'Application',
+            'Refresh Project', 'Color', 'Material', 'DesignInstallation'
+        ]
+        
         field_lower = field_name.lower()
+        value_lower = field_value.lower()
+        
+        # Check field name for invalid patterns
         for invalid in invalid_patterns:
             if invalid in field_lower:
+                return False
+        
+        # Check field value for corrupted patterns
+        for corrupted in corrupted_patterns:
+            if corrupted.lower() in value_lower:
                 return False
         
         # Only allow specification-like field names
@@ -271,8 +306,7 @@ class EnhancedSpecificationExtractor:
             return False
         
         # Skip values that look like HTML/URLs/JS
-        value_lower = field_value.lower()
-        if any(char in value_lower for char in ['<', '>', '{', '}', 'function', 'var ', 'http']):
+        if any(char in value_lower for char in ['<', '>', '{', '}', 'function', 'var ', 'http', '"']):
             return False
         
         # Skip very long values that are likely descriptions

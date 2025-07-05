@@ -107,6 +107,9 @@ class TilePageParser(BaseProductParser):
             if key not in product_data or not product_data[key]:
                 product_data[key] = value
         
+        # Apply per-piece pricing logic for products like mortar, adhesive, etc.
+        self._apply_per_piece_pricing_logic(product_data, html_content)
+        
         return product_data
     
     def _extract_from_json_ld_primary(self, json_ld_data: Dict, url: str) -> Dict[str, Any]:
@@ -118,6 +121,7 @@ class TilePageParser(BaseProductParser):
             'brand': None,
             'price_per_box': None,
             'price_per_sqft': None,
+            'price_per_piece': None,
             'coverage': None,
             'size_shape': None,
             'material': None,
@@ -201,6 +205,61 @@ class TilePageParser(BaseProductParser):
                 break
         
         return tile_data
+    
+    def _apply_per_piece_pricing_logic(self, product_data: Dict[str, Any], html_content: str) -> None:
+        """Apply per-piece pricing logic for products like mortar, adhesive, grout, etc."""
+        # Detect if this is a per-piece product type
+        per_piece_keywords = [
+            'corner shelf', 'shelf', 'trim', 'edge', 'transition', 'quarter round',
+            'bullnose', 'pencil', 'liner', 'chair rail', 'border', 'listello',
+            'accent', 'medallion', 'insert', 'dot', 'deco', 'rope', 'crown',
+            'base', 'molding', 'strip', 'piece', 'individual', 'mortar', 'adhesive',
+            'grout', 'sealer', 'cleaner', 'bag', 'bottle', 'tube', 'container'
+        ]
+        
+        product_title = (product_data.get('title') or '').lower()
+        is_per_piece_product = any(keyword in product_title for keyword in per_piece_keywords)
+        
+        # Detect per-unit pricing patterns in HTML content
+        per_unit_patterns = [
+            r'/each\b', r'per\s*each\b', r'/bag\b', r'per\s*bag\b', r'/bottle\b', r'per\s*bottle\b',
+            r'/tube\b', r'per\s*tube\b', r'/container\b', r'per\s*container\b', r'/piece\b', r'per\s*piece\b'
+        ]
+        
+        has_per_unit = any(re.search(pattern, html_content, re.IGNORECASE) for pattern in per_unit_patterns)
+        
+        # If we have per-unit pattern OR it's a per-piece product type, handle pricing accordingly
+        if has_per_unit or is_per_piece_product:
+            print(f"🔹 TilePageParser: Detected per-piece product (has_per_unit: {has_per_unit}, is_per_piece_type: {is_per_piece_product})")
+            
+            # Extract per-piece pricing patterns
+            per_piece_patterns = [
+                r'\$([0-9,]+\.?\d*)/each\b',
+                r'\$([0-9,]+\.?\d*)\s*/\s*each\b',
+                r'\$([0-9,]+\.?\d*)\s*per\s*piece\b',
+                r'\$([0-9,]+\.?\d*)/bag\b',
+                r'\$([0-9,]+\.?\d*)\s*/\s*bag\b',
+                r'\$([0-9,]+\.?\d*)\s*per\s*bag\b',
+                r'\$([0-9,]+\.?\d*)/bottle\b',
+                r'\$([0-9,]+\.?\d*)\s*/\s*bottle\b',
+                r'\$([0-9,]+\.?\d*)\s*per\s*bottle\b',
+                r'\$([0-9,]+\.?\d*)/tube\b',
+                r'\$([0-9,]+\.?\d*)\s*/\s*tube\b',
+                r'\$([0-9,]+\.?\d*)\s*per\s*tube\b',
+            ]
+            
+            for pattern in per_piece_patterns:
+                price_piece_match = re.search(pattern, html_content, re.IGNORECASE)
+                if price_piece_match:
+                    product_data['price_per_piece'] = float(price_piece_match.group(1).replace(',', ''))
+                    print(f"TilePageParser: Found price per piece in HTML: ${product_data['price_per_piece']}")
+                    break
+            
+            # If we found per-unit pattern but no explicit per-piece price, use price_per_box as price_per_piece
+            if not product_data.get('price_per_piece') and product_data.get('price_per_box') and has_per_unit:
+                product_data['price_per_piece'] = product_data['price_per_box']
+                product_data['price_per_box'] = None  # Clear box price since this is per-piece pricing
+                print(f"TilePageParser: Per-piece product detected: price_per_piece=${product_data['price_per_piece']}, cleared price_per_box")
 
 class GroutPageParser(BaseProductParser):
     """Specialized parser for grout product pages"""

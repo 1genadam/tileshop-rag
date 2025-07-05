@@ -1224,23 +1224,27 @@ def extract_product_data(crawl_results, base_url, category=None):
             break
     
     # NEW: Detect per-piece pricing
-    # Check for /each pattern in HTML
+    # Check for per-unit patterns in HTML
     has_per_each = bool(re.search(r'/each', main_html, re.IGNORECASE))
+    has_per_bag = bool(re.search(r'/bag', main_html, re.IGNORECASE))
+    has_per_unit = has_per_each or has_per_bag
+    print(f"🔍 Per-unit detection: has_per_each={has_per_each}, has_per_bag={has_per_bag}, has_per_unit={has_per_unit}")
     
     # Identify per-piece product types
     per_piece_keywords = [
         'corner shelf', 'shelf', 'trim', 'edge', 'transition', 'quarter round',
         'bullnose', 'pencil', 'liner', 'chair rail', 'border', 'listello',
         'accent', 'medallion', 'insert', 'dot', 'deco', 'rope', 'crown',
-        'base', 'molding', 'strip', 'piece', 'individual'
+        'base', 'molding', 'strip', 'piece', 'individual', 'mortar', 'adhesive',
+        'grout', 'sealer', 'cleaner', 'bag', 'bottle', 'tube', 'container'
     ]
     
     product_title = (data.get('title') or '').lower()
     is_per_piece_product = any(keyword in product_title for keyword in per_piece_keywords)
     
-    # If we have /each pattern OR it's a per-piece product type, handle pricing accordingly
-    if has_per_each or is_per_piece_product:
-        print(f"🔹 Detected per-piece product (has_per_each: {has_per_each}, is_per_piece_type: {is_per_piece_product})")
+    # If we have per-unit pattern OR it's a per-piece product type, handle pricing accordingly
+    if has_per_unit or is_per_piece_product:
+        print(f"🔹 Detected per-piece product (has_per_each: {has_per_each}, has_per_bag: {has_per_bag}, is_per_piece_type: {is_per_piece_product})")
         
         # Extract per-piece pricing patterns
         per_piece_patterns = [
@@ -1249,6 +1253,10 @@ def extract_product_data(crawl_results, base_url, category=None):
             r'([0-9,]+\.?\d*)\s*/\s*each',
             r'\$([0-9,]+\.?\d*)\s*per\s*piece',
             r'([0-9,]+\.?\d*)\s*per\s*piece',
+            r'\$([0-9,]+\.?\d*)/bag',
+            r'\$([0-9,]+\.?\d*)\s*/\s*bag',
+            r'([0-9,]+\.?\d*)\s*/\s*bag',
+            r'\$([0-9,]+\.?\d*)\s*per\s*bag',
         ]
         
         for pattern in per_piece_patterns:
@@ -1258,10 +1266,11 @@ def extract_product_data(crawl_results, base_url, category=None):
                 print(f"Found price per piece in HTML: ${data['price_per_piece']}")
                 break
         
-        # If we found /each but no explicit per-piece pattern, use price_per_box as price_per_piece
-        if not data.get('price_per_piece') and data.get('price_per_box') and has_per_each:
+        # If we found per-unit pattern but no explicit per-piece price, use price_per_box as price_per_piece
+        if not data.get('price_per_piece') and data.get('price_per_box') and has_per_unit:
             data['price_per_piece'] = data['price_per_box']
-            print(f"Using price_per_box as price_per_piece: ${data['price_per_piece']}")
+            data['price_per_box'] = None  # Clear box price since this is per-piece pricing
+            print(f"Per-piece product detected: price_per_piece=${data['price_per_piece']}, cleared price_per_box")
     
     # Extract coverage - IMPROVED
     coverage_patterns = [

@@ -115,6 +115,7 @@ class DatabaseSyncManager:
                     title TEXT,
                     price_per_box DECIMAL(10,2),
                     price_per_sqft DECIMAL(10,2),
+                    price_per_piece DECIMAL(10,2),
                     coverage TEXT,
                     finish TEXT,
                     color TEXT,
@@ -130,7 +131,9 @@ class DatabaseSyncManager:
                     collection_links TEXT,
                     brand VARCHAR(100),
                     primary_image TEXT,
-                    image_variants JSONB
+                    image_variants JSONB,
+                    thickness VARCHAR(20),
+                    recommended_grout VARCHAR(100)
                 );
             """
             

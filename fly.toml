@@ -1,41 +1,65 @@
+# Fly.io configuration for Tileshop RAG production deployment
 app = "tileshop-rag"
+primary_region = "ord"
+kill_signal = "SIGTERM"
+kill_timeout = "30s"
+
+[experimental]
+  cmd = ["gunicorn", "--config", "gunicorn.conf.py", "reboot_dashboard:app"]
 
 [build]
   dockerfile = "Dockerfile"
 
 [env]
-  PORT = "8080"
+  NODE_ENV = "production"
   FLASK_ENV = "production"
+  PORT = "8080"
   DEBUG = "false"
+  PYTHONUNBUFFERED = "1"
 
-[[vm]]
-  memory = "2gb"
-  cpu_kind = "shared"
-  cpus = 1
-  swap_size_mb = 512
+# Persistent storage for scraped data and logs
+[[mounts]]
+  source = "tileshop_data"
+  destination = "/app/storage"
+  initial_size = "50gb"
 
+# HTTP service configuration optimized for Tileshop RAG
 [http_service]
   internal_port = 8080
   force_https = true
-  auto_stop_machines = false
+  auto_stop_machines = true
   auto_start_machines = true
   min_machines_running = 1
   processes = ["app"]
 
   [[http_service.checks]]
-    interval = "30s"
-    timeout = "10s"
     grace_period = "30s"
+    interval = "15s"
     method = "GET"
     path = "/api/system/health"
-    protocol = "http"
+    port = 8080
+    timeout = "10s"
+    type = "http"
 
-[[mounts]]
-  source = "tileshop_data"
-  destination = "/app/data"
+# Resource allocation optimized for data processing workloads
+[vm]
+  cpu_kind = "shared"
+  cpus = 2
+  memory = "4gb"
 
+# Process configuration
+[[processes]]
+  name = "app"
+  entrypoint = ["gunicorn", "--config", "gunicorn.conf.py", "reboot_dashboard:app"]
+
+# Machine configuration for auto-scaling
+[machine]
+  restart_policy = "on-failure"
+
+# Console command support
+[console]
+  command = "/bin/sh"
+
+# Deploy configuration
 [deploy]
-  strategy = "immediate"
-
-[processes]
-  app = "poetry run gunicorn --bind 0.0.0.0:8080 --workers 2 --threads 2 --timeout 120 --worker-class gthread --worker-tmp-dir /dev/shm --preload --max-requests 1000 --max-requests-jitter 50 --access-logfile - --error-logfile - admin_dashboard:app"
+  strategy = "rolling"

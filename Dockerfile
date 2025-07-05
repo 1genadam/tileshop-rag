@@ -1,85 +1,78 @@
-FROM python:3.11-slim
+# Multi-stage build for Tileshop RAG production deployment
+FROM python:3.11-slim AS base
 
-# Install system dependencies
+# Set working directory
+WORKDIR /app
+
+# Install system dependencies required for Python packages and web scraping
 RUN apt-get update && apt-get install -y \
     gcc \
     python3-dev \
     libc6-dev \
     libpq-dev \
+    libxml2-dev \
+    libxslt1-dev \
     curl \
+    ca-certificates \
     && rm -rf /var/lib/apt/lists/*
 
+# Copy requirements first for better caching
+COPY requirements.txt ./
+
+# Install Python dependencies
+RUN pip install --no-cache-dir -r requirements.txt
+
+# Production stage
+FROM python:3.11-slim AS production
+
+# Install runtime dependencies
+RUN apt-get update && apt-get install -y \
+    libpq5 \
+    libxml2 \
+    libxslt1.1 \
+    curl \
+    ca-certificates \
+    && rm -rf /var/lib/apt/lists/*
+
+# Create non-root user for security
+RUN useradd -m -s /bin/bash tileshop
+
+# Set working directory
 WORKDIR /app
 
-# Create a non-root user
-RUN useradd -m appuser
+# Copy installed packages from base stage
+COPY --from=base /usr/local/lib/python3.11/site-packages /usr/local/lib/python3.11/site-packages
+COPY --from=base /usr/local/bin /usr/local/bin
 
-# Create and set permissions for data directories
-RUN mkdir -p instance data logs && \
-    chown -R appuser:appuser instance data logs && \
-    chmod 755 instance data logs
+# Create directories with proper permissions
+RUN mkdir -p /app/storage /app/logs /app/temp /app/instance && \
+    chown -R tileshop:tileshop /app
 
-# Install poetry and add to PATH
-ENV POETRY_HOME=/opt/poetry
-RUN curl -sSL https://install.python-poetry.org | python3 - && \
-    cd /usr/local/bin && \
-    ln -s /opt/poetry/bin/poetry && \
-    poetry --version
+# Copy application code
+COPY --chown=tileshop:tileshop . .
 
-# Copy poetry files
-COPY pyproject.toml poetry.lock ./
+# Copy production configuration files
+COPY --chown=tileshop:tileshop gunicorn.conf.py ./
+COPY --chown=tileshop:tileshop health_check.py ./
 
-# Install dependencies
-RUN poetry config virtualenvs.create false \
-    && poetry install --no-interaction --no-ansi --no-root
+# Create volume mount points for persistent data
+VOLUME ["/app/storage", "/app/logs"]
 
-# Copy app files
-COPY . .
+# Switch to non-root user
+USER tileshop
 
-# Remove unnecessary files for production
-RUN rm -rf \
-    __pycache__/ \
-    *.pyc \
-    *.pyo \
-    *.pyd \
-    .Python \
-    env/ \
-    venv/ \
-    .venv/ \
-    pip-wheel-metadata/ \
-    .pytest_cache/ \
-    .coverage \
-    .git/ \
-    debug_*.py \
-    test_*.py \
-    *.log \
-    recovery_*.json \
-    sitemap.xml
-
-# Set ownership
-RUN chown -R appuser:appuser /app
-
-USER appuser
+# Set environment variables
 ENV PYTHONUNBUFFERED=1
 ENV FLASK_ENV=production
 ENV PORT=8080
+ENV PYTHONDONTWRITEBYTECODE=1
+
+# Expose the application port
 EXPOSE 8080
 
-# Add health check
-HEALTHCHECK --interval=30s --timeout=10s --start-period=40s --retries=3 \
+# Health check
+HEALTHCHECK --interval=30s --timeout=10s --start-period=5s --retries=3 \
     CMD curl -f http://localhost:8080/api/system/health || exit 1
 
-# Production command with gunicorn via poetry
-CMD ["poetry", "run", "gunicorn", \
-     "--bind", "0.0.0.0:8080", \
-     "--workers", "2", \
-     "--threads", "2", \
-     "--timeout", "120", \
-     "--worker-class", "gthread", \
-     "--worker-tmp-dir", "/dev/shm", \
-     "--preload", \
-     "--max-requests", "1000", \
-     "--max-requests-jitter", "50", \
-     "--access-logfile", "-", \
-     "--error-logfile", "-", \
-     "admin_dashboard:app"]
+# Start the application with Gunicorn
+CMD ["gunicorn", "--config", "gunicorn.conf.py", "reboot_dashboard:app"]

@@ -357,7 +357,7 @@ def scraper_dependencies():
         return jsonify({'success': False, 'error': str(e)})
 
 @app.route('/api/acquisition/detect-sitemap', methods=['POST'])
-def detect_sitemap():
+def detect_sitemap_api():
     """Detect sitemap URL for a given domain"""
     try:
         data = request.get_json()
@@ -424,7 +424,7 @@ def detect_sitemap():
         return jsonify({'success': False, 'message': f'Error detecting sitemap: {str(e)}'})
 
 @app.route('/api/acquisition/download-sitemap', methods=['POST'])
-def download_sitemap():
+def download_sitemap_api():
     """Download and process sitemap with progress updates"""
     try:
         data = request.get_json()
@@ -1889,27 +1889,25 @@ def handle_status_request():
 
 # Background task for periodic updates
 def background_status_updates():
-    """Send periodic status updates to connected clients"""
+    """Send periodic status updates to connected clients (optimized for performance)"""
     while True:
         try:
             if socketio.server.manager.rooms:  # Only if clients connected
-                # Get current status
-                docker_status = docker_manager.get_required_containers_status()
-                system_resources = docker_manager.get_system_resources()
-                scraper_status = acquisition_manager.get_status()
-                
-                socketio.emit('status_update', {
-                    'docker': docker_status,
-                    'system': system_resources,
-                    'scraper': scraper_status,
-                    'timestamp': datetime.now().isoformat()
-                })
+                # Simplified status updates - only essential data
+                try:
+                    scraper_status = acquisition_manager.get_status()
+                    socketio.emit('status_update', {
+                        'scraper': scraper_status,
+                        'timestamp': datetime.now().isoformat()
+                    })
+                except Exception as e:
+                    logger.debug(f"Status update error: {e}")
             
-            time.sleep(5)  # Update every 5 seconds
+            time.sleep(15)  # Update every 15 seconds (reduced frequency)
             
         except Exception as e:
             logger.error(f"Error in background updates: {e}")
-            time.sleep(10)  # Wait longer on error
+            time.sleep(30)  # Wait longer on error
 
 # Git Auto-Push API Endpoints
 @app.route('/api/git/status')
@@ -2182,18 +2180,13 @@ if __name__ == '__main__':
     os.makedirs('templates', exist_ok=True)
     os.makedirs('static', exist_ok=True)
     
-    # Start background status updates
+    # Start background status updates with reduced frequency
     update_thread = threading.Thread(target=background_status_updates, daemon=True)
     update_thread.start()
     
-    # Start pre-warming initialization for instant learning
-    logger.info("Starting pre-warming initialization for learning system...")
-    acquisition_manager.start_prewarm()
-    
-    # Start integrated monitoring system
-    logger.info("Starting integrated monitoring system...")
-    monitoring_thread = threading.Thread(target=start_integrated_monitoring, daemon=True)
-    monitoring_thread.start()
+    # Skip pre-warming and monitoring on startup for faster boot
+    # These will be started on-demand when needed
+    logger.info("Dashboard starting in fast-boot mode - monitoring disabled")
     
     # Check for production mode
     production_mode = os.getenv('PRODUCTION', '').lower() in ['true', '1', 'yes']

@@ -1,0 +1,120 @@
+# Git
+.git/
+.gitignore
+
+# Python
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+.Python
+build/
+develop-eggs/
+dist/
+downloads/
+eggs/
+.eggs/
+lib/
+lib64/
+parts/
+sdist/
+var/
+wheels/
+*.egg-info/
+.installed.cfg
+*.egg
+MANIFEST
+
+# Virtual environments
+.env
+.venv
+env/
+venv/
+ENV/
+env.bak/
+venv.bak/
+
+# IDEs
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+
+# OS
+.DS_Store
+.DS_Store?
+._*
+.Spotlight-V100
+.Trashes
+ehthumbs.db
+Thumbs.db
+
+# Logs and databases
+*.log
+*.db
+*.sqlite
+*.sqlite3
+dashboard.log
+recovery_*.json
+
+# Test files
+test_*.py
+debug_*.py
+*_test.py
+.pytest_cache/
+.coverage
+htmlcov/
+
+# Documentation (keep only essential)
+*.md
+!README.md
+reports/
+dev_roadmap.md
+flyio-deployment-roadmap.md
+
+# Temporary files
+temp/
+tmp/
+.tmp/
+*.tmp
+
+# Data files (will be mounted as volumes)
+tileshop_sitemap.json
+categorized_sitemap.json
+category_selection.json
+extracted_content.json
+output.json
+
+# Scripts and utilities (not needed in production)
+extract_html.sh
+reboot_dashboard.sh
+start_dashboard.sh
+nginx-proxy.conf
+
+# Development and analysis files
+analyze_specs.py
+inspect_tabs.py
+monitor_*.py
+extract_*_examples.py
+check_missing_fields.py
+discover_missing_data.py
+categorize_sitemap.py
+download_sitemap.py
+parsing_monitor_log.md
+missing_data_summary.md
+tileshop_product_page_analysis.md
+
+# Backup and recovery files
+*_backup.py
+recovery_checkpoint.json
+simple_rag_backup.py
+sync_manager_backup.py
+
+# HTML templates (keep only production ones)
+temp_dashboard.html
+chat_backup.html
+
+# Deployment files for other platforms
+Procfile
+deploy.py

@@ -90,6 +90,13 @@ def scrape_product_with_curl(url):
     print("  🔍 Extracting product data...")
     product_data = extract_product_data(crawl_results, url)
     
+    # Show pricing breakdown for verification
+    if product_data:
+        print(f"  💰 Pricing extracted:")
+        print(f"     price_per_box: ${product_data.get('price_per_box', 'None')}")
+        print(f"     price_per_piece: ${product_data.get('price_per_piece', 'None')}")
+        print(f"     price_per_sqft: ${product_data.get('price_per_sqft', 'None')}")
+    
     return product_data
 
 def scrape_products_with_curl(urls, delay_range=(10, 20)):
