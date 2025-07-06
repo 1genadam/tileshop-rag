@@ -1186,6 +1186,12 @@
                 updateDatabaseStats(dbStats.stats);
             }
             
+            // Load system statistics
+            const systemStats = await apiCall('/api/system/stats');
+            if (systemStats.success) {
+                updateSystemStats(systemStats.stats);
+            }
+            
             // Load Docker status less frequently
             if (Math.random() < 0.3) { // Only 30% of the time
                 const dockerStatus = await apiCall('/api/docker/status');
