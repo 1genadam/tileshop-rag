@@ -1174,6 +1174,12 @@
                 updateSitemapStats(sitemapStatus);
             }
             
+            // Load database sync status
+            const syncStatus = await apiCall('/api/sync/status');
+            if (syncStatus.success) {
+                updateSyncStatus(syncStatus.status);
+            }
+            
             // Load database stats (lightweight)
             const dbStats = await apiCall('/api/database/stats');
             if (dbStats.success && dbStats.stats.table_exists) {
@@ -2277,7 +2283,11 @@
                 'Unknown';
                 
             targetStatus.textContent = target ? 
-                (target.connected ? `✓ Connected (${target.product_count} products)` : `✗ ${target.message}`) :
+                (target.connected ? 
+                    (target.embeddings_count !== undefined ? 
+                        `✓ Connected (${target.embeddings_count} embeddings, ${target.documents_count} docs)` : 
+                        `✓ Connected (${target.product_count} products)`) 
+                    : `✗ ${target.message}`) :
                 'Unknown';
                 
             syncReady.textContent = status.ready_to_sync ? '✓ Ready' : '✗ Not Ready';
