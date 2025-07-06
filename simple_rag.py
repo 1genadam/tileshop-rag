@@ -406,7 +406,7 @@ class SimpleTileShopRAG:
             return self._search_products_text_fallback(query, limit)
     
     def _search_products_text_fallback(self, query: str, limit: int = 3) -> List[Dict[str, Any]]:
-        """Fallback text search using product_embeddings table content"""
+        """Enhanced text search using both product_embeddings and product_data for complete results with images"""
         try:
             # Split query into individual terms for better matching
             query_terms = query.lower().split()
@@ -424,10 +424,10 @@ class SimpleTileShopRAG:
             # Create simpler WHERE clause with multiple terms
             where_conditions = []
             for term in query_terms:
-                if term not in ['under', '$', 'list', 'find', 'suggest', 'best'] and len(term) > 2:
+                if term not in ['under', '$', 'list', 'find', 'suggest', 'best', 'the', 'for'] and len(term) > 2:
                     # Escape single quotes for SQL
                     escaped_term = term.replace("'", "''")
-                    where_conditions.append(f"(LOWER(title) LIKE '%{escaped_term}%' OR LOWER(content) LIKE '%{escaped_term}%')")
+                    where_conditions.append(f"(LOWER(pe.title) LIKE '%{escaped_term}%' OR LOWER(pe.content) LIKE '%{escaped_term}%')")
             
             if not where_conditions:
                 return []
@@ -438,32 +438,33 @@ class SimpleTileShopRAG:
             non_tile_terms = ['lft', 'thinset', 'mortar', 'adhesive', 'grout', 'sealer']
             is_non_tile_query = any(term in query.lower() for term in non_tile_terms)
             
-            # Simple search with better relevance ordering
+            # Enhanced search with better relevance ordering and image support
             # Create priority scoring for better ordering
             title_priority_conditions = []
             for term in query_terms:
-                if term not in ['under', '$', 'list', 'find', 'suggest', 'best'] and len(term) > 2:
+                if term not in ['under', '$', 'list', 'find', 'suggest', 'best', 'the', 'for'] and len(term) > 2:
                     escaped_term = term.replace("'", "''")
-                    title_priority_conditions.append(f"LOWER(title) LIKE '%{escaped_term}%'")
+                    title_priority_conditions.append(f"LOWER(pe.title) LIKE '%{escaped_term}%'")
             
             title_priority_clause = " OR ".join(title_priority_conditions) if title_priority_conditions else "FALSE"
             
-            # Different filters for tile vs non-tile queries
-            if is_non_tile_query:
-                filter_clause = ""  # No tile requirement for installation materials
-            else:
-                filter_clause = """
-                      AND LOWER(title) LIKE '%tile%'
-                      AND NOT (LOWER(title) LIKE '%tool%' OR LOWER(title) LIKE '%grout%' OR 
-                               LOWER(title) LIKE '%float%' OR LOWER(title) LIKE '%base%' OR
-                               LOWER(title) LIKE '%wedge%' OR LOWER(title) LIKE '%spacer%')"""
+            # For tile queries, use the relational database directly to get images
+            if not is_non_tile_query:
+                # Search relational database for tiles with images
+                return self._search_relational_db_with_images(query_terms, title_priority_conditions, limit)
             
+            # For non-tile queries, use embeddings database
+            filter_clause = ""
             search_sql = f"""
                 COPY (
                     SELECT 
                         sku,
                         title,
                         content,
+                        '' as primary_image,
+                        0 as price_per_sqft,
+                        0 as price_per_box,
+                        0 as price_per_piece,
                         'text_search' as search_type
                     FROM product_embeddings
                     WHERE ({where_clause}){filter_clause}
@@ -502,6 +503,101 @@ class SimpleTileShopRAG:
             
         except Exception as e:
             logger.error(f"Error in text fallback search: {e}")
+            return []
+    
+    def _search_relational_db_with_images(self, query_terms: List[str], title_priority_conditions: List[str], limit: int = 3) -> List[Dict[str, Any]]:
+        """Search relational database for tiles with images and complete product data"""
+        try:
+            # Create WHERE clause for relational database
+            where_conditions = []
+            for term in query_terms:
+                if term not in ['under', '$', 'list', 'find', 'suggest', 'best', 'the', 'for'] and len(term) > 2:
+                    escaped_term = term.replace("'", "''")
+                    where_conditions.append(f"""(LOWER(title) LIKE '%{escaped_term}%' OR 
+                                                 LOWER(description) LIKE '%{escaped_term}%' OR
+                                                 LOWER(color) LIKE '%{escaped_term}%' OR
+                                                 LOWER(finish) LIKE '%{escaped_term}%')""")
+            
+            if not where_conditions:
+                return []
+            
+            where_clause = " OR ".join(where_conditions)
+            
+            # Create priority clause for relational database
+            title_priority_conditions_rel = []
+            for term in query_terms:
+                if term not in ['under', '$', 'list', 'find', 'suggest', 'best', 'the', 'for'] and len(term) > 2:
+                    escaped_term = term.replace("'", "''")
+                    title_priority_conditions_rel.append(f"LOWER(title) LIKE '%{escaped_term}%'")
+            
+            title_priority_clause = " OR ".join(title_priority_conditions_rel) if title_priority_conditions_rel else "FALSE"
+            
+            search_sql = f"""
+                COPY (
+                    SELECT 
+                        sku,
+                        title,
+                        description,
+                        primary_image,
+                        price_per_sqft,
+                        price_per_box,
+                        price_per_piece,
+                        color,
+                        finish,
+                        size_shape
+                    FROM product_data
+                    WHERE ({where_clause})
+                      AND LOWER(title) LIKE '%tile%'
+                      AND NOT (LOWER(title) LIKE '%tool%' OR LOWER(title) LIKE '%grout%' OR 
+                               LOWER(title) LIKE '%float%' OR LOWER(title) LIKE '%base%' OR
+                               LOWER(title) LIKE '%wedge%' OR LOWER(title) LIKE '%spacer%')
+                    ORDER BY 
+                        -- Prioritize products that match multiple search terms
+                        CASE WHEN LOWER(title) LIKE '%blue%' AND LOWER(title) LIKE '%floor%' AND LOWER(title) LIKE '%tile%' THEN 1
+                             WHEN ({title_priority_clause}) THEN 2 
+                             ELSE 3 END,
+                        -- Then prioritize actual tiles over accessories
+                        CASE WHEN LOWER(title) LIKE '%tile%' AND 
+                                  NOT (LOWER(title) LIKE '%kit%' OR LOWER(title) LIKE '%protection%' OR 
+                                       LOWER(title) LIKE '%shop%') THEN 1 
+                             ELSE 2 END,
+                        sku
+                    LIMIT {limit}
+                ) TO STDOUT CSV HEADER;
+            """
+            
+            result = subprocess.run([
+                'docker', 'exec', 'relational_db',
+                'psql', '-U', 'postgres', '-d', 'postgres',
+                '-c', search_sql
+            ], capture_output=True, text=True, check=True)
+            
+            formatted_results = []
+            if result.stdout.strip():
+                csv_data = io.StringIO(result.stdout)
+                reader = csv.DictReader(csv_data)
+                
+                for row in reader:
+                    # Convert empty strings to None and parse types
+                    product = {}
+                    for key, value in row.items():
+                        if value == '':
+                            product[key] = None
+                        elif key in ['price_per_sqft', 'price_per_box', 'price_per_piece']:
+                            product[key] = float(value) if value else None
+                        else:
+                            product[key] = value
+                    
+                    # Set relevance score for relational search results
+                    product['relevance_score'] = 1.0
+                    # Use description as content for compatibility
+                    product['content'] = product.get('description', '')
+                    formatted_results.append(product)
+            
+            return formatted_results
+            
+        except Exception as e:
+            logger.error(f"Error in relational database search: {e}")
             return []
     
     def chat(self, query: str) -> str:
@@ -686,7 +782,7 @@ Once I know the size, I can show you everything you'll need for professional ins
         return "\n".join(result_parts)
     
     def _handle_search_query(self, query: str) -> str:
-        """Handle regular search queries"""
+        """Handle regular search queries with enhanced image support"""
         # Extract meaningful search terms from query
         search_terms = self._extract_search_terms(query)
         results = self.search_products(search_terms)
@@ -712,6 +808,10 @@ Once I know the size, I can show you everything you'll need for professional ins
             # Handle size information
             size_str = f" - {result['size_shape']}" if result.get('size_shape') else ""
             
+            # Handle color and finish information
+            color_str = f" - {result['color']}" if result.get('color') else ""
+            finish_str = f" - {result['finish']}" if result.get('finish') else ""
+            
             # Handle content description (truncate if too long)
             content_preview = ""
             if result.get('content'):
@@ -720,6 +820,12 @@ Once I know the size, I can show you everything you'll need for professional ins
                     content_preview = f"   {content[:200]}...\n"
                 else:
                     content_preview = f"   {content}\n"
+            elif result.get('description'):
+                description = result['description']
+                if len(description) > 200:
+                    content_preview = f"   {description[:200]}...\n"
+                else:
+                    content_preview = f"   {description}\n"
             
             # Handle similarity score or relevance
             score_info = ""
@@ -728,9 +834,15 @@ Once I know the size, I can show you everything you'll need for professional ins
             elif result.get('relevance_score'):
                 score_info = f" (Relevance: {result['relevance_score']:.2f})"
             
+            # Add image if available
+            image_info = ""
+            if result.get('primary_image'):
+                image_info = f"   🖼️ **Image**: {result['primary_image']}\n"
+            
             response_parts.append(
                 f"{i}. **{result['title']}** (SKU: {result['sku']}){score_info}\n"
-                f"   {price_info}{size_str}\n"
+                f"   {price_info}{size_str}{color_str}{finish_str}\n"
+                f"{image_info}"
                 f"{content_preview}"
                 f"   More details: https://www.tileshop.com/product/{result['sku']}\n"
             )
