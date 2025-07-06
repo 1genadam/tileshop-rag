@@ -139,7 +139,34 @@ python3 db_connection_test.py        # Database health
 - **Lightweight core**: Only essential WebSocket updates active by default
 - **Manual tools**: All monitoring scripts require explicit execution
 
-## 📋 Troubleshooting
+## 🆘 Troubleshooting Guides
+
+### Available Troubleshooting Resources
+- **`troubleshooting_guide_database_recovery.md`** - Database corruption recovery procedures
+  - Vector database corruption resolution
+  - Container replacement strategies  
+  - Service restoration order
+  - Prevention and monitoring tips
+
+### Quick Troubleshooting Index
+- **Database Issues**: See `troubleshooting_guide_database_recovery.md`
+- **Container Problems**: Docker management commands and recovery
+- **Service Connectivity**: Port conflicts and connection testing
+- **Performance Issues**: Memory pressure and load optimization
+
+### Emergency Recovery Commands
+```bash
+# Check all critical services
+docker ps | grep -E "(postgres|crawl4ai)"
+
+# Test database connections
+python3 -c "import psycopg2; conn=psycopg2.connect(host='localhost', port=5432, database='postgres', user='postgres', password='postgres'); print('✅ relational_db OK')"
+
+# Dashboard health check
+curl -s http://127.0.0.1:8080/api/system/health
+```
+
+## 📋 Additional Documentation
 
 For detailed issue resolution, see: [troubleshooting_guide.md](troubleshooting_guide.md)
 

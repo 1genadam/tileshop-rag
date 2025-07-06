@@ -374,6 +374,19 @@ class DockerManager:
     def get_container_logs(self, container_name: str, lines: int = 50) -> Dict[str, Any]:
         """Get recent logs from a container"""
         try:
+            # Check if this is a conceptual service (no actual container)
+            if container_name in self.REQUIRED_CONTAINERS:
+                config = self.REQUIRED_CONTAINERS[container_name]
+                if config.get('image_pattern') is None:
+                    # Conceptual service - return status message instead of logs
+                    health_result = self._perform_health_check(None, container_name, config['health_check'])
+                    return {
+                        'success': True,
+                        'logs': f"Service Type: Conceptual Service\nStatus: {health_result['message']}\nNote: This service doesn't have container logs as it represents system-level functionality.",
+                        'lines': 3,
+                        'conceptual_service': True
+                    }
+            
             container = self.client.containers.get(container_name)
             logs = container.logs(tail=lines, timestamps=True).decode('utf-8', errors='ignore')
             

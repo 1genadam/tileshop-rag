@@ -73,7 +73,7 @@ class DatabaseManager:
         try:
             import subprocess
             result = subprocess.run([
-                'docker', 'exec', 'supabase', 'psql', '-U', 'postgres', '-c', 'SELECT version();'
+                'docker', 'exec', 'vector_db', 'psql', '-U', 'postgres', '-c', 'SELECT version();'
             ], capture_output=True, text=True, timeout=10)
             
             if result.returncode == 0:
@@ -81,20 +81,20 @@ class DatabaseManager:
                 version_line = [line for line in result.stdout.split('\n') if 'PostgreSQL' in line]
                 version = version_line[0].strip() if version_line else 'PostgreSQL (version unknown)'
                 
-                results['supabase'] = {
+                results['vector_db'] = {
                     'connected': True,
                     'version': version,
                     'message': 'Connection successful'
                 }
             else:
-                results['supabase'] = {
+                results['vector_db'] = {
                     'connected': False,
                     'error': result.stderr,
                     'message': f'Docker exec failed: {result.stderr}'
                 }
                 
         except Exception as e:
-            results['supabase'] = {
+            results['vector_db'] = {
                 'connected': False,
                 'error': str(e),
                 'message': f'Connection failed: {str(e)}'
@@ -176,7 +176,7 @@ class DatabaseManager:
         """Get data quality statistics for products scraped in the last 24 hours"""
         try:
             if db_type == 'supabase':
-                return self._get_quality_stats_docker_exec('supabase')
+                return self._get_quality_stats_docker_exec('vector_db')
             elif db_type == 'relational_db':
                 return self._get_quality_stats_docker_exec('postgres')
             
@@ -619,7 +619,7 @@ class DatabaseManager:
             # Get total count
             count_sql = f"SELECT COUNT(*) FROM product_data WHERE {where_clause};"
             count_result = subprocess.run([
-                'docker', 'exec', 'supabase',
+                'docker', 'exec', 'vector_db',
                 'psql', '-U', 'postgres', '-d', 'postgres',
                 '-c', count_sql
             ], capture_output=True, text=True, check=True)
@@ -642,7 +642,7 @@ class DatabaseManager:
             """
             
             products_result = subprocess.run([
-                'docker', 'exec', 'supabase',
+                'docker', 'exec', 'vector_db',
                 'psql', '-U', 'postgres', '-d', 'postgres',
                 '-c', products_sql
             ], capture_output=True, text=True, check=True)
@@ -701,7 +701,7 @@ class DatabaseManager:
             """
             
             result = subprocess.run([
-                'docker', 'exec', 'supabase',
+                'docker', 'exec', 'vector_db',
                 'psql', '-U', 'postgres', '-d', 'postgres',
                 '-t', '-c', stats_sql
             ], capture_output=True, text=True, check=True)
@@ -764,7 +764,7 @@ class DatabaseManager:
             """
             
             result = subprocess.run([
-                'docker', 'exec', 'postgres',
+                'docker', 'exec', 'relational_db',
                 'psql', '-U', 'postgres', '-d', 'postgres',
                 '-t', '-c', stats_sql
             ], capture_output=True, text=True, check=True)
@@ -1019,7 +1019,7 @@ class DatabaseManager:
             """
             
             result = subprocess.run([
-                'docker', 'exec', 'supabase',
+                'docker', 'exec', 'vector_db',
                 'psql', '-U', 'postgres', '-d', 'postgres',
                 '-t', '-c', product_sql
             ], capture_output=True, text=True, check=True)

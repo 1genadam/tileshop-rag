@@ -18,11 +18,11 @@ class DatabaseSyncManager:
     
     def __init__(self):
         # Source database (n8n-postgres) - accessed via docker exec
-        self.source_container = 'postgres'
+        self.source_container = 'relational_db'
         self.source_db = 'postgres'
         
         # Target database (Supabase) - accessed via docker exec
-        self.target_container = 'supabase'
+        self.target_container = 'vector_db'
         self.target_db = 'postgres'
         
         self.last_sync = None

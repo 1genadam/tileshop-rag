@@ -132,7 +132,7 @@ class ScraperManager:
                     logger.warning(f"Pre-warming: relational_db connection failed")
                 
                 # Test vector_db (Supabase)
-                if db_connections.get('supabase', {}).get('connected', False):
+                if db_connections.get('vector_db', {}).get('connected', False):
                     self.prewarm_status['vector_db'] = True
                     logger.info("Pre-warming: vector_db connection OK")
                 else:
