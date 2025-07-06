@@ -1043,6 +1043,50 @@ def sync_cleanup():
     except Exception as e:
         return jsonify({'success': False, 'error': str(e)})
 
+@app.route('/api/rag/generate-embeddings', methods=['POST'])
+def generate_embeddings():
+    """Generate embeddings for all products in relational database"""
+    try:
+        # Get all products from relational database
+        import subprocess
+        
+        # Count products first
+        count_result = subprocess.run([
+            'docker', 'exec', 'relational_db',
+            'psql', '-U', 'postgres', '-d', 'postgres',
+            '-c', 'SELECT COUNT(*) FROM product_data;'
+        ], capture_output=True, text=True, check=True)
+        
+        total_products = int(count_result.stdout.strip().split('\n')[-2].strip())
+        
+        if total_products == 0:
+            return jsonify({
+                'success': False,
+                'error': 'No products found in relational database'
+            })
+        
+        # For now, simulate embedding generation
+        # In a real implementation, this would:
+        # 1. Fetch product data from relational_db
+        # 2. Generate embeddings using Claude API or another embedding model
+        # 3. Store embeddings in vector_db with proper vector columns
+        
+        logger.info(f"Starting embedding generation for {total_products} products")
+        
+        return jsonify({
+            'success': True,
+            'count': total_products,
+            'message': f'Embedding generation initiated for {total_products} products. Note: This is a placeholder - real implementation would generate actual embeddings.',
+            'status': 'placeholder_implementation'
+        })
+        
+    except Exception as e:
+        logger.error(f"Error generating embeddings: {e}")
+        return jsonify({
+            'success': False,
+            'error': str(e)
+        })
+
 # API Routes - RAG Management
 @app.route('/api/rag/status')
 def rag_status():

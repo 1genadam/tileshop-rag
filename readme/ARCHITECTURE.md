@@ -235,12 +235,17 @@ docker run -d \
 User Request → Intelligence Manager → Crawler Service → Content Extraction → Database Storage
 ```
 
-### 2. RAG Query Pipeline
+### 2. Vector Embedding Pipeline
+```
+Product Data (Relational DB) → Generate Embeddings → Vector Storage (Vector DB) → Semantic Search Ready
+```
+
+### 3. RAG Query Pipeline
 ```
 User Query → RAG Manager → Vector Search → Context Retrieval → Claude API → Response Generation
 ```
 
-### 3. Diagnostic Pipeline
+### 4. Diagnostic Pipeline
 ```
 Health Check Request → Service Diagnostic → Container/System Check → Status Update → Dashboard Display
 ```
@@ -258,10 +263,15 @@ Health Check Request → Service Diagnostic → Container/System Check → Statu
 - `GET /api/acquisition/status` - Check scraping status
 - `GET /api/acquisition/prewarm-status` - Pre-warming status
 
+### Database Sync & Embeddings
+- `GET /api/sync/status` - Database sync status
+- `POST /api/rag/generate-embeddings` - Generate embeddings for all products
+- `GET /api/sync/test-connections` - Test database connections
+- `GET /api/sync/comparison` - Compare relational vs vector data
+
 ### System Statistics
 - `GET /api/system/stats` - System resource usage
 - `GET /api/database/stats` - Database statistics
-- `GET /api/sync/status` - Database sync status
 
 ### RAG System
 - `POST /api/rag/query` - Submit RAG query

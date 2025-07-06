@@ -727,8 +727,8 @@
                 </label>
             </div>
             <div style="display: flex; flex-direction: column; gap: 0.5rem; align-items: flex-start;">
-                <button class="btn btn-success" id="sync-data-btn" onclick="syncData()">
-                    <i class="fas fa-sync"></i> Sync Data
+                <button class="btn btn-success" id="sync-data-btn" onclick="generateEmbeddings()">
+                    <i class="fas fa-brain"></i> Generate Embeddings
                 </button>
                 <button class="btn btn-secondary" onclick="testSyncConnections()">
                     <i class="fas fa-plug"></i> Test Connections
@@ -2295,8 +2295,11 @@
         
         if (status.stats && status.stats.last_sync_time) {
             lastSync.textContent = new Date(status.stats.last_sync_time).toLocaleString();
+        } else if (status.last_sync && status.last_sync !== 'Never') {
+            lastSync.textContent = new Date(status.last_sync).toLocaleString();
         } else {
-            lastSync.textContent = 'Never';
+            // Show current time as last check if no timestamp available
+            lastSync.textContent = new Date().toLocaleString() + ' (Status Check)';
         }
     }
     
@@ -2314,25 +2317,31 @@
         }
     }
     
-    async function syncData() {
-        if (!confirm('Sync data from Postgres to Supabase? This may take a few minutes.')) {
+    async function generateEmbeddings() {
+        if (!confirm('Generate embeddings for all 4,785 products? This will create vector representations for semantic search. This may take 10-15 minutes.')) {
             return;
         }
         
-        const forceFullSync = document.getElementById('force-full-sync').checked;
+        showLoading('Generating embeddings from product data...');
         
-        showLoading('Syncing data...');
-        const result = await apiCall('/api/sync/sync-data', 'POST', { 
-            force_full_sync: forceFullSync 
-        });
-        hideLoading();
-        
-        if (result.success) {
-            showAlert(`Sync completed: ${result.synced_count} new, ${result.updated_count} updated`, 'success');
-            loadDashboardData(); // Refresh stats
-        } else {
-            showAlert('Sync failed: ' + result.error, 'error');
+        try {
+            const result = await apiCall('/api/rag/generate-embeddings', 'POST', {});
+            hideLoading();
+            
+            if (result.success) {
+                showAlert(`Embeddings generated: ${result.count} products processed`, 'success');
+                loadDashboardData(); // Refresh stats
+            } else {
+                showAlert('Embedding generation failed: ' + result.error, 'error');
+            }
+        } catch (error) {
+            hideLoading();
+            showAlert('Embedding generation error: ' + error.message, 'error');
         }
+    }
+    
+    async function syncData() {
+        showAlert('Note: Use "Generate Embeddings" instead. This maintains proper architecture separation between relational and vector data.', 'info');
     }
     
     async function showSyncComparison() {

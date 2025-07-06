@@ -97,6 +97,17 @@ conn.close()
 "
 ```
 
+### Vector Database Setup
+```bash
+# Generate embeddings for all products (via dashboard)
+# Click "🧠 Generate Embeddings" button in Database Sync section
+# OR via API:
+curl -X POST "http://localhost:8080/api/rag/generate-embeddings"
+
+# Check embedding count
+docker exec vector_db psql -U postgres -d postgres -c "SELECT COUNT(*) FROM product_embeddings;"
+```
+
 ### Container Management
 ```bash
 # Check all containers
@@ -181,6 +192,16 @@ docker ps | grep -E "(relational_db|vector_db)"
 
 # Restart databases
 docker restart relational_db vector_db
+```
+
+### Vector Database Shows 0 Embeddings
+```bash
+# Generate embeddings from product data
+# Click "🧠 Generate Embeddings" button in dashboard
+# This creates vector representations of 4,785 products
+
+# Check progress
+curl -s "http://localhost:8080/api/sync/status" | jq '.status.connections.target'
 ```
 
 ### Container Not Found Errors

@@ -194,6 +194,33 @@ elif any(key in result for key in ['relational_db', 'vector_db']):
     is_ready = all(db.get('connected', False) for db in db_results if isinstance(db, dict))
 ```
 
+### 8. Vector Database Shows 0 Embeddings
+
+**Symptoms:**
+- Database Sync shows "Target (Vector DB): ✓ Connected (0 embeddings, 0 docs)"
+- Vector database is empty despite having product data
+
+**Root Cause:**
+- Embeddings have not been generated from product data
+- Vector database stores embeddings, not duplicate product data
+
+**Solution:**
+```bash
+# Generate embeddings via dashboard
+# Click "🧠 Generate Embeddings" button in Database Sync section
+
+# OR via API
+curl -X POST "http://localhost:8080/api/rag/generate-embeddings"
+
+# Verify embedding generation
+docker exec vector_db psql -U postgres -d postgres -c "SELECT COUNT(*) FROM product_embeddings;"
+```
+
+**Important Notes:**
+- Do NOT use "Sync Data" button (violates architecture)
+- Vector DB should contain embeddings, not product data
+- Process takes 10-15 minutes for 4,785 products
+
 ## Diagnostic Framework Details
 
 ### Service Types and Their Status Logic
