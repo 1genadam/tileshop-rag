@@ -739,6 +739,54 @@
             </div>
         </div>
     </div>
+    
+    <!-- Embedding Generation Progress Tracking -->
+    <div id="embedding-progress-container" style="margin-top: 1.5rem; padding: 1rem; background: #f8fafc; border-radius: 8px; display: none;">
+        <h4 style="margin: 0 0 1rem 0; color: #1f2937; display: flex; align-items: center; gap: 0.5rem;">
+            <i class="fas fa-brain"></i> Embedding Generation Progress
+        </h4>
+        
+        <!-- Progress Bar -->
+        <div style="margin-bottom: 1rem;">
+            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 0.5rem;">
+                <span id="embedding-progress-text" style="font-weight: 500; color: #374151;">Initializing...</span>
+                <span id="embedding-progress-percentage" style="font-weight: bold; color: #10b981;">0%</span>
+            </div>
+            <div style="background: #e5e7eb; border-radius: 8px; height: 20px; overflow: hidden;">
+                <div id="embedding-progress-bar" style="background: linear-gradient(90deg, #10b981, #059669); height: 100%; width: 0%; transition: width 0.3s ease;"></div>
+            </div>
+        </div>
+        
+        <!-- Detailed Progress Info -->
+        <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)); gap: 1rem; margin-bottom: 1rem;">
+            <div style="background: white; padding: 0.75rem; border-radius: 6px; border-left: 4px solid #3b82f6;">
+                <div style="font-size: 0.8rem; color: #6b7280; margin-bottom: 0.25rem;">Status</div>
+                <div id="embedding-status" style="font-weight: 500; color: #1f2937;">Starting...</div>
+            </div>
+            <div style="background: white; padding: 0.75rem; border-radius: 6px; border-left: 4px solid #10b981;">
+                <div style="font-size: 0.8rem; color: #6b7280; margin-bottom: 0.25rem;">Progress</div>
+                <div id="embedding-count" style="font-weight: 500; color: #1f2937;">0 / 0 products</div>
+            </div>
+            <div style="background: white; padding: 0.75rem; border-radius: 6px; border-left: 4px solid #f59e0b;">
+                <div style="font-size: 0.8rem; color: #6b7280; margin-bottom: 0.25rem;">Elapsed</div>
+                <div id="embedding-elapsed" style="font-weight: 500; color: #1f2937;">0s</div>
+            </div>
+            <div style="background: white; padding: 0.75rem; border-radius: 6px; border-left: 4px solid #8b5cf6;">
+                <div style="font-size: 0.8rem; color: #6b7280; margin-bottom: 0.25rem;">Batch</div>
+                <div id="embedding-batch" style="font-weight: 500; color: #1f2937;">0 / 0</div>
+            </div>
+        </div>
+        
+        <!-- Control Buttons -->
+        <div style="display: flex; gap: 0.5rem; justify-content: flex-end;">
+            <button id="embedding-cancel-btn" class="btn btn-xs btn-secondary" onclick="cancelEmbeddingGeneration()" style="display: none;">
+                <i class="fas fa-times"></i> Cancel
+            </button>
+            <button id="embedding-close-btn" class="btn btn-xs btn-primary" onclick="closeEmbeddingProgress()" disabled>
+                <i class="fas fa-check"></i> Close
+            </button>
+        </div>
+    </div>
 </div>
 
 <!-- Data Intelligence Analytics -->
@@ -4180,5 +4228,154 @@ Status: ${comp.is_in_sync ? 'In Sync' : 'Out of Sync'}`;
         await originalLoadDashboardData2();
         await checkDataQuality();
     };
+
+    // ===== EMBEDDING GENERATION FUNCTIONS =====
+    
+    // Global variable to track embedding progress polling
+    let embeddingProgressInterval = null;
+    let embeddingStartTime = null;
+    
+    async function generateEmbeddings() {
+        if (!confirm('Generate embeddings for all products? This will create vector representations for semantic search. This may take 10-15 minutes.')) {
+            return;
+        }
+        
+        try {
+            // Start the embedding generation process
+            const result = await apiCall('/api/rag/generate-embeddings', 'POST', {});
+            
+            if (result.success) {
+                showAlert(`Embedding generation started for ${result.count} products`, 'info');
+                
+                // Show progress tracking
+                showEmbeddingProgress();
+                startEmbeddingProgressTracking();
+            } else {
+                showAlert('Embedding generation failed: ' + result.error, 'error');
+            }
+        } catch (error) {
+            showAlert('Embedding generation error: ' + error.message, 'error');
+        }
+    }
+    
+    function showEmbeddingProgress() {
+        const container = document.getElementById('embedding-progress-container');
+        if (container) {
+            container.style.display = 'block';
+            
+            // Reset progress elements
+            document.getElementById('embedding-progress-text').textContent = 'Initializing...';
+            document.getElementById('embedding-progress-percentage').textContent = '0%';
+            document.getElementById('embedding-progress-bar').style.width = '0%';
+            document.getElementById('embedding-status').textContent = 'Starting...';
+            document.getElementById('embedding-count').textContent = '0 / 0 products';
+            document.getElementById('embedding-elapsed').textContent = '0s';
+            document.getElementById('embedding-batch').textContent = '0 / 0';
+            
+            // Enable cancel button, disable close button
+            document.getElementById('embedding-cancel-btn').style.display = 'inline-block';
+            document.getElementById('embedding-close-btn').disabled = true;
+            
+            // Store start time for elapsed calculation
+            embeddingStartTime = Date.now();
+        }
+    }
+    
+    function startEmbeddingProgressTracking() {
+        // Poll for progress updates every 2 seconds
+        embeddingProgressInterval = setInterval(async () => {
+            try {
+                const result = await apiCall('/api/rag/embeddings-progress');
+                if (result.success && result.progress) {
+                    updateEmbeddingProgress(result.progress);
+                    
+                    // Stop polling if complete or failed
+                    if (result.progress.status === 'completed' || result.progress.status === 'failed') {
+                        clearInterval(embeddingProgressInterval);
+                        embeddingProgressInterval = null;
+                        
+                        // Enable close button, hide cancel button
+                        document.getElementById('embedding-cancel-btn').style.display = 'none';
+                        document.getElementById('embedding-close-btn').disabled = false;
+                        
+                        if (result.progress.status === 'completed') {
+                            showAlert('Embedding generation completed successfully!', 'success');
+                            // Refresh database sync status
+                            setTimeout(loadDashboardData, 2000);
+                        } else {
+                            showAlert('Embedding generation failed: ' + (result.progress.error || 'Unknown error'), 'error');
+                        }
+                    }
+                }
+            } catch (error) {
+                console.error('Error polling embedding progress:', error);
+            }
+        }, 2000);
+    }
+    
+    function updateEmbeddingProgress(progress) {
+        // Calculate percentage
+        const percentage = progress.total > 0 ? Math.round((progress.processed / progress.total) * 100) : 0;
+        
+        // Calculate elapsed time
+        const elapsedMs = Date.now() - embeddingStartTime;
+        const elapsedSeconds = Math.floor(elapsedMs / 1000);
+        const elapsedTime = formatElapsedTime(elapsedSeconds);
+        
+        // Calculate current batch
+        const batchSize = 100; // From backend implementation
+        const totalBatches = Math.ceil(progress.total / batchSize);
+        const currentBatch = Math.ceil(progress.processed / batchSize);
+        
+        // Update UI elements
+        document.getElementById('embedding-progress-text').textContent = progress.message || 'Processing...';
+        document.getElementById('embedding-progress-percentage').textContent = percentage + '%';
+        document.getElementById('embedding-progress-bar').style.width = percentage + '%';
+        document.getElementById('embedding-status').textContent = progress.status || 'Processing';
+        document.getElementById('embedding-count').textContent = `${progress.processed.toLocaleString()} / ${progress.total.toLocaleString()} products`;
+        document.getElementById('embedding-elapsed').textContent = elapsedTime;
+        document.getElementById('embedding-batch').textContent = `${currentBatch} / ${totalBatches}`;
+    }
+    
+    function formatElapsedTime(seconds) {
+        if (seconds < 60) return seconds + 's';
+        const minutes = Math.floor(seconds / 60);
+        const remainingSeconds = seconds % 60;
+        if (minutes < 60) return minutes + 'm ' + remainingSeconds + 's';
+        const hours = Math.floor(minutes / 60);
+        const remainingMinutes = minutes % 60;
+        return hours + 'h ' + remainingMinutes + 'm';
+    }
+    
+    function closeEmbeddingProgress() {
+        const container = document.getElementById('embedding-progress-container');
+        if (container) {
+            container.style.display = 'none';
+        }
+        
+        // Clear any active polling
+        if (embeddingProgressInterval) {
+            clearInterval(embeddingProgressInterval);
+            embeddingProgressInterval = null;
+        }
+    }
+    
+    async function cancelEmbeddingGeneration() {
+        if (!confirm('Are you sure you want to cancel the embedding generation process?')) {
+            return;
+        }
+        
+        try {
+            const result = await apiCall('/api/rag/cancel-embeddings', 'POST');
+            if (result.success) {
+                showAlert('Embedding generation cancelled', 'info');
+                closeEmbeddingProgress();
+            } else {
+                showAlert('Failed to cancel embedding generation: ' + result.error, 'error');
+            }
+        } catch (error) {
+            showAlert('Error cancelling embedding generation: ' + error.message, 'error');
+        }
+    }
 </script>
 {% endblock %}
