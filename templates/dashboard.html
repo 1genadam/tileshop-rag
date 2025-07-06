@@ -30,11 +30,8 @@
                 <button class="btn btn-secondary" onclick="refreshAllStatus()">
                     <i class="fas fa-refresh"></i> Refresh Status
                 </button>
-                <button class="btn btn-info" onclick="runHealthCheck()">
-                    <i class="fas fa-heartbeat"></i> Health Check
-                </button>
-                <button class="btn btn-dark" onclick="openAITerminal()">
-                    <i class="fas fa-headset"></i> Customer Service
+                <button class="btn btn-info" onclick="runComprehensiveHealthCheck()">
+                    <i class="fas fa-heartbeat"></i> Health Check All (14 Services)
                 </button>
                 <div id="bulk-operation-status" style="margin-left: auto; font-weight: bold;"></div>
             </div>
@@ -49,7 +46,7 @@
                         <th style="width: 180px;">Service</th>
                         <th style="width: 120px;">Status</th>
                         <th>Description</th>
-                        <th style="width: 100px;">Actions</th>
+                        <th style="width: 140px;">Actions</th>
                     </tr>
                 </thead>
                 <tbody>
@@ -68,7 +65,9 @@
                         </td>
                         <td id="docker_engine-info">Container orchestration and infrastructure platform</td>
                         <td>
-                            <button class="btn btn-xs btn-secondary" onclick="showLogs('docker_engine')">Logs</button>
+                            <button class="btn btn-xs btn-success" onclick="checkServiceHealth('docker_engine')">🔍 Health</button>
+                            <button class="btn btn-xs btn-secondary" onclick="showServiceLogs('docker_engine')">📋 Logs</button>
+                            <button class="btn btn-xs btn-warning" onclick="debugService('docker_engine')">🔧 Debug</button>
                         </td>
                     </tr>
 
@@ -87,7 +86,9 @@
                         </td>
                         <td id="relational_db-info">Primary relational database for structured data</td>
                         <td>
-                            <button class="btn btn-xs btn-secondary" onclick="showLogs('relational_db')">Logs</button>
+                            <button class="btn btn-xs btn-success" onclick="checkServiceHealth('relational_db')">🔍 Health</button>
+                            <button class="btn btn-xs btn-secondary" onclick="showServiceLogs('relational_db')">📋 Logs</button>
+                            <button class="btn btn-xs btn-warning" onclick="debugService('relational_db')">🔧 Debug</button>
                         </td>
                     </tr>
 
@@ -106,7 +107,9 @@
                         </td>
                         <td id="vector_db-info">Vector database with embeddings and AI capabilities</td>
                         <td>
-                            <button class="btn btn-xs btn-secondary" onclick="showLogs('vector_db')">Logs</button>
+                            <button class="btn btn-xs btn-success" onclick="checkServiceHealth('vector_db')">🔍 Health</button>
+                            <button class="btn btn-xs btn-secondary" onclick="showServiceLogs('vector_db')">📋 Logs</button>
+                            <button class="btn btn-xs btn-warning" onclick="debugService('vector_db')">🔧 Debug</button>
                         </td>
                     </tr>
 
@@ -125,7 +128,9 @@
                         </td>
                         <td id="crawler-info">AI-powered web crawling service</td>
                         <td>
-                            <button class="btn btn-xs btn-secondary" onclick="showLogs('crawler')">Logs</button>
+                            <button class="btn btn-xs btn-success" onclick="checkServiceHealth('crawler')">🔍 Health</button>
+                            <button class="btn btn-xs btn-secondary" onclick="showServiceLogs('crawler')">📋 Logs</button>
+                            <button class="btn btn-xs btn-warning" onclick="debugService('crawler')">🔧 Debug</button>
                         </td>
                     </tr>
 
@@ -144,7 +149,9 @@
                         </td>
                         <td id="llm_api-info">Large language model API for AI processing</td>
                         <td>
-                            <button class="btn btn-xs btn-secondary" onclick="showLogs('llm_api')">Logs</button>
+                            <button class="btn btn-xs btn-success" onclick="checkServiceHealth('llm_api')">🔍 Health</button>
+                            <button class="btn btn-xs btn-secondary" onclick="showServiceLogs('llm_api')">📋 Logs</button>
+                            <button class="btn btn-xs btn-warning" onclick="debugService('llm_api')">🔧 Debug</button>
                         </td>
                     </tr>
 
@@ -163,7 +170,9 @@
                         </td>
                         <td id="web_server-info">Flask application server and dashboard interface</td>
                         <td>
-                            <button class="btn btn-xs btn-secondary" onclick="showLogs('web_server')">Logs</button>
+                            <button class="btn btn-xs btn-success" onclick="checkServiceHealth('web_server')">🔍 Health</button>
+                            <button class="btn btn-xs btn-secondary" onclick="showServiceLogs('web_server')">📋 Logs</button>
+                            <button class="btn btn-xs btn-warning" onclick="debugService('web_server')">🔧 Debug</button>
                         </td>
                     </tr>
 
@@ -182,7 +191,9 @@
                         </td>
                         <td id="api_gateway-info">API management and routing service</td>
                         <td>
-                            <button class="btn btn-xs btn-secondary" onclick="showLogs('api_gateway')">Logs</button>
+                            <button class="btn btn-xs btn-success" onclick="checkServiceHealth('api_gateway')">🔍 Health</button>
+                            <button class="btn btn-xs btn-secondary" onclick="showServiceLogs('api_gateway')">📋 Logs</button>
+                            <button class="btn btn-xs btn-warning" onclick="debugService('api_gateway')">🔧 Debug</button>
                         </td>
                     </tr>
 
@@ -210,117 +221,197 @@
     </div>
     
     <div class="card">
-        <h3><i class="fas fa-server"></i> Runtime Environment Status</h3>
-        <div style="margin-bottom: 1rem;">
-            <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 1rem;">
-                <div>
-                    <div class="status-indicator">
-                        <div class="status-dot gray" id="python-env-dot"></div>
-                        <span id="python-env-text">Sandbox Environment</span>
-                    </div>
-                    <div style="font-size: 0.8rem; color: #666; margin-left: 1.5rem;" id="python-env-details">
-                        Checking sandbox environment...
-                    </div>
-                    <div class="env-progress" id="python-env-progress" style="display: none; margin-left: 1.5rem; margin-top: 0.5rem;">
-                        <div class="progress-bar small">
-                            <div class="progress-fill animated"></div>
-                        </div>
-                    </div>
-                </div>
-                <div>
-                    <div class="status-indicator">
-                        <div class="status-dot gray" id="dependencies-dot"></div>
-                        <span id="dependencies-text">Dependencies</span>
-                    </div>
-                    <div style="font-size: 0.8rem; color: #666; margin-left: 1.5rem;" id="dependencies-details">
-                        Checking packages...
-                    </div>
-                    <div class="env-progress" id="dependencies-progress" style="display: none; margin-left: 1.5rem; margin-top: 0.5rem;">
-                        <div class="progress-bar small">
-                            <div class="progress-fill animated"></div>
-                        </div>
-                    </div>
-                </div>
-            </div>
-            <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 1rem; margin-top: 0.5rem;">
-                <div>
-                    <div class="status-indicator">
-                        <div class="status-dot gray" id="docker-daemon-dot"></div>
-                        <span id="docker-daemon-text">Docker Daemon</span>
-                    </div>
-                    <div style="font-size: 0.8rem; color: #666; margin-left: 1.5rem;" id="docker-daemon-details">
-                        Checking service...
-                    </div>
-                    <div class="env-progress" id="docker-daemon-progress" style="display: none; margin-left: 1.5rem; margin-top: 0.5rem;">
-                        <div class="progress-bar small">
-                            <div class="progress-fill animated"></div>
-                        </div>
-                    </div>
-                </div>
-                <div>
-                    <div class="status-indicator">
-                        <div class="status-dot gray" id="infrastructure-dot"></div>
-                        <span id="infrastructure-text">Infrastructure</span>
-                    </div>
-                    <div style="font-size: 0.8rem; color: #666; margin-left: 1.5rem;" id="infrastructure-details">
-                        Checking containers...
-                    </div>
-                    <div class="env-progress" id="infrastructure-progress" style="display: none; margin-left: 1.5rem; margin-top: 0.5rem;">
-                        <div class="progress-bar small">
-                            <div class="progress-fill animated"></div>
-                        </div>
-                    </div>
-                </div>
+        <h3><i class="fas fa-server"></i> Runtime Environment</h3>
+        
+        <!-- Unified Controls -->
+        <div style="margin-bottom: 1.5rem; padding: 1rem; background: #f8f9fa; border-radius: 8px;">
+            <div style="display: flex; gap: 1rem; align-items: center; flex-wrap: wrap;">
+                <button class="btn btn-primary" onclick="refreshRuntimeStatus()">
+                    <i class="fas fa-refresh"></i> Refresh Status
+                </button>
+                <button class="btn btn-info" onclick="runComprehensiveHealthCheck()">
+                    <i class="fas fa-heartbeat"></i> Quick Health Check
+                </button>
+                <div id="runtime-operation-status" style="margin-left: auto; font-weight: bold;"></div>
             </div>
         </div>
         
-        <!-- System Pre-warming Status Display -->
-        <div style="margin-top: 1.5rem;">
-            <div id="prewarm-status-container" style="padding: 0.75rem; background: #f8f9fa; border: 1px solid #e5e7eb; border-radius: 6px; display: block;">
-                <div style="margin-bottom: 0.75rem;">
-                    <p style="margin: 0; font-weight: 600; color: #374151;"><i class="fas fa-cog"></i> System Pre-warming</p>
-                    <div style="margin-top: 0.5rem;">
-                        <span id="prewarm-overall-status" style="font-size: 0.875rem; color: #6b7280;">Checking...</span>
-                    </div>
-                </div>
-                
-                <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 0.75rem;">
-                    <div>
-                        <div class="status-indicator" style="margin-bottom: 0.5rem;">
-                            <div class="status-dot gray" id="prewarm-subprocess-dot"></div>
-                            <span id="prewarm-subprocess-text" style="font-size: 0.875rem;">Python subprocess startup</span>
-                        </div>
-                        <div class="status-indicator" style="margin-bottom: 0.5rem;">
-                            <div class="status-dot gray" id="prewarm-relational-db-dot"></div>
-                            <span id="prewarm-relational-db-text" style="font-size: 0.875rem;">relational_db</span>
-                        </div>
-                        <div class="status-indicator" style="margin-bottom: 0.5rem;">
-                            <div class="status-dot gray" id="prewarm-sitemap-dot"></div>
-                            <span id="prewarm-sitemap-text" style="font-size: 0.875rem;">Sitemap validation</span>
-                        </div>
-                    </div>
-                    <div>
-                        <div class="status-indicator" style="margin-bottom: 0.5rem;">
-                            <div class="status-dot gray" id="prewarm-vector-db-dot"></div>
-                            <span id="prewarm-vector-db-text" style="font-size: 0.875rem;">vector_db</span>
-                        </div>
-                        <div class="status-indicator" style="margin-bottom: 0.5rem;">
-                            <div class="status-dot gray" id="prewarm-crawl4ai-dot"></div>
-                            <span id="prewarm-crawl4ai-text" style="font-size: 0.875rem;">Crawler service</span>
-                        </div>
-                    </div>
-                </div>
-                
-                <div id="prewarm-progress-container" style="margin-top: 0.75rem; display: none;">
-                    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 0.25rem;">
-                        <span style="font-size: 0.8rem; color: #6b7280;">Pre-warming progress</span>
-                        <span id="prewarm-progress-text" style="font-size: 0.8rem; color: #6b7280;">0%</span>
-                    </div>
-                    <div class="progress-bar" style="height: 4px;">
-                        <div class="progress-fill" id="prewarm-progress-bar" style="width: 0%; transition: width 0.3s ease;"></div>
-                    </div>
-                </div>
+        <!-- Runtime Environment Table -->
+        <div class="services-table-container">
+            <table class="services-table">
+                <thead>
+                    <tr>
+                        <th style="width: 60px;">#</th>
+                        <th style="width: 180px;">Component</th>
+                        <th style="width: 120px;">Status</th>
+                        <th>Description</th>
+                        <th style="width: 140px;">Actions</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <!-- Runtime Component: Python Environment -->
+                    <tr>
+                        <td style="text-align: center; font-weight: bold;">0</td>
+                        <td style="white-space: nowrap;">
+                            <i class="fab fa-python" style="margin-right: 8px; color: #3776ab;"></i>
+                            python_env
+                        </td>
+                        <td>
+                            <div style="display: flex; align-items: center; gap: 8px;">
+                                <div class="status-dot gray" id="python_env-runtime-dot"></div>
+                                <span id="python_env-runtime-text">Checking...</span>
+                            </div>
+                        </td>
+                        <td id="python_env-runtime-info">Python runtime environment and interpreter</td>
+                        <td>
+                            <button class="btn btn-xs btn-success" onclick="checkRuntimeHealth('python_env')">🔍 Health</button>
+                            <button class="btn btn-xs btn-secondary" onclick="showRuntimeLogs('python_env')">📋 Logs</button>
+                            <button class="btn btn-xs btn-warning" onclick="debugRuntime('python_env')">🔧 Debug</button>
+                        </td>
+                    </tr>
+
+                    <!-- Runtime Component: Dependencies -->
+                    <tr>
+                        <td style="text-align: center; font-weight: bold;">1</td>
+                        <td style="white-space: nowrap;">
+                            <i class="fas fa-puzzle-piece" style="margin-right: 8px; color: #f59e0b;"></i>
+                            dependencies
+                        </td>
+                        <td>
+                            <div style="display: flex; align-items: center; gap: 8px;">
+                                <div class="status-dot gray" id="dependencies-runtime-dot"></div>
+                                <span id="dependencies-runtime-text">Checking...</span>
+                            </div>
+                        </td>
+                        <td id="dependencies-runtime-info">Package dependencies and libraries</td>
+                        <td>
+                            <button class="btn btn-xs btn-success" onclick="checkRuntimeHealth('dependencies')">🔍 Health</button>
+                            <button class="btn btn-xs btn-secondary" onclick="showRuntimeLogs('dependencies')">📋 Logs</button>
+                            <button class="btn btn-xs btn-warning" onclick="debugRuntime('dependencies')">🔧 Debug</button>
+                        </td>
+                    </tr>
+
+                    <!-- Runtime Component: System Resources -->
+                    <tr>
+                        <td style="text-align: center; font-weight: bold;">2</td>
+                        <td style="white-space: nowrap;">
+                            <i class="fas fa-chart-area" style="margin-right: 8px; color: #10b981;"></i>
+                            system_resources
+                        </td>
+                        <td>
+                            <div style="display: flex; align-items: center; gap: 8px;">
+                                <div class="status-dot gray" id="system_resources-runtime-dot"></div>
+                                <span id="system_resources-runtime-text">Checking...</span>
+                            </div>
+                        </td>
+                        <td id="system_resources-runtime-info">System resource monitoring and management</td>
+                        <td>
+                            <button class="btn btn-xs btn-success" onclick="checkRuntimeHealth('system_resources')">🔍 Health</button>
+                            <button class="btn btn-xs btn-secondary" onclick="showRuntimeLogs('system_resources')">📋 Logs</button>
+                            <button class="btn btn-xs btn-warning" onclick="debugRuntime('system_resources')">🔧 Debug</button>
+                        </td>
+                    </tr>
+                </tbody>
+            </table>
+        </div>
+    </div>
+    
+    <div class="card">
+        <h3><i class="fas fa-cog"></i> Pre-warming Systems</h3>
+        
+        <!-- Unified Controls -->
+        <div style="margin-bottom: 1.5rem; padding: 1rem; background: #f8f9fa; border-radius: 8px;">
+            <div style="display: flex; gap: 1rem; align-items: center; flex-wrap: wrap;">
+                <button class="btn btn-primary" onclick="refreshPrewarmStatus()">
+                    <i class="fas fa-refresh"></i> Refresh Status
+                </button>
+                <button class="btn btn-info" onclick="runComprehensiveHealthCheck()">
+                    <i class="fas fa-heartbeat"></i> Quick Health Check
+                </button>
+                <button class="btn btn-success" onclick="initializePrewarming()">
+                    <i class="fas fa-bolt"></i> Initialize Pre-warming
+                </button>
+                <div id="prewarm-operation-status" style="margin-left: auto; font-weight: bold;"></div>
             </div>
+        </div>
+        
+        <!-- Pre-warming Systems Table -->
+        <div class="services-table-container">
+            <table class="services-table">
+                <thead>
+                    <tr>
+                        <th style="width: 60px;">#</th>
+                        <th style="width: 180px;">System</th>
+                        <th style="width: 120px;">Status</th>
+                        <th>Description</th>
+                        <th style="width: 140px;">Actions</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <!-- Pre-warming System: Database Connections -->
+                    <tr>
+                        <td style="text-align: center; font-weight: bold;">0</td>
+                        <td style="white-space: nowrap;">
+                            <i class="fas fa-link" style="margin-right: 8px; color: #10b981;"></i>
+                            database_connections
+                        </td>
+                        <td>
+                            <div style="display: flex; align-items: center; gap: 8px;">
+                                <div class="status-dot gray" id="database_connections-prewarm-dot"></div>
+                                <span id="database_connections-prewarm-text">Checking...</span>
+                            </div>
+                        </td>
+                        <td id="database_connections-prewarm-info">Database connection validation and pre-warming</td>
+                        <td>
+                            <button class="btn btn-xs btn-success" onclick="checkPrewarmHealth('database_connections')">🔍 Health</button>
+                            <button class="btn btn-xs btn-secondary" onclick="showPrewarmLogs('database_connections')">📋 Logs</button>
+                            <button class="btn btn-xs btn-warning" onclick="debugPrewarm('database_connections')">🔧 Debug</button>
+                        </td>
+                    </tr>
+
+                    <!-- Pre-warming System: Service Validation -->
+                    <tr>
+                        <td style="text-align: center; font-weight: bold;">1</td>
+                        <td style="white-space: nowrap;">
+                            <i class="fas fa-check-circle" style="margin-right: 8px; color: #3b82f6;"></i>
+                            service_validation
+                        </td>
+                        <td>
+                            <div style="display: flex; align-items: center; gap: 8px;">
+                                <div class="status-dot gray" id="service_validation-prewarm-dot"></div>
+                                <span id="service_validation-prewarm-text">Checking...</span>
+                            </div>
+                        </td>
+                        <td id="service_validation-prewarm-info">Service dependency validation and verification</td>
+                        <td>
+                            <button class="btn btn-xs btn-success" onclick="checkPrewarmHealth('service_validation')">🔍 Health</button>
+                            <button class="btn btn-xs btn-secondary" onclick="showPrewarmLogs('service_validation')">📋 Logs</button>
+                            <button class="btn btn-xs btn-warning" onclick="debugPrewarm('service_validation')">🔧 Debug</button>
+                        </td>
+                    </tr>
+
+                    <!-- Pre-warming System: Dependency Checks -->
+                    <tr>
+                        <td style="text-align: center; font-weight: bold;">2</td>
+                        <td style="white-space: nowrap;">
+                            <i class="fas fa-tasks" style="margin-right: 8px; color: #f59e0b;"></i>
+                            dependency_checks
+                        </td>
+                        <td>
+                            <div style="display: flex; align-items: center; gap: 8px;">
+                                <div class="status-dot gray" id="dependency_checks-prewarm-dot"></div>
+                                <span id="dependency_checks-prewarm-text">Checking...</span>
+                            </div>
+                        </td>
+                        <td id="dependency_checks-prewarm-info">System dependency verification and readiness checks</td>
+                        <td>
+                            <button class="btn btn-xs btn-success" onclick="checkPrewarmHealth('dependency_checks')">🔍 Health</button>
+                            <button class="btn btn-xs btn-secondary" onclick="showPrewarmLogs('dependency_checks')">📋 Logs</button>
+                            <button class="btn btn-xs btn-warning" onclick="debugPrewarm('dependency_checks')">🔧 Debug</button>
+                        </td>
+                    </tr>
+                </tbody>
+            </table>
         </div>
     </div>
     
@@ -1791,6 +1882,201 @@
         }
     }
     
+    // Standardized Diagnostic Functions (Phase 2)
+    async function checkServiceHealth(serviceName) {
+        showNotification(`Checking health for ${serviceName}...`, 'info');
+        const result = await apiCall(`/api/service/${serviceName}/health`);
+        
+        if (result.success) {
+            const health = result.health;
+            const status = health.success ? 'healthy' : 'issues';
+            const message = health.message || health.error || 'Health check completed';
+            showNotification(`${serviceName}: ${message}`, status === 'healthy' ? 'success' : 'error');
+            
+            // Update UI elements
+            updateServiceStatus(serviceName, status, message);
+        } else {
+            showNotification(`Health check failed for ${serviceName}: ${result.error}`, 'error');
+        }
+    }
+    
+    async function showServiceLogs(serviceName) {
+        document.getElementById('logs-title').textContent = `${serviceName} Logs`;
+        document.getElementById('logs-modal').classList.add('active');
+        document.getElementById('logs-content').textContent = 'Loading logs...';
+        
+        const result = await apiCall(`/api/service/${serviceName}/logs`);
+        
+        if (result.success) {
+            const logs = result.logs;
+            document.getElementById('logs-content').textContent = logs.logs || logs.message || 'No logs available';
+        } else {
+            document.getElementById('logs-content').textContent = 'Error loading logs: ' + result.error;
+        }
+    }
+    
+    async function debugService(serviceName) {
+        showNotification(`Running debug panel for ${serviceName}...`, 'info');
+        const result = await apiCall(`/api/service/${serviceName}/debug`);
+        
+        if (result.success) {
+            const debug = result.debug;
+            const debugInfo = debug.debug_info || debug;
+            showNotification(`Debug info retrieved for ${serviceName}`, 'success');
+            
+            // Show debug info in a formatted alert or modal
+            const debugText = JSON.stringify(debugInfo, null, 2);
+            alert(`Debug Info for ${serviceName}:\n\n${debugText}`);
+        } else {
+            showNotification(`Debug failed for ${serviceName}: ${result.error}`, 'error');
+        }
+    }
+    
+    // Runtime Environment Functions
+    async function checkRuntimeHealth(componentName) {
+        showNotification(`Checking runtime health for ${componentName}...`, 'info');
+        const result = await apiCall(`/api/service/${componentName}/health`);
+        
+        if (result.success) {
+            const health = result.health;
+            const status = health.success ? 'healthy' : 'issues';
+            const message = health.message || health.error || 'Runtime check completed';
+            showNotification(`${componentName}: ${message}`, status === 'healthy' ? 'success' : 'error');
+            
+            updateRuntimeStatus(componentName, status, message);
+        } else {
+            showNotification(`Runtime health check failed for ${componentName}: ${result.error}`, 'error');
+        }
+    }
+    
+    async function showRuntimeLogs(componentName) {
+        document.getElementById('logs-title').textContent = `${componentName} Runtime Logs`;
+        document.getElementById('logs-modal').classList.add('active');
+        document.getElementById('logs-content').textContent = 'Loading runtime logs...';
+        
+        const result = await apiCall(`/api/service/${componentName}/logs`);
+        
+        if (result.success) {
+            const logs = result.logs;
+            document.getElementById('logs-content').textContent = logs.logs || logs.message || 'No runtime logs available';
+        } else {
+            document.getElementById('logs-content').textContent = 'Error loading runtime logs: ' + result.error;
+        }
+    }
+    
+    async function debugRuntime(componentName) {
+        showNotification(`Running runtime debug for ${componentName}...`, 'info');
+        const result = await apiCall(`/api/service/${componentName}/debug`);
+        
+        if (result.success) {
+            const debug = result.debug;
+            const debugInfo = debug.debug_info || debug;
+            showNotification(`Runtime debug info retrieved for ${componentName}`, 'success');
+            
+            const debugText = JSON.stringify(debugInfo, null, 2);
+            alert(`Runtime Debug Info for ${componentName}:\n\n${debugText}`);
+        } else {
+            showNotification(`Runtime debug failed for ${componentName}: ${result.error}`, 'error');
+        }
+    }
+    
+    // Pre-warming System Functions
+    async function checkPrewarmHealth(systemName) {
+        showNotification(`Checking pre-warming health for ${systemName}...`, 'info');
+        const result = await apiCall(`/api/service/${systemName}/health`);
+        
+        if (result.success) {
+            const health = result.health;
+            const status = health.status === 'ready' ? 'ready' : 'not_ready';
+            const message = health.message || health.error || 'Pre-warming check completed';
+            showNotification(`${systemName}: ${message}`, status === 'ready' ? 'success' : 'warning');
+            
+            updatePrewarmStatus(systemName, status, message);
+        } else {
+            showNotification(`Pre-warming health check failed for ${systemName}: ${result.error}`, 'error');
+        }
+    }
+    
+    async function showPrewarmLogs(systemName) {
+        document.getElementById('logs-title').textContent = `${systemName} Pre-warming Logs`;
+        document.getElementById('logs-modal').classList.add('active');
+        document.getElementById('logs-content').textContent = 'Loading pre-warming logs...';
+        
+        const result = await apiCall(`/api/service/${systemName}/logs`);
+        
+        if (result.success) {
+            const logs = result.logs;
+            document.getElementById('logs-content').textContent = logs.logs || logs.message || 'No pre-warming logs available';
+        } else {
+            document.getElementById('logs-content').textContent = 'Error loading pre-warming logs: ' + result.error;
+        }
+    }
+    
+    async function debugPrewarm(systemName) {
+        showNotification(`Running pre-warming debug for ${systemName}...`, 'info');
+        const result = await apiCall(`/api/service/${systemName}/debug`);
+        
+        if (result.success) {
+            const debug = result.debug;
+            const debugInfo = debug.debug_info || debug;
+            showNotification(`Pre-warming debug info retrieved for ${systemName}`, 'success');
+            
+            const debugText = JSON.stringify(debugInfo, null, 2);
+            alert(`Pre-warming Debug Info for ${systemName}:\n\n${debugText}`);
+        } else {
+            showNotification(`Pre-warming debug failed for ${systemName}: ${result.error}`, 'error');
+        }
+    }
+    
+    // Helper functions for updating UI status
+    function updateServiceStatus(serviceName, status, message) {
+        const dot = document.getElementById(`${serviceName}-dot`);
+        const text = document.getElementById(`${serviceName}-text`);
+        const info = document.getElementById(`${serviceName}-info`);
+        
+        if (dot) {
+            dot.className = `status-dot ${status === 'healthy' ? 'green' : 'red'}`;
+        }
+        if (text) {
+            text.textContent = status === 'healthy' ? 'Online' : 'Issues';
+        }
+        if (info) {
+            info.textContent = message;
+        }
+    }
+    
+    function updateRuntimeStatus(componentName, status, message) {
+        const dot = document.getElementById(`${componentName}-runtime-dot`);
+        const text = document.getElementById(`${componentName}-runtime-text`);
+        const info = document.getElementById(`${componentName}-runtime-info`);
+        
+        if (dot) {
+            dot.className = `status-dot ${status === 'healthy' ? 'green' : 'red'}`;
+        }
+        if (text) {
+            text.textContent = status === 'healthy' ? 'Ready' : 'Issues';
+        }
+        if (info) {
+            info.textContent = message;
+        }
+    }
+    
+    function updatePrewarmStatus(systemName, status, message) {
+        const dot = document.getElementById(`${systemName}-prewarm-dot`);
+        const text = document.getElementById(`${systemName}-prewarm-text`);
+        const info = document.getElementById(`${systemName}-prewarm-info`);
+        
+        if (dot) {
+            dot.className = `status-dot ${status === 'ready' ? 'green' : 'yellow'}`;
+        }
+        if (text) {
+            text.textContent = status === 'ready' ? 'Ready' : 'Not Ready';
+        }
+        if (info) {
+            info.textContent = message;
+        }
+    }
+    
     function closeLogs() {
         document.getElementById('logs-modal').classList.remove('active');
     }
@@ -2378,30 +2664,169 @@ Status: ${comp.is_in_sync ? 'In Sync' : 'Out of Sync'}`;
         setTimeout(() => setBulkOperationStatus('', ''), 2000);
     }
     
-    async function runHealthCheck() {
-        setBulkOperationStatus('Running comprehensive health check...', 'info');
+    async function runComprehensiveHealthCheck() {
+        setBulkOperationStatus('Running comprehensive health check for all 14 services...', 'info');
         
         try {
-            const result = await apiCall('/api/health-check');
-            
-            if (result.success && result.health) {
-                const health = result.health;
-                setBulkOperationStatus(health.summary, 
-                    health.overall_status === 'healthy' ? 'success' :
-                    health.overall_status === 'warning' ? 'warning' : 'error');
-                
-                // Show detailed health results in persistent modal
-                showHealthCheckModal(health);
-                
-                setTimeout(() => setBulkOperationStatus('', ''), 5000);
-            } else {
-                setBulkOperationStatus('Health check failed: ' + (result.error || 'Unknown error'), 'error');
-                setTimeout(() => setBulkOperationStatus('', ''), 3000);
+            // Get all services from our standardized API
+            const servicesResult = await apiCall('/api/services/list');
+            if (!servicesResult.success) {
+                setBulkOperationStatus('Failed to get services list', 'error');
+                return;
             }
+            
+            const allServices = [
+                ...servicesResult.services.microservices,
+                ...servicesResult.services.runtime,
+                ...servicesResult.services.prewarm
+            ];
+            
+            let healthResults = {
+                total: allServices.length,
+                healthy: 0,
+                issues: 0,
+                errors: 0,
+                details: []
+            };
+            
+            // Check health for each service
+            for (const service of allServices) {
+                const serviceName = service.name;
+                setBulkOperationStatus(`Checking ${serviceName}... (${healthResults.healthy + healthResults.issues + healthResults.errors + 1}/${allServices.length})`, 'info');
+                
+                try {
+                    const healthResult = await apiCall(`/api/service/${serviceName}/health`);
+                    
+                    if (healthResult.success && healthResult.health) {
+                        const health = healthResult.health;
+                        const status = health.success ? 'healthy' : 
+                                     health.status === 'ready' ? 'healthy' : 
+                                     health.status === 'not_ready' ? 'warning' : 'issues';
+                        
+                        if (status === 'healthy') {
+                            healthResults.healthy++;
+                            updateServiceStatusInUI(serviceName, service.service_type, 'healthy', health.message || 'OK');
+                        } else if (status === 'warning') {
+                            healthResults.issues++;
+                            updateServiceStatusInUI(serviceName, service.service_type, 'warning', health.message || 'Issues detected');
+                        } else {
+                            healthResults.issues++;
+                            updateServiceStatusInUI(serviceName, service.service_type, 'issues', health.message || health.error || 'Health check failed');
+                        }
+                        
+                        healthResults.details.push({
+                            service: serviceName,
+                            type: service.service_type,
+                            status: status,
+                            message: health.message || health.error || 'No message'
+                        });
+                    } else {
+                        healthResults.errors++;
+                        updateServiceStatusInUI(serviceName, service.service_type, 'error', healthResult.error || 'Health check failed');
+                        healthResults.details.push({
+                            service: serviceName,
+                            type: service.service_type,
+                            status: 'error',
+                            message: healthResult.error || 'Health check failed'
+                        });
+                    }
+                } catch (error) {
+                    healthResults.errors++;
+                    healthResults.details.push({
+                        service: serviceName,
+                        type: service.service_type,
+                        status: 'error',
+                        message: error.message
+                    });
+                }
+            }
+            
+            // Show final results
+            const successRate = ((healthResults.healthy / healthResults.total) * 100).toFixed(1);
+            const statusText = `Health Check Complete: ${healthResults.healthy}/${healthResults.total} healthy (${successRate}%)`;
+            
+            if (healthResults.errors > 0) {
+                setBulkOperationStatus(statusText + ` - ${healthResults.errors} errors`, 'error');
+            } else if (healthResults.issues > 0) {
+                setBulkOperationStatus(statusText + ` - ${healthResults.issues} issues`, 'warning');
+            } else {
+                setBulkOperationStatus(statusText + ' - All systems operational!', 'success');
+            }
+            
+            // Show detailed results modal
+            showComprehensiveHealthModal(healthResults);
+            
+            setTimeout(() => setBulkOperationStatus('', ''), 8000);
+            
         } catch (error) {
-            setBulkOperationStatus('Health check error: ' + error.message, 'error');
-            setTimeout(() => setBulkOperationStatus('', ''), 3000);
+            setBulkOperationStatus('Comprehensive health check error: ' + error.message, 'error');
+            setTimeout(() => setBulkOperationStatus('', ''), 5000);
         }
+    }
+    
+    // Legacy health check function (keeping for compatibility)
+    async function runHealthCheck() {
+        // Redirect to the new comprehensive check
+        await runComprehensiveHealthCheck();
+    }
+    
+    function updateServiceStatusInUI(serviceName, serviceType, status, message) {
+        // Update UI based on service type
+        let dotId, textId, infoId;
+        
+        if (serviceType === 'microservice') {
+            dotId = `${serviceName}-dot`;
+            textId = `${serviceName}-text`;
+            infoId = `${serviceName}-info`;
+        } else if (serviceType === 'runtime') {
+            dotId = `${serviceName}-runtime-dot`;
+            textId = `${serviceName}-runtime-text`;
+            infoId = `${serviceName}-runtime-info`;
+        } else if (serviceType === 'prewarm') {
+            dotId = `${serviceName}-prewarm-dot`;
+            textId = `${serviceName}-prewarm-text`;
+            infoId = `${serviceName}-prewarm-info`;
+        }
+        
+        const dot = document.getElementById(dotId);
+        const text = document.getElementById(textId);
+        const info = document.getElementById(infoId);
+        
+        if (dot) {
+            const colorClass = status === 'healthy' ? 'green' : 
+                             status === 'warning' ? 'yellow' : 
+                             status === 'issues' ? 'red' : 'gray';
+            dot.className = `status-dot ${colorClass}`;
+        }
+        
+        if (text) {
+            const statusText = status === 'healthy' ? (serviceType === 'prewarm' ? 'Ready' : 'Online') :
+                              status === 'warning' ? 'Warning' :
+                              status === 'issues' ? 'Issues' : 'Error';
+            text.textContent = statusText;
+        }
+        
+        if (info) {
+            info.textContent = message;
+        }
+    }
+    
+    function showComprehensiveHealthModal(healthResults) {
+        let message = `Comprehensive Health Check Results\n`;
+        message += `Total Services: ${healthResults.total}\n`;
+        message += `Healthy: ${healthResults.healthy}\n`;
+        message += `Issues: ${healthResults.issues}\n`;
+        message += `Errors: ${healthResults.errors}\n`;
+        message += `Success Rate: ${((healthResults.healthy / healthResults.total) * 100).toFixed(1)}%\n\n`;
+        
+        message += `Detailed Results:\n`;
+        healthResults.details.forEach(detail => {
+            const statusIcon = detail.status === 'healthy' ? '✅' : 
+                              detail.status === 'warning' ? '⚠️' : '❌';
+            message += `${statusIcon} ${detail.service} (${detail.type}): ${detail.message}\n`;
+        });
+        
+        alert(message);
     }
     
     let currentHealthResults = '';

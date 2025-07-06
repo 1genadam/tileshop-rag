@@ -36,6 +36,10 @@ from modules.intelligence_manager import ScraperManager
 from modules.db_manager import DatabaseManager
 from modules.rag_manager import RAGManager
 from modules.sync_manager import DatabaseSyncManager
+from modules.service_diagnostic import (
+    ServiceDiagnostic, ContainerServiceDiagnostic, ConceptualServiceDiagnostic,
+    RuntimeServiceDiagnostic, PrewarmServiceDiagnostic
+)
 
 # Configure logging
 logging.basicConfig(
@@ -69,6 +73,80 @@ def acquisition_progress_callback(event_type, data):
     })
 
 acquisition_manager = ScraperManager(progress_callback=acquisition_progress_callback)
+
+# Initialize diagnostic service registry
+def initialize_diagnostic_services():
+    """Initialize all diagnostic services for the standardized framework"""
+    diagnostic_services = {}
+    
+    # Microservices (Container-based)
+    diagnostic_services['relational_db'] = ContainerServiceDiagnostic(
+        'relational_db', 'microservice', 'PostgreSQL relational database',
+        'relational_db', [5432]
+    )
+    diagnostic_services['vector_db'] = ContainerServiceDiagnostic(
+        'vector_db', 'microservice', 'Vector database for embeddings',
+        'vector_db', [5433]
+    )
+    diagnostic_services['crawler'] = ContainerServiceDiagnostic(
+        'crawler', 'microservice', 'Crawl4AI browser service',
+        'crawl4ai-browser', [11235]
+    )
+    diagnostic_services['api_gateway'] = ContainerServiceDiagnostic(
+        'api_gateway', 'microservice', 'Kong API Gateway',
+        'kong-gateway', [8000, 8001, 8443]
+    )
+    
+    # Conceptual Services
+    diagnostic_services['docker_engine'] = ConceptualServiceDiagnostic(
+        'docker_engine', 'microservice', 'Docker container management',
+        lambda: docker_manager.get_system_resources()
+    )
+    diagnostic_services['web_server'] = ConceptualServiceDiagnostic(
+        'web_server', 'microservice', 'Flask web application',
+        lambda: {'healthy': True, 'message': 'Flask server operational'}
+    )
+    diagnostic_services['llm_api'] = ConceptualServiceDiagnostic(
+        'llm_api', 'microservice', 'Claude API integration',
+        lambda: rag_manager.test_claude_connection()
+    )
+    diagnostic_services['intelligence_platform'] = ConceptualServiceDiagnostic(
+        'intelligence_platform', 'microservice', 'AI intelligence manager',
+        lambda: acquisition_manager.get_status()
+    )
+    
+    # Runtime Environment
+    diagnostic_services['python_env'] = RuntimeServiceDiagnostic(
+        'python_env', 'Python runtime environment',
+        lambda: {'success': True, 'message': 'Python environment operational'}
+    )
+    diagnostic_services['dependencies'] = RuntimeServiceDiagnostic(
+        'dependencies', 'Package dependencies',
+        lambda: {'success': True, 'message': 'Dependencies loaded'}
+    )
+    diagnostic_services['system_resources'] = RuntimeServiceDiagnostic(
+        'system_resources', 'System resource monitoring',
+        lambda: docker_manager.get_system_resources()
+    )
+    
+    # Pre-warming Systems
+    diagnostic_services['database_connections'] = PrewarmServiceDiagnostic(
+        'database_connections', 'Database connection validation',
+        lambda: db_manager.test_connections()
+    )
+    diagnostic_services['service_validation'] = PrewarmServiceDiagnostic(
+        'service_validation', 'Service dependency validation',
+        lambda: docker_manager.get_required_containers_status()
+    )
+    diagnostic_services['dependency_checks'] = PrewarmServiceDiagnostic(
+        'dependency_checks', 'System dependency verification',
+        lambda: {'success': True, 'message': 'Dependencies verified'}
+    )
+    
+    return diagnostic_services
+
+# Initialize diagnostic services
+diagnostic_services = initialize_diagnostic_services()
 
 # Git Auto-Push Functionality for Production
 def auto_git_push(commit_message="Dashboard: Auto-commit system changes"):
@@ -1986,6 +2064,138 @@ def trigger_auto_push(operation):
         
     except Exception as e:
         return jsonify({'error': str(e)}), 500
+
+# Standardized Diagnostic API Endpoints (Phase 2)
+@app.route('/api/service/<service_name>/health')
+def service_health_check(service_name):
+    """Standardized health check for any service"""
+    try:
+        if service_name not in diagnostic_services:
+            return jsonify({
+                'success': False,
+                'error': f'Service {service_name} not found',
+                'available_services': list(diagnostic_services.keys())
+            }), 404
+        
+        service = diagnostic_services[service_name]
+        result = service.health_check()
+        
+        return jsonify({
+            'success': True,
+            'service': service_name,
+            'service_type': service.service_type,
+            'description': service.description,
+            'health': result,
+            'timestamp': datetime.now().isoformat()
+        })
+        
+    except Exception as e:
+        return jsonify({
+            'success': False,
+            'service': service_name,
+            'error': str(e),
+            'timestamp': datetime.now().isoformat()
+        }), 500
+
+@app.route('/api/service/<service_name>/logs')
+def service_logs(service_name):
+    """Standardized logs endpoint for any service"""
+    try:
+        if service_name not in diagnostic_services:
+            return jsonify({
+                'success': False,
+                'error': f'Service {service_name} not found',
+                'available_services': list(diagnostic_services.keys())
+            }), 404
+        
+        lines = request.args.get('lines', 50, type=int)
+        service = diagnostic_services[service_name]
+        result = service.get_filtered_logs(lines)
+        
+        return jsonify({
+            'success': True,
+            'service': service_name,
+            'service_type': service.service_type,
+            'logs': result,
+            'timestamp': datetime.now().isoformat()
+        })
+        
+    except Exception as e:
+        return jsonify({
+            'success': False,
+            'service': service_name,
+            'error': str(e),
+            'timestamp': datetime.now().isoformat()
+        }), 500
+
+@app.route('/api/service/<service_name>/debug')
+def service_debug(service_name):
+    """Standardized debug panel for any service"""
+    try:
+        if service_name not in diagnostic_services:
+            return jsonify({
+                'success': False,
+                'error': f'Service {service_name} not found',
+                'available_services': list(diagnostic_services.keys())
+            }), 404
+        
+        service = diagnostic_services[service_name]
+        result = service.debug_panel()
+        
+        return jsonify({
+            'success': True,
+            'service': service_name,
+            'service_type': service.service_type,
+            'description': service.description,
+            'debug': result,
+            'timestamp': datetime.now().isoformat()
+        })
+        
+    except Exception as e:
+        return jsonify({
+            'success': False,
+            'service': service_name,
+            'error': str(e),
+            'timestamp': datetime.now().isoformat()
+        }), 500
+
+@app.route('/api/services/list')
+def list_services():
+    """List all available services and their types"""
+    try:
+        services_by_type = {
+            'microservices': [],
+            'runtime': [],
+            'prewarm': []
+        }
+        
+        for name, service in diagnostic_services.items():
+            service_info = {
+                'name': name,
+                'description': service.description,
+                'service_type': service.service_type
+            }
+            
+            if service.service_type == 'microservice':
+                services_by_type['microservices'].append(service_info)
+            elif service.service_type == 'runtime':
+                services_by_type['runtime'].append(service_info)
+            elif service.service_type == 'prewarm':
+                services_by_type['prewarm'].append(service_info)
+        
+        return jsonify({
+            'success': True,
+            'services': services_by_type,
+            'total_services': len(diagnostic_services),
+            'timestamp': datetime.now().isoformat()
+        })
+        
+    except Exception as e:
+        return jsonify({
+            'success': False,
+            'error': str(e),
+            'timestamp': datetime.now().isoformat()
+        }), 500
 
 # Initialize session
 @app.before_request

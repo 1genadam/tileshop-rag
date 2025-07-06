@@ -176,9 +176,19 @@ class DatabaseManager:
         """Get data quality statistics for products scraped in the last 24 hours"""
         try:
             if db_type == 'supabase':
-                return self._get_quality_stats_docker_exec('vector_db')
+                # Vector DB doesn't contain product_data, return appropriate response
+                return {
+                    'success': True,
+                    'total_recent_products': 0,
+                    'high_quality_products': 0,
+                    'low_quality_products': 0,
+                    'quality_percentage': 100.0,
+                    'poor_products': [],
+                    'alert_level': 'good',
+                    'message': 'Vector DB contains embeddings/documents, not product data for quality analysis'
+                }
             elif db_type == 'relational_db':
-                return self._get_quality_stats_docker_exec('postgres')
+                return self._get_quality_stats_docker_exec('relational_db')
             
             conn = self.get_connection(db_type)
             cursor = conn.cursor()
@@ -680,7 +690,7 @@ class DatabaseManager:
             }
     
     def _get_product_stats_docker_exec(self) -> Dict[str, Any]:
-        """Get product statistics from Supabase using docker exec"""
+        """Get product statistics from vector_db (embeddings/documents only)"""
         try:
             import subprocess
             import os
@@ -688,58 +698,60 @@ class DatabaseManager:
             # Get available URLs count from sitemap JSON file
             available_urls = self._get_available_urls_count()
             
-            # Enhanced stats query with scraping metrics
-            stats_sql = f"""
+            # Vector DB should only contain embeddings/documents, not product_data
+            # Return vector database specific stats
+            vector_stats_sql = """
                 SELECT 
-                    (SELECT COUNT(*) FROM product_data) as total_products,
-                    (SELECT COUNT(*) FROM product_data WHERE price_per_box IS NOT NULL) as products_with_price,
-                    (SELECT COUNT(*) FROM product_data WHERE scraped_at > NOW() - INTERVAL '24 hours') as recent_additions,
-                    (SELECT COUNT(*) FROM product_data WHERE sku IS NULL OR title IS NULL) as failed_products,
-                    3.2 as avg_scrape_time,
-                    (SELECT COUNT(*) * 3.2 FROM product_data) as total_scrape_time,
-                    {available_urls} as available_urls
+                    COALESCE((SELECT COUNT(*) FROM pg_tables WHERE tablename LIKE '%embedding%'), 0) as embedding_tables,
+                    COALESCE((SELECT COUNT(*) FROM pg_tables WHERE tablename LIKE '%document%'), 0) as document_tables,
+                    0 as total_products,
+                    0 as products_with_price,
+                    0 as recent_additions,
+                    0 as failed_products,
+                    0 as avg_scrape_time,
+                    0 as total_scrape_time
             """
             
             result = subprocess.run([
                 'docker', 'exec', 'vector_db',
                 'psql', '-U', 'postgres', '-d', 'postgres',
-                '-t', '-c', stats_sql
+                '-t', '-c', vector_stats_sql
             ], capture_output=True, text=True, check=True)
             
             # Parse the result
             values = result.stdout.strip().split('|')
-            if len(values) >= 7:
-                total_products = int(values[0].strip())
-                products_with_price = int(values[1].strip())
-                recent_additions = int(values[2].strip())
-                failed_products = int(values[3].strip())
-                avg_scrape_time = float(values[4].strip()) if values[4].strip() else 3.2
-                total_scrape_time = float(values[5].strip()) if values[5].strip() else 0
-                available_urls = int(values[6].strip())
+            if len(values) >= 8:
+                embedding_tables = int(values[0].strip())
+                document_tables = int(values[1].strip())
                 
                 return {
                     'table_exists': True,
-                    'total_products': total_products,
-                    'products_with_price': products_with_price,
-                    'recent_additions_24h': recent_additions,
-                    'failed_products': failed_products,
-                    'average_scrape_time': avg_scrape_time,
-                    'total_scrape_time': total_scrape_time,
+                    'vector_db_type': 'embeddings_and_documents',
+                    'embedding_tables': embedding_tables,
+                    'document_tables': document_tables,
+                    'total_products': 0,  # Vector DB doesn't store product data
+                    'products_with_price': 0,
+                    'recent_additions_24h': 0,
+                    'failed_products': 0,
+                    'average_scrape_time': 0,
+                    'total_scrape_time': 0,
                     'available_urls': available_urls,
                     'earliest_scrape': None,
-                    'latest_scrape': None
+                    'latest_scrape': None,
+                    'message': 'Vector DB contains embeddings/documents, not product data'
                 }
             else:
                 return {
                     'table_exists': False,
-                    'error': 'Could not parse statistics'
+                    'error': 'Could not parse vector database statistics'
                 }
                 
         except Exception as e:
-            logger.error(f"Error getting product stats via docker exec: {e}")
+            logger.error(f"Error getting vector DB stats via docker exec: {e}")
             return {
                 'table_exists': False,
-                'error': str(e)
+                'error': str(e),
+                'message': 'Vector DB should contain embeddings, not product_data'
             }
     
     def _get_product_stats_relational_docker_exec(self) -> Dict[str, Any]:
