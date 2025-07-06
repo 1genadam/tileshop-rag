@@ -464,7 +464,7 @@ Always present complete solutions including necessary installation materials, pr
                 if price_match:
                     max_price = float(price_match.group(1))
             
-            # Create simpler WHERE clause with multiple terms
+            # Create WHERE clause requiring ALL terms to match (for better precision)
             where_conditions = []
             for term in query_terms:
                 if term not in ['under', '$', 'list', 'find', 'suggest', 'best', 'the', 'for'] and len(term) > 2:
@@ -475,7 +475,8 @@ Always present complete solutions including necessary installation materials, pr
             if not where_conditions:
                 return []
             
-            where_clause = " OR ".join(where_conditions)
+            # Use AND to require all terms to match for better precision
+            where_clause = " AND ".join(where_conditions)
             
             # Check if this is a non-tile query (like LFT, thinset, mortar, grout)
             non_tile_terms = ['lft', 'thinset', 'mortar', 'adhesive', 'grout', 'sealer']
@@ -496,24 +497,25 @@ Always present complete solutions including necessary installation materials, pr
                 # Search relational database for tiles with images
                 return self._search_relational_db_with_images(query_terms, title_priority_conditions, limit)
             
-            # For non-tile queries, use embeddings database
+            # For non-tile queries, search both embeddings and relational database
             filter_clause = ""
             search_sql = f"""
                 COPY (
                     SELECT 
-                        sku,
-                        title,
-                        content,
-                        '' as primary_image,
-                        0 as price_per_sqft,
-                        0 as price_per_box,
-                        0 as price_per_piece,
+                        pe.sku,
+                        pe.title,
+                        pe.content,
+                        COALESCE(pd.primary_image, '') as primary_image,
+                        COALESCE(pd.price_per_sqft, 0) as price_per_sqft,
+                        COALESCE(pd.price_per_box, 0) as price_per_box,
+                        COALESCE(pd.price_per_piece, 0) as price_per_piece,
                         'text_search' as search_type
-                    FROM product_embeddings
+                    FROM product_embeddings pe
+                    LEFT JOIN product_data pd ON pe.sku = pd.sku
                     WHERE ({where_clause}){filter_clause}
                     ORDER BY 
                         CASE WHEN ({title_priority_clause}) THEN 1 ELSE 2 END,
-                        sku
+                        pe.sku
                     LIMIT {limit}
                 ) TO STDOUT CSV HEADER;
             """
