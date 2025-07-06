@@ -67,6 +67,49 @@ class SimpleTileShopRAG:
                     logger.error(f"Failed to initialize OpenAI client: {e}")
             else:
                 logger.warning("OPENAI_API_KEY not found in environment variables")
+        
+        # Load sales associate system prompt
+        self.sales_prompt = self._load_sales_associate_prompt()
+    
+    def _load_sales_associate_prompt(self) -> str:
+        """Load the sales associate system prompt from documentation"""
+        try:
+            prompt_file = os.path.join(os.path.dirname(__file__), 'readme', 'SALES_ASSOCIATE_SYSTEM_PROMPT.md')
+            if os.path.exists(prompt_file):
+                with open(prompt_file, 'r', encoding='utf-8') as f:
+                    content = f.read()
+                    # Extract the core prompt from the markdown documentation
+                    # Look for the main system prompt section
+                    lines = content.split('\n')
+                    core_prompt_lines = []
+                    in_core_section = False
+                    
+                    for line in lines:
+                        if line.strip() == "## Core Personality & Approach":
+                            in_core_section = True
+                            continue
+                        elif line.startswith('## ') and in_core_section:
+                            break
+                        elif in_core_section:
+                            core_prompt_lines.append(line)
+                    
+                    if core_prompt_lines:
+                        return '\n'.join(core_prompt_lines).strip()
+            
+            # Fallback system prompt if file doesn't exist
+            return """You are a friendly, knowledgeable, and enthusiastic sales associate at The Tile Shop, a premium tile and stone retailer. Your mission is to provide exceptional customer service while maximizing sales opportunities through helpful guidance and expert recommendations.
+
+Key traits:
+- Friendly & approachable: Use warm, conversational language and show genuine enthusiasm
+- Knowledgeable expert: Demonstrate deep understanding of tiles, installation, and applications  
+- Solution-oriented: Focus on complete project needs, not just individual products
+- Sales-focused: Always suggest supporting materials and emphasize value propositions
+
+Always present complete solutions including necessary installation materials, provide professional tips, and create confidence in the customer's project success."""
+            
+        except Exception as e:
+            logger.error(f"Error loading sales associate prompt: {e}")
+            return "You are a helpful and knowledgeable tile shop sales associate."
     
     def _enhance_slip_resistant_query(self, query: str) -> str:
         """Enhance queries for slip-resistant tiles by mapping to database terms"""
@@ -684,37 +727,55 @@ class SimpleTileShopRAG:
             return "I encountered an error processing your request. Please try again."
     
     def _handle_analytical_query(self, query: str) -> str:
-        """Handle analytical queries using Claude API"""
+        """Handle analytical queries using Claude API with sales associate persona"""
         try:
             # First, get all product data for analysis
             all_products = self._get_all_products_for_analysis()
             
             if not all_products:
-                return "I don't have enough product data to analyze your query. Please ensure the database has been populated."
+                return "I'd love to help you with that analysis, but I need our product database to be fully loaded first. Let me check on that for you!"
             
-            # Use Claude to analyze the query and data
-            prompt = f"""
-You are an AI assistant helping customers analyze tile products. You have access to a database of tile products with the following information:
+            # Create the analytical prompt with sales associate persona
+            system_prompt = f"""
+{self.sales_prompt}
+
+You have access to our complete product database with detailed information about tiles, prices, and specifications. Use this data to provide enthusiastic, helpful analysis while looking for opportunities to suggest complete project solutions.
+
+When analyzing products, always consider:
+1. The customer's specific needs and project context
+2. Opportunities to suggest supporting materials and installation products
+3. Value propositions that justify price differences
+4. Professional tips and guidance
+5. Ways to build confidence in their project success
+
+Remember: You're not just analyzing data - you're helping customers make informed decisions that lead to beautiful, successful tile projects!
+"""
+
+            user_prompt = f"""
+Here's our current product database with pricing and specifications:
 
 {json.dumps(all_products[:10], indent=2)}
-... and {len(all_products) - 10} more products
+... and {len(all_products) - 10} more products in our inventory
 
-User Query: "{query}"
+Customer Query: "{query}"
 
-Please analyze this query and provide a helpful response. If the user is asking for:
-- Lowest/cheapest: Find the product with the minimum price per sq ft
-- Highest/most expensive: Find the product with the maximum price per sq ft  
-- Average price: Calculate the average price per sq ft
-- Best value: Consider price and quality factors
-- Comparisons: Compare products based on the criteria mentioned
+Please analyze this query with enthusiasm and provide a helpful response. If they're asking for:
+- Lowest/cheapest: Find the best value options and explain why they're great choices
+- Highest/most expensive: Show premium options and their value propositions
+- Average pricing: Provide context and suggest how to get the best value
+- Best value: Consider quality, durability, and total project cost
+- Comparisons: Help them understand the differences and make confident choices
 
-Provide a specific, helpful answer with exact product names, SKUs, prices, and URLs when relevant.
+Always include specific product names, SKUs, prices, and suggest what else they might need for their project. Make it conversational and helpful!
 """
 
             response = self.claude_client.messages.create(
                 model="claude-3-5-sonnet-20241022",
-                max_tokens=1000,
-                messages=[{"role": "user", "content": prompt}]
+                max_tokens=1200,
+                messages=[
+                    {"role": "system", "content": system_prompt},
+                    {"role": "user", "content": user_prompt}
+                ]
             )
             
             return response.content[0].text
@@ -788,9 +849,9 @@ Once I know the size, I can show you everything you'll need for professional ins
         results = self.search_products(search_terms)
         
         if not results:
-            return "I couldn't find any products matching your query. Try searching for tile types, colors, finishes, or sizes."
+            return "I'd love to help you find the perfect tiles! I couldn't find anything matching those exact terms, but let me help you explore some other options. Try searching for tile types, colors, finishes, or sizes, and I'll find some great choices for you!"
         
-        response_parts = [f"Here are {len(results)} products that match your query:\n"]
+        response_parts = [f"I found {len(results)} fantastic options for you! Let me show you what would work beautifully:\n"]
         
         # Track if we have tiles (not installation materials) for supporting materials suggestion
         has_tiles = False
@@ -949,26 +1010,34 @@ Once I know the size, I can show you everything you'll need for professional ins
             area_context = " for your wall tiling"
         
         response_parts = [
-            f"\n🔧 **Supporting Materials Needed{area_context}:**\n"
+            f"\n🔧 **Complete Installation Package{area_context}:**\n",
+            "To ensure your project looks professional and lasts for years, I recommend these essential materials:\n"
         ]
         
         for material in materials:
-            response_parts.append(f"• {material}")
+            response_parts.append(f"✅ {material}")
         
         response_parts.extend([
-            "\n💡 **Professional Tips:**",
-            "• Purchase 10-15% extra tile for cuts and future repairs",
-            "• Use appropriate trowel size: 1/4\" notched for wall tiles, 3/8\" for floor tiles",
-            "• Allow proper cure time: 24 hours before grouting, 72 hours before heavy use"
+            "\n💡 **Professional Tips for Success:**",
+            "• I always recommend purchasing 10-15% extra tile for cuts and future repairs",
+            "• Use the right trowel size: 1/4\" notched for wall tiles, 3/8\" for floor tiles", 
+            "• Proper cure time makes all the difference: 24 hours before grouting, 72 hours before heavy use"
         ])
         
         if has_natural_stone:
-            response_parts.append("• Seal natural stone before and after grouting")
+            response_parts.append("• For natural stone: seal before and after grouting for lasting beauty")
         
         if is_heated:
-            response_parts.append("• Install heating system before tile installation")
+            response_parts.append("• Install your heating system before tile installation - it's much easier!")
         
-        response_parts.append("\n📞 **Need help calculating quantities?** Our team can provide detailed material estimates based on your project size.")
+        response_parts.extend([
+            "\n🏆 **Why choose our complete system approach?**",
+            "• Prevents costly return trips for missing materials",
+            "• Ensures all products work perfectly together", 
+            "• Professional results that you'll love for years to come",
+            "",
+            "📞 **Ready to get started?** I'd love to help calculate the exact quantities you'll need and put together your complete project package!"
+        ])
         
         return "\n".join(response_parts)
     
