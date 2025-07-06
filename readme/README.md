@@ -101,8 +101,17 @@ conn.close()
 ```bash
 # Generate embeddings for all products (via dashboard)
 # Click "🧠 Generate Embeddings" button in Database Sync section
+# Features comprehensive progress tracking with:
+# - Real-time percentage completion
+# - Elapsed time and batch information  
+# - Live status updates every 2 seconds
+# - Cancel/resume functionality
+
 # OR via API:
 curl -X POST "http://localhost:8080/api/rag/generate-embeddings"
+
+# Monitor progress:
+curl -s "http://localhost:8080/api/rag/embeddings-progress"
 
 # Check embedding count
 docker exec vector_db psql -U postgres -d postgres -c "SELECT COUNT(*) FROM product_embeddings;"
@@ -197,10 +206,17 @@ docker restart relational_db vector_db
 ### Vector Database Shows 0 Embeddings
 ```bash
 # Generate embeddings from product data
-# Click "🧠 Generate Embeddings" button in dashboard
-# This creates vector representations of 4,785 products
+# Click "🧠 Generate Embeddings" button in Database Sync card
+# Features comprehensive progress tracking:
+# - Animated progress bar with percentage
+# - Detailed status cards (Status, Progress, Elapsed, Batch)
+# - Real-time updates every 2 seconds
+# - Cancel/close controls with proper state management
 
-# Check progress
+# Monitor embedding generation progress:
+curl -s "http://localhost:8080/api/rag/embeddings-progress" | jq '.progress'
+
+# Check final embedding count:
 curl -s "http://localhost:8080/api/sync/status" | jq '.status.connections.target'
 ```
 

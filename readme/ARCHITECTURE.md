@@ -48,6 +48,11 @@ The Tileshop RAG (Retrieval-Augmented Generation) system is a comprehensive inte
 **Technology**: Flask, SocketIO, HTML/CSS/JavaScript
 **Port**: 8080
 
+**Key Features**:
+- **Embedding Generation Progress Tracking**: Real-time progress monitoring with animated progress bars, elapsed time, batch information, and cancel/close controls
+- **17 Service Monitoring**: Unified health checks across Microservices, Runtime, and Pre-warming categories
+- **Database Sync Management**: Visual status tracking and comprehensive progress feedback for vector embedding generation
+
 **Features**:
 - Unified service monitoring dashboard
 - Real-time status updates
@@ -363,6 +368,45 @@ services:
       POSTGRES_PASSWORD: supabase123
 ```
 
+## Embedding Generation System
+
+### Progress Tracking Architecture
+**Location**: Database Sync card in the main dashboard
+**Implementation**: Real-time progress monitoring system
+
+**Components**:
+```
+┌─────────────────────────────────────────────────────────────┐
+│                 EMBEDDING GENERATION UI                     │
+├─────────────────────────────────────────────────────────────┤
+│  ┌─────────────────┐    ┌─────────────────┐                │
+│  │ Progress Bar    │    │ Status Cards    │                │
+│  │ - Percentage    │    │ - Current Status│                │
+│  │ - Animation     │    │ - Progress Count│                │
+│  │ - Color-coded   │    │ - Elapsed Time  │                │
+│  └─────────────────┘    │ - Batch Info    │                │
+│                         └─────────────────┘                │
+│  ┌─────────────────┐    ┌─────────────────┐                │
+│  │ Control Buttons │    │ Real-time API   │                │
+│  │ - Cancel Process│    │ - 2sec Polling  │                │
+│  │ - Close Modal   │    │ - Auto-complete │                │
+│  │ - State Mgmt    │    │ - Error Handling│                │
+│  └─────────────────┘    └─────────────────┘                │
+└─────────────────────────────────────────────────────────────┘
+```
+
+**API Endpoints**:
+- `POST /api/rag/generate-embeddings` - Start embedding generation
+- `GET /api/rag/embeddings-progress` - Poll for progress updates
+- `POST /api/rag/cancel-embeddings` - Cancel ongoing generation
+
+**Progress Features**:
+- **Real-time Updates**: Progress polling every 2 seconds
+- **Comprehensive Metrics**: Percentage, elapsed time, batch information
+- **Visual Feedback**: Animated progress bar with color-coded status cards
+- **State Management**: Cancel/resume functionality with proper UI state handling
+- **Error Handling**: Graceful failure recovery and user notification
+
 ## Monitoring and Observability
 
 ### Health Monitoring
@@ -370,18 +414,21 @@ services:
 - Container resource usage tracking
 - Database connection monitoring
 - API endpoint availability
+- **Embedding generation progress tracking** with comprehensive UI feedback
 
 ### Logging
 - Centralized logging via Flask logging
 - Container logs aggregation
 - Error tracking and alerting
 - Performance metrics collection
+- **Embedding generation process logging** with batch-level granularity
 
 ### Metrics Collection
 - Service response times
 - Database query performance
 - Memory and CPU usage
 - Network traffic analysis
+- **Embedding generation metrics** (processing rate, completion time, error rates)
 
 ## Scalability Considerations
 
