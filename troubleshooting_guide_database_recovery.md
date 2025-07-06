@@ -360,13 +360,22 @@ curl http://127.0.0.1:8080/api/service/docker_engine/debug
 - **✅ Easier Maintenance**: Single diagnostic framework for all service types
 - **✅ Complete UI Integration**: Dashboard now has 3 sections with standardized interface
 - **✅ Full Coverage**: Health/Logs/Debug available for all Microservices, Runtime, and Pre-warming Systems
-- **✅ Unified Health Check**: Single button checks all 14 services with progress tracking and comprehensive reporting
+- **✅ Unified Health Check**: Single button checks all 17 services with progress tracking and comprehensive reporting
 - **✅ Improved Navigation**: Customer Service moved to menu bar for better organization
 
 ### **🔧 Service Categories Successfully Implemented:**
-- **Microservices (8)**: relational_db, vector_db, crawler, api_gateway, docker_engine, web_server, llm_api, intelligence_platform
-- **Runtime Environment (3)**: python_env, dependencies, system_resources  
-- **Pre-warming Systems (3)**: database_connections, service_validation, dependency_checks
+- **Microservices (8)**: docker_engine, relational_db, vector_db, crawler, llm_api, web_server, api_gateway, intelligence_platform
+- **Runtime Environment (4)**: virtual_environment, dependencies, docker_daemon, infrastructure  
+- **Pre-warming Systems (5)**: python_subprocess, relational_db_prewarm, sitemap_validation, vector_db_prewarm, crawler_service_prewarm
+
+### **✅ UNIFIED TABLE COMPLETED (July 6, 2025)**
+- **✅ Consolidated 3 tables** into single unified table with section headers
+- **✅ Split Actions column** into separate Health/Logs/Debug columns as requested  
+- **✅ Expanded Runtime** to show all 4 components (Virtual Environment, Dependencies, Docker Daemon, Infrastructure)
+- **✅ Expanded Pre-warming** to show all 5 services (Python subprocess, relational_db, Sitemap validation, vector_db, Crawler service)
+- **✅ Removed redundant sections** - eliminated separate Runtime Environment and Pre-warming cards
+- **✅ Updated backend** to support all 17 services with proper diagnostic API endpoints
+- **✅ All 17 services** now use standardized 3-button interface (🔍 Health, 📋 Logs, 🔧 Debug)
 
 ---
 *Issue resolved: July 6, 2025 03:15 EST*  
