@@ -94,7 +94,7 @@ def initialize_diagnostic_services():
     )
     diagnostic_services['api_gateway'] = ContainerServiceDiagnostic(
         'api_gateway', 'microservice', 'Kong API Gateway',
-        'kong-gateway', [8000, 8001, 8443]
+        'supabase-kong', [8000, 8001, 8443]
     )
     
     # Conceptual Services

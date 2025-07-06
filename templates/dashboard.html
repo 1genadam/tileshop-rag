@@ -2136,11 +2136,17 @@
         const text = document.getElementById(`${componentName}-runtime-text`);
         const info = document.getElementById(`${componentName}-runtime-info`);
         
+        console.log(`updateRuntimeStatus: ${componentName}, dot found: ${!!dot}, text found: ${!!text}`);
+        
         if (dot) {
             dot.className = `status-dot ${status === 'healthy' ? 'green' : 'red'}`;
+        } else {
+            console.error(`Runtime status dot not found for: ${componentName}-runtime-dot`);
         }
         if (text) {
             text.textContent = status === 'healthy' ? 'Ready' : 'Issues';
+        } else {
+            console.error(`Runtime status text not found for: ${componentName}-runtime-text`);
         }
         if (info) {
             info.textContent = message;
@@ -2152,11 +2158,17 @@
         const text = document.getElementById(`${systemName}-prewarm-text`);
         const info = document.getElementById(`${systemName}-prewarm-info`);
         
+        console.log(`updatePrewarmStatus: ${systemName}, dot found: ${!!dot}, text found: ${!!text}`);
+        
         if (dot) {
             dot.className = `status-dot ${status === 'ready' ? 'green' : 'yellow'}`;
+        } else {
+            console.error(`Prewarm status dot not found for: ${systemName}-prewarm-dot`);
         }
         if (text) {
             text.textContent = status === 'ready' ? 'Ready' : 'Not Ready';
+        } else {
+            console.error(`Prewarm status text not found for: ${systemName}-prewarm-text`);
         }
         if (info) {
             info.textContent = message;
@@ -2537,6 +2549,8 @@ Status: ${comp.is_in_sync ? 'In Sync' : 'Out of Sync'}`;
                     message = health.message || 'Health check completed';
                 }
                 
+                console.log(`Updating ${serviceName} (${serviceType}): ${status} - ${message}`);
+                
                 // Update the UI based on service type
                 if (serviceType === 'runtime') {
                     updateRuntimeStatus(serviceName, status, message);
@@ -2545,6 +2559,8 @@ Status: ${comp.is_in_sync ? 'In Sync' : 'Out of Sync'}`;
                 } else {
                     updateServiceStatus(serviceName, status, message);
                 }
+            } else {
+                console.error(`Health check failed for ${serviceName}:`, healthResponse);
             }
         } catch (error) {
             console.error(`Error checking ${serviceName} status:`, error);
