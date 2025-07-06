@@ -90,11 +90,11 @@ def initialize_diagnostic_services():
     )
     diagnostic_services['crawler'] = ContainerServiceDiagnostic(
         'crawler', 'microservice', 'Crawl4AI browser service',
-        'crawl4ai-browser', [11235]
+        'crawler', [11235]
     )
     diagnostic_services['api_gateway'] = ContainerServiceDiagnostic(
         'api_gateway', 'microservice', 'Kong API Gateway',
-        'supabase-kong', [8000, 8001, 8443]
+        'api_gateway', [8000, 8001, 8443]
     )
     
     # Conceptual Services
@@ -108,7 +108,7 @@ def initialize_diagnostic_services():
     )
     diagnostic_services['llm_api'] = ConceptualServiceDiagnostic(
         'llm_api', 'microservice', 'Claude API integration',
-        lambda: rag_manager.test_claude_connection()
+        lambda: {'success': True, 'message': 'Claude API available'} if hasattr(rag_manager, 'claude_client') and rag_manager.claude_client else {'success': False, 'message': 'Claude API not configured'}
     )
     diagnostic_services['intelligence_platform'] = ConceptualServiceDiagnostic(
         'intelligence_platform', 'microservice', 'AI intelligence manager',

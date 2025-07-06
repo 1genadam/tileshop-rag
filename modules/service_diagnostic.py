@@ -51,7 +51,7 @@ class ContainerServiceDiagnostic(ServiceDiagnostic):
             # Check container status
             result = subprocess.run([
                 'docker', 'inspect', self.container_name, '--format', 
-                '{{.State.Status}},{{.State.Health.Status}},{{.Config.Image}}'
+                '{{.State.Status}},{{if .State.Health}}{{.State.Health.Status}}{{else}}none{{end}},{{.Config.Image}}'
             ], capture_output=True, text=True, timeout=10)
             
             if result.returncode != 0:
