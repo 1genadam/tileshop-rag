@@ -2486,13 +2486,70 @@ Status: ${comp.is_in_sync ? 'In Sync' : 'Out of Sync'}`;
         }
     }
     
-    // Update loadDashboardData to include environment status
+    // Update loadDashboardData to include all service status
     const originalLoadDashboardData = loadDashboardData;
     loadDashboardData = async function() {
         await originalLoadDashboardData();
-        await updateEnvironmentStatus();
-        await updatePrewarmStatus();
+        await updateAllServiceStatus();
     };
+    
+    // New unified function to load status for all 17 services
+    async function updateAllServiceStatus() {
+        try {
+            // Get list of all services
+            const servicesResponse = await apiCall('/api/services/list');
+            if (!servicesResponse.success) return;
+            
+            const services = servicesResponse.services;
+            
+            // Load status for all microservices
+            for (const service of services.microservices) {
+                await updateSingleServiceStatus(service.name, 'microservice');
+            }
+            
+            // Load status for all runtime services  
+            for (const service of services.runtime) {
+                await updateSingleServiceStatus(service.name, 'runtime');
+            }
+            
+            // Load status for all pre-warming services
+            for (const service of services.prewarm) {
+                await updateSingleServiceStatus(service.name, 'prewarm');
+            }
+        } catch (error) {
+            console.error('Error updating service status:', error);
+        }
+    }
+    
+    // Helper function to update status for a single service
+    async function updateSingleServiceStatus(serviceName, serviceType) {
+        try {
+            const healthResponse = await apiCall(`/api/service/${serviceName}/health`);
+            if (healthResponse.success) {
+                const health = healthResponse.health;
+                let status, message;
+                
+                if (serviceType === 'prewarm') {
+                    status = health.status === 'ready' ? 'ready' : 'not_ready';
+                    message = health.message || 'Unknown status';
+                } else {
+                    status = health.success ? 'healthy' : 'issues';
+                    message = health.message || 'Health check completed';
+                }
+                
+                // Update the UI based on service type
+                if (serviceType === 'runtime') {
+                    updateRuntimeStatus(serviceName, status, message);
+                } else if (serviceType === 'prewarm') {
+                    updatePrewarmStatus(serviceName, status, message);
+                } else {
+                    updateServiceStatus(serviceName, status, message);
+                }
+            }
+        } catch (error) {
+            console.error(`Error checking ${serviceName} status:`, error);
+        }
+    }
     
     // Pre-warming Status Functions
     let prewarmInterval = null;
