@@ -4,9 +4,9 @@
 
 {% block content %}
 <div class="grid grid-4">
-    <!-- Docker Status Cards -->
+    <!-- Unified System Services Table -->
     <div class="card span-3">
-        <h3><i class="fas fa-cogs"></i> Microservices Directory</h3>
+        <h3><i class="fas fa-cogs"></i> System Services Dashboard</h3>
         
         <!-- Unified Controls -->
         <div style="margin-bottom: 1.5rem; padding: 1rem; background: #f8f9fa; border-radius: 8px;">
@@ -31,13 +31,13 @@
                     <i class="fas fa-refresh"></i> Refresh Status
                 </button>
                 <button class="btn btn-info" onclick="runComprehensiveHealthCheck()">
-                    <i class="fas fa-heartbeat"></i> Health Check All (14 Services)
+                    <i class="fas fa-heartbeat"></i> Health Check All (17 Services)
                 </button>
                 <div id="bulk-operation-status" style="margin-left: auto; font-weight: bold;"></div>
             </div>
         </div>
         
-        <!-- Microservices Table -->
+        <!-- Unified Services Table -->
         <div class="services-table-container">
             <table class="services-table">
                 <thead>
@@ -46,10 +46,18 @@
                         <th style="width: 180px;">Service</th>
                         <th style="width: 120px;">Status</th>
                         <th>Description</th>
-                        <th style="width: 140px;">Actions</th>
+                        <th style="width: 60px;">Health</th>
+                        <th style="width: 60px;">Logs</th>
+                        <th style="width: 60px;">Debug</th>
                     </tr>
                 </thead>
                 <tbody>
+                    <!-- MICROSERVICES SECTION -->
+                    <tr class="section-header">
+                        <td colspan="7" style="background: #667eea; color: white; font-weight: bold; padding: 12px; text-align: left;">
+                            🔧 MICROSERVICES
+                        </td>
+                    </tr>
                     <!-- Service 0: Docker Engine -->
                     <tr>
                         <td style="text-align: center; font-weight: bold;">0</td>
@@ -65,9 +73,13 @@
                         </td>
                         <td id="docker_engine-info">Container orchestration and infrastructure platform</td>
                         <td>
-                            <button class="btn btn-xs btn-success" onclick="checkServiceHealth('docker_engine')">🔍 Health</button>
-                            <button class="btn btn-xs btn-secondary" onclick="showServiceLogs('docker_engine')">📋 Logs</button>
-                            <button class="btn btn-xs btn-warning" onclick="debugService('docker_engine')">🔧 Debug</button>
+                            <button class="btn btn-xs btn-success" onclick="checkServiceHealth('docker_engine')">🔍</button>
+                        </td>
+                        <td>
+                            <button class="btn btn-xs btn-secondary" onclick="showServiceLogs('docker_engine')">📋</button>
+                        </td>
+                        <td>
+                            <button class="btn btn-xs btn-warning" onclick="debugService('docker_engine')">🔧</button>
                         </td>
                     </tr>
 
@@ -86,9 +98,13 @@
                         </td>
                         <td id="relational_db-info">Primary relational database for structured data</td>
                         <td>
-                            <button class="btn btn-xs btn-success" onclick="checkServiceHealth('relational_db')">🔍 Health</button>
-                            <button class="btn btn-xs btn-secondary" onclick="showServiceLogs('relational_db')">📋 Logs</button>
-                            <button class="btn btn-xs btn-warning" onclick="debugService('relational_db')">🔧 Debug</button>
+                            <button class="btn btn-xs btn-success" onclick="checkServiceHealth('relational_db')">🔍</button>
+                        </td>
+                        <td>
+                            <button class="btn btn-xs btn-secondary" onclick="showServiceLogs('relational_db')">📋</button>
+                        </td>
+                        <td>
+                            <button class="btn btn-xs btn-warning" onclick="debugService('relational_db')">🔧</button>
                         </td>
                     </tr>
 
@@ -107,9 +123,13 @@
                         </td>
                         <td id="vector_db-info">Vector database with embeddings and AI capabilities</td>
                         <td>
-                            <button class="btn btn-xs btn-success" onclick="checkServiceHealth('vector_db')">🔍 Health</button>
-                            <button class="btn btn-xs btn-secondary" onclick="showServiceLogs('vector_db')">📋 Logs</button>
-                            <button class="btn btn-xs btn-warning" onclick="debugService('vector_db')">🔧 Debug</button>
+                            <button class="btn btn-xs btn-success" onclick="checkServiceHealth('vector_db')">🔍</button>
+                        </td>
+                        <td>
+                            <button class="btn btn-xs btn-secondary" onclick="showServiceLogs('vector_db')">📋</button>
+                        </td>
+                        <td>
+                            <button class="btn btn-xs btn-warning" onclick="debugService('vector_db')">🔧</button>
                         </td>
                     </tr>
 
@@ -128,9 +148,13 @@
                         </td>
                         <td id="crawler-info">AI-powered web crawling service</td>
                         <td>
-                            <button class="btn btn-xs btn-success" onclick="checkServiceHealth('crawler')">🔍 Health</button>
-                            <button class="btn btn-xs btn-secondary" onclick="showServiceLogs('crawler')">📋 Logs</button>
-                            <button class="btn btn-xs btn-warning" onclick="debugService('crawler')">🔧 Debug</button>
+                            <button class="btn btn-xs btn-success" onclick="checkServiceHealth('crawler')">🔍</button>
+                        </td>
+                        <td>
+                            <button class="btn btn-xs btn-secondary" onclick="showServiceLogs('crawler')">📋</button>
+                        </td>
+                        <td>
+                            <button class="btn btn-xs btn-warning" onclick="debugService('crawler')">🔧</button>
                         </td>
                     </tr>
 
@@ -149,9 +173,13 @@
                         </td>
                         <td id="llm_api-info">Large language model API for AI processing</td>
                         <td>
-                            <button class="btn btn-xs btn-success" onclick="checkServiceHealth('llm_api')">🔍 Health</button>
-                            <button class="btn btn-xs btn-secondary" onclick="showServiceLogs('llm_api')">📋 Logs</button>
-                            <button class="btn btn-xs btn-warning" onclick="debugService('llm_api')">🔧 Debug</button>
+                            <button class="btn btn-xs btn-success" onclick="checkServiceHealth('llm_api')">🔍</button>
+                        </td>
+                        <td>
+                            <button class="btn btn-xs btn-secondary" onclick="showServiceLogs('llm_api')">📋</button>
+                        </td>
+                        <td>
+                            <button class="btn btn-xs btn-warning" onclick="debugService('llm_api')">🔧</button>
                         </td>
                     </tr>
 
@@ -170,9 +198,13 @@
                         </td>
                         <td id="web_server-info">Flask application server and dashboard interface</td>
                         <td>
-                            <button class="btn btn-xs btn-success" onclick="checkServiceHealth('web_server')">🔍 Health</button>
-                            <button class="btn btn-xs btn-secondary" onclick="showServiceLogs('web_server')">📋 Logs</button>
-                            <button class="btn btn-xs btn-warning" onclick="debugService('web_server')">🔧 Debug</button>
+                            <button class="btn btn-xs btn-success" onclick="checkServiceHealth('web_server')">🔍</button>
+                        </td>
+                        <td>
+                            <button class="btn btn-xs btn-secondary" onclick="showServiceLogs('web_server')">📋</button>
+                        </td>
+                        <td>
+                            <button class="btn btn-xs btn-warning" onclick="debugService('web_server')">🔧</button>
                         </td>
                     </tr>
 
@@ -191,9 +223,13 @@
                         </td>
                         <td id="api_gateway-info">API management and routing service</td>
                         <td>
-                            <button class="btn btn-xs btn-success" onclick="checkServiceHealth('api_gateway')">🔍 Health</button>
-                            <button class="btn btn-xs btn-secondary" onclick="showServiceLogs('api_gateway')">📋 Logs</button>
-                            <button class="btn btn-xs btn-warning" onclick="debugService('api_gateway')">🔧 Debug</button>
+                            <button class="btn btn-xs btn-success" onclick="checkServiceHealth('api_gateway')">🔍</button>
+                        </td>
+                        <td>
+                            <button class="btn btn-xs btn-secondary" onclick="showServiceLogs('api_gateway')">📋</button>
+                        </td>
+                        <td>
+                            <button class="btn btn-xs btn-warning" onclick="debugService('api_gateway')">🔧</button>
                         </td>
                     </tr>
 
@@ -212,67 +248,51 @@
                         </td>
                         <td id="intelligence_platform-info">AI-powered orchestration and management interface</td>
                         <td>
-                            <button class="btn btn-xs btn-secondary" onclick="checkEnvironmentStatus()">Check</button>
-                        </td>
-                    </tr>
-                </tbody>
-            </table>
-        </div>
-    </div>
-    
-    <div class="card">
-        <h3><i class="fas fa-server"></i> Runtime Environment</h3>
-        
-        <!-- Unified Controls -->
-        <div style="margin-bottom: 1.5rem; padding: 1rem; background: #f8f9fa; border-radius: 8px;">
-            <div style="display: flex; gap: 1rem; align-items: center; flex-wrap: wrap;">
-                <button class="btn btn-primary" onclick="refreshRuntimeStatus()">
-                    <i class="fas fa-refresh"></i> Refresh Status
-                </button>
-                <button class="btn btn-info" onclick="runComprehensiveHealthCheck()">
-                    <i class="fas fa-heartbeat"></i> Quick Health Check
-                </button>
-                <div id="runtime-operation-status" style="margin-left: auto; font-weight: bold;"></div>
-            </div>
-        </div>
-        
-        <!-- Runtime Environment Table -->
-        <div class="services-table-container">
-            <table class="services-table">
-                <thead>
-                    <tr>
-                        <th style="width: 60px;">#</th>
-                        <th style="width: 180px;">Component</th>
-                        <th style="width: 120px;">Status</th>
-                        <th>Description</th>
-                        <th style="width: 140px;">Actions</th>
-                    </tr>
-                </thead>
-                <tbody>
-                    <!-- Runtime Component: Python Environment -->
-                    <tr>
-                        <td style="text-align: center; font-weight: bold;">0</td>
-                        <td style="white-space: nowrap;">
-                            <i class="fab fa-python" style="margin-right: 8px; color: #3776ab;"></i>
-                            python_env
+                            <button class="btn btn-xs btn-success" onclick="checkServiceHealth('intelligence_platform')">🔍</button>
                         </td>
                         <td>
-                            <div style="display: flex; align-items: center; gap: 8px;">
-                                <div class="status-dot gray" id="python_env-runtime-dot"></div>
-                                <span id="python_env-runtime-text">Checking...</span>
-                            </div>
+                            <button class="btn btn-xs btn-secondary" onclick="showServiceLogs('intelligence_platform')">📋</button>
                         </td>
-                        <td id="python_env-runtime-info">Python runtime environment and interpreter</td>
                         <td>
-                            <button class="btn btn-xs btn-success" onclick="checkRuntimeHealth('python_env')">🔍 Health</button>
-                            <button class="btn btn-xs btn-secondary" onclick="showRuntimeLogs('python_env')">📋 Logs</button>
-                            <button class="btn btn-xs btn-warning" onclick="debugRuntime('python_env')">🔧 Debug</button>
+                            <button class="btn btn-xs btn-warning" onclick="debugService('intelligence_platform')">🔧</button>
                         </td>
                     </tr>
 
-                    <!-- Runtime Component: Dependencies -->
+                    <!-- RUNTIME ENVIRONMENT SECTION -->
+                    <tr class="section-header">
+                        <td colspan="7" style="background: #10b981; color: white; font-weight: bold; padding: 12px; text-align: left;">
+                            🏃 RUNTIME ENVIRONMENT
+                        </td>
+                    </tr>
+
+                    <!-- Runtime 8: Virtual Environment -->
                     <tr>
-                        <td style="text-align: center; font-weight: bold;">1</td>
+                        <td style="text-align: center; font-weight: bold;">8</td>
+                        <td style="white-space: nowrap;">
+                            <i class="fas fa-box" style="margin-right: 8px; color: #3776ab;"></i>
+                            virtual_environment
+                        </td>
+                        <td>
+                            <div style="display: flex; align-items: center; gap: 8px;">
+                                <div class="status-dot gray" id="virtual_environment-runtime-dot"></div>
+                                <span id="virtual_environment-runtime-text">Checking...</span>
+                            </div>
+                        </td>
+                        <td id="virtual_environment-runtime-info">Python virtual environment (autogen_env)</td>
+                        <td>
+                            <button class="btn btn-xs btn-success" onclick="checkRuntimeHealth('virtual_environment')">🔍</button>
+                        </td>
+                        <td>
+                            <button class="btn btn-xs btn-secondary" onclick="showRuntimeLogs('virtual_environment')">📋</button>
+                        </td>
+                        <td>
+                            <button class="btn btn-xs btn-warning" onclick="debugRuntime('virtual_environment')">🔧</button>
+                        </td>
+                    </tr>
+
+                    <!-- Runtime 9: Dependencies -->
+                    <tr>
+                        <td style="text-align: center; font-weight: bold;">9</td>
                         <td style="white-space: nowrap;">
                             <i class="fas fa-puzzle-piece" style="margin-right: 8px; color: #f59e0b;"></i>
                             dependencies
@@ -283,131 +303,197 @@
                                 <span id="dependencies-runtime-text">Checking...</span>
                             </div>
                         </td>
-                        <td id="dependencies-runtime-info">Package dependencies and libraries</td>
+                        <td id="dependencies-runtime-info">Package dependencies (psycopg2, flask, docker, requests)</td>
                         <td>
-                            <button class="btn btn-xs btn-success" onclick="checkRuntimeHealth('dependencies')">🔍 Health</button>
-                            <button class="btn btn-xs btn-secondary" onclick="showRuntimeLogs('dependencies')">📋 Logs</button>
-                            <button class="btn btn-xs btn-warning" onclick="debugRuntime('dependencies')">🔧 Debug</button>
+                            <button class="btn btn-xs btn-success" onclick="checkRuntimeHealth('dependencies')">🔍</button>
+                        </td>
+                        <td>
+                            <button class="btn btn-xs btn-secondary" onclick="showRuntimeLogs('dependencies')">📋</button>
+                        </td>
+                        <td>
+                            <button class="btn btn-xs btn-warning" onclick="debugRuntime('dependencies')">🔧</button>
                         </td>
                     </tr>
 
-                    <!-- Runtime Component: System Resources -->
+                    <!-- Runtime 10: Docker Daemon -->
                     <tr>
-                        <td style="text-align: center; font-weight: bold;">2</td>
+                        <td style="text-align: center; font-weight: bold;">10</td>
                         <td style="white-space: nowrap;">
-                            <i class="fas fa-chart-area" style="margin-right: 8px; color: #10b981;"></i>
-                            system_resources
+                            <i class="fab fa-docker" style="margin-right: 8px; color: #2496ed;"></i>
+                            docker_daemon
                         </td>
                         <td>
                             <div style="display: flex; align-items: center; gap: 8px;">
-                                <div class="status-dot gray" id="system_resources-runtime-dot"></div>
-                                <span id="system_resources-runtime-text">Checking...</span>
+                                <div class="status-dot gray" id="docker_daemon-runtime-dot"></div>
+                                <span id="docker_daemon-runtime-text">Checking...</span>
                             </div>
                         </td>
-                        <td id="system_resources-runtime-info">System resource monitoring and management</td>
+                        <td id="docker_daemon-runtime-info">Docker daemon and container engine</td>
                         <td>
-                            <button class="btn btn-xs btn-success" onclick="checkRuntimeHealth('system_resources')">🔍 Health</button>
-                            <button class="btn btn-xs btn-secondary" onclick="showRuntimeLogs('system_resources')">📋 Logs</button>
-                            <button class="btn btn-xs btn-warning" onclick="debugRuntime('system_resources')">🔧 Debug</button>
-                        </td>
-                    </tr>
-                </tbody>
-            </table>
-        </div>
-    </div>
-    
-    <div class="card">
-        <h3><i class="fas fa-cog"></i> Pre-warming Systems</h3>
-        
-        <!-- Unified Controls -->
-        <div style="margin-bottom: 1.5rem; padding: 1rem; background: #f8f9fa; border-radius: 8px;">
-            <div style="display: flex; gap: 1rem; align-items: center; flex-wrap: wrap;">
-                <button class="btn btn-primary" onclick="refreshPrewarmStatus()">
-                    <i class="fas fa-refresh"></i> Refresh Status
-                </button>
-                <button class="btn btn-info" onclick="runComprehensiveHealthCheck()">
-                    <i class="fas fa-heartbeat"></i> Quick Health Check
-                </button>
-                <button class="btn btn-success" onclick="initializePrewarming()">
-                    <i class="fas fa-bolt"></i> Initialize Pre-warming
-                </button>
-                <div id="prewarm-operation-status" style="margin-left: auto; font-weight: bold;"></div>
-            </div>
-        </div>
-        
-        <!-- Pre-warming Systems Table -->
-        <div class="services-table-container">
-            <table class="services-table">
-                <thead>
-                    <tr>
-                        <th style="width: 60px;">#</th>
-                        <th style="width: 180px;">System</th>
-                        <th style="width: 120px;">Status</th>
-                        <th>Description</th>
-                        <th style="width: 140px;">Actions</th>
-                    </tr>
-                </thead>
-                <tbody>
-                    <!-- Pre-warming System: Database Connections -->
-                    <tr>
-                        <td style="text-align: center; font-weight: bold;">0</td>
-                        <td style="white-space: nowrap;">
-                            <i class="fas fa-link" style="margin-right: 8px; color: #10b981;"></i>
-                            database_connections
+                            <button class="btn btn-xs btn-success" onclick="checkRuntimeHealth('docker_daemon')">🔍</button>
                         </td>
                         <td>
-                            <div style="display: flex; align-items: center; gap: 8px;">
-                                <div class="status-dot gray" id="database_connections-prewarm-dot"></div>
-                                <span id="database_connections-prewarm-text">Checking...</span>
-                            </div>
+                            <button class="btn btn-xs btn-secondary" onclick="showRuntimeLogs('docker_daemon')">📋</button>
                         </td>
-                        <td id="database_connections-prewarm-info">Database connection validation and pre-warming</td>
                         <td>
-                            <button class="btn btn-xs btn-success" onclick="checkPrewarmHealth('database_connections')">🔍 Health</button>
-                            <button class="btn btn-xs btn-secondary" onclick="showPrewarmLogs('database_connections')">📋 Logs</button>
-                            <button class="btn btn-xs btn-warning" onclick="debugPrewarm('database_connections')">🔧 Debug</button>
+                            <button class="btn btn-xs btn-warning" onclick="debugRuntime('docker_daemon')">🔧</button>
                         </td>
                     </tr>
 
-                    <!-- Pre-warming System: Service Validation -->
+                    <!-- Runtime 11: Infrastructure -->
                     <tr>
-                        <td style="text-align: center; font-weight: bold;">1</td>
+                        <td style="text-align: center; font-weight: bold;">11</td>
                         <td style="white-space: nowrap;">
-                            <i class="fas fa-check-circle" style="margin-right: 8px; color: #3b82f6;"></i>
-                            service_validation
+                            <i class="fas fa-network-wired" style="margin-right: 8px; color: #6b7280;"></i>
+                            infrastructure
                         </td>
                         <td>
                             <div style="display: flex; align-items: center; gap: 8px;">
-                                <div class="status-dot gray" id="service_validation-prewarm-dot"></div>
-                                <span id="service_validation-prewarm-text">Checking...</span>
+                                <div class="status-dot gray" id="infrastructure-runtime-dot"></div>
+                                <span id="infrastructure-runtime-text">Checking...</span>
                             </div>
                         </td>
-                        <td id="service_validation-prewarm-info">Service dependency validation and verification</td>
+                        <td id="infrastructure-runtime-info">System infrastructure and network connectivity</td>
                         <td>
-                            <button class="btn btn-xs btn-success" onclick="checkPrewarmHealth('service_validation')">🔍 Health</button>
-                            <button class="btn btn-xs btn-secondary" onclick="showPrewarmLogs('service_validation')">📋 Logs</button>
-                            <button class="btn btn-xs btn-warning" onclick="debugPrewarm('service_validation')">🔧 Debug</button>
+                            <button class="btn btn-xs btn-success" onclick="checkRuntimeHealth('infrastructure')">🔍</button>
+                        </td>
+                        <td>
+                            <button class="btn btn-xs btn-secondary" onclick="showRuntimeLogs('infrastructure')">📋</button>
+                        </td>
+                        <td>
+                            <button class="btn btn-xs btn-warning" onclick="debugRuntime('infrastructure')">🔧</button>
                         </td>
                     </tr>
 
-                    <!-- Pre-warming System: Dependency Checks -->
+                    <!-- PRE-WARMING SYSTEMS SECTION -->
+                    <tr class="section-header">
+                        <td colspan="7" style="background: #f59e0b; color: white; font-weight: bold; padding: 12px; text-align: left;">
+                            ⚡ PRE-WARMING SYSTEMS
+                        </td>
+                    </tr>
+
+                    <!-- Pre-warming 12: Python Subprocess -->
                     <tr>
-                        <td style="text-align: center; font-weight: bold;">2</td>
+                        <td style="text-align: center; font-weight: bold;">12</td>
                         <td style="white-space: nowrap;">
-                            <i class="fas fa-tasks" style="margin-right: 8px; color: #f59e0b;"></i>
-                            dependency_checks
+                            <i class="fab fa-python" style="margin-right: 8px; color: #3776ab;"></i>
+                            python_subprocess
                         </td>
                         <td>
                             <div style="display: flex; align-items: center; gap: 8px;">
-                                <div class="status-dot gray" id="dependency_checks-prewarm-dot"></div>
-                                <span id="dependency_checks-prewarm-text">Checking...</span>
+                                <div class="status-dot gray" id="python_subprocess-prewarm-dot"></div>
+                                <span id="python_subprocess-prewarm-text">Checking...</span>
                             </div>
                         </td>
-                        <td id="dependency_checks-prewarm-info">System dependency verification and readiness checks</td>
+                        <td id="python_subprocess-prewarm-info">Python subprocess startup and initialization</td>
                         <td>
-                            <button class="btn btn-xs btn-success" onclick="checkPrewarmHealth('dependency_checks')">🔍 Health</button>
-                            <button class="btn btn-xs btn-secondary" onclick="showPrewarmLogs('dependency_checks')">📋 Logs</button>
-                            <button class="btn btn-xs btn-warning" onclick="debugPrewarm('dependency_checks')">🔧 Debug</button>
+                            <button class="btn btn-xs btn-success" onclick="checkPrewarmHealth('python_subprocess')">🔍</button>
+                        </td>
+                        <td>
+                            <button class="btn btn-xs btn-secondary" onclick="showPrewarmLogs('python_subprocess')">📋</button>
+                        </td>
+                        <td>
+                            <button class="btn btn-xs btn-warning" onclick="debugPrewarm('python_subprocess')">🔧</button>
+                        </td>
+                    </tr>
+
+                    <!-- Pre-warming 13: Relational Database Connection -->
+                    <tr>
+                        <td style="text-align: center; font-weight: bold;">13</td>
+                        <td style="white-space: nowrap;">
+                            <i class="fas fa-server" style="margin-right: 8px; color: #10b981;"></i>
+                            relational_db_prewarm
+                        </td>
+                        <td>
+                            <div style="display: flex; align-items: center; gap: 8px;">
+                                <div class="status-dot gray" id="relational_db_prewarm-prewarm-dot"></div>
+                                <span id="relational_db_prewarm-prewarm-text">Checking...</span>
+                            </div>
+                        </td>
+                        <td id="relational_db_prewarm-prewarm-info">Relational database connection pre-warming</td>
+                        <td>
+                            <button class="btn btn-xs btn-success" onclick="checkPrewarmHealth('relational_db_prewarm')">🔍</button>
+                        </td>
+                        <td>
+                            <button class="btn btn-xs btn-secondary" onclick="showPrewarmLogs('relational_db_prewarm')">📋</button>
+                        </td>
+                        <td>
+                            <button class="btn btn-xs btn-warning" onclick="debugPrewarm('relational_db_prewarm')">🔧</button>
+                        </td>
+                    </tr>
+
+                    <!-- Pre-warming 14: Sitemap Validation -->
+                    <tr>
+                        <td style="text-align: center; font-weight: bold;">14</td>
+                        <td style="white-space: nowrap;">
+                            <i class="fas fa-sitemap" style="margin-right: 8px; color: #3b82f6;"></i>
+                            sitemap_validation
+                        </td>
+                        <td>
+                            <div style="display: flex; align-items: center; gap: 8px;">
+                                <div class="status-dot gray" id="sitemap_validation-prewarm-dot"></div>
+                                <span id="sitemap_validation-prewarm-text">Checking...</span>
+                            </div>
+                        </td>
+                        <td id="sitemap_validation-prewarm-info">Sitemap validation and URL verification</td>
+                        <td>
+                            <button class="btn btn-xs btn-success" onclick="checkPrewarmHealth('sitemap_validation')">🔍</button>
+                        </td>
+                        <td>
+                            <button class="btn btn-xs btn-secondary" onclick="showPrewarmLogs('sitemap_validation')">📋</button>
+                        </td>
+                        <td>
+                            <button class="btn btn-xs btn-warning" onclick="debugPrewarm('sitemap_validation')">🔧</button>
+                        </td>
+                    </tr>
+
+                    <!-- Pre-warming 15: Vector Database Connection -->
+                    <tr>
+                        <td style="text-align: center; font-weight: bold;">15</td>
+                        <td style="white-space: nowrap;">
+                            <i class="fas fa-database" style="margin-right: 8px; color: #8b5cf6;"></i>
+                            vector_db_prewarm
+                        </td>
+                        <td>
+                            <div style="display: flex; align-items: center; gap: 8px;">
+                                <div class="status-dot gray" id="vector_db_prewarm-prewarm-dot"></div>
+                                <span id="vector_db_prewarm-prewarm-text">Checking...</span>
+                            </div>
+                        </td>
+                        <td id="vector_db_prewarm-prewarm-info">Vector database connection pre-warming</td>
+                        <td>
+                            <button class="btn btn-xs btn-success" onclick="checkPrewarmHealth('vector_db_prewarm')">🔍</button>
+                        </td>
+                        <td>
+                            <button class="btn btn-xs btn-secondary" onclick="showPrewarmLogs('vector_db_prewarm')">📋</button>
+                        </td>
+                        <td>
+                            <button class="btn btn-xs btn-warning" onclick="debugPrewarm('vector_db_prewarm')">🔧</button>
+                        </td>
+                    </tr>
+
+                    <!-- Pre-warming 16: Crawler Service -->
+                    <tr>
+                        <td style="text-align: center; font-weight: bold;">16</td>
+                        <td style="white-space: nowrap;">
+                            <i class="fas fa-spider" style="margin-right: 8px; color: #f59e0b;"></i>
+                            crawler_service_prewarm
+                        </td>
+                        <td>
+                            <div style="display: flex; align-items: center; gap: 8px;">
+                                <div class="status-dot gray" id="crawler_service_prewarm-prewarm-dot"></div>
+                                <span id="crawler_service_prewarm-prewarm-text">Checking...</span>
+                            </div>
+                        </td>
+                        <td id="crawler_service_prewarm-prewarm-info">Crawler service pre-warming and readiness</td>
+                        <td>
+                            <button class="btn btn-xs btn-success" onclick="checkPrewarmHealth('crawler_service_prewarm')">🔍</button>
+                        </td>
+                        <td>
+                            <button class="btn btn-xs btn-secondary" onclick="showPrewarmLogs('crawler_service_prewarm')">📋</button>
+                        </td>
+                        <td>
+                            <button class="btn btn-xs btn-warning" onclick="debugPrewarm('crawler_service_prewarm')">🔧</button>
                         </td>
                     </tr>
                 </tbody>

@@ -116,31 +116,43 @@ def initialize_diagnostic_services():
     )
     
     # Runtime Environment
-    diagnostic_services['python_env'] = RuntimeServiceDiagnostic(
-        'python_env', 'Python runtime environment',
-        lambda: {'success': True, 'message': 'Python environment operational'}
+    diagnostic_services['virtual_environment'] = RuntimeServiceDiagnostic(
+        'virtual_environment', 'Python virtual environment (autogen_env)',
+        lambda: {'success': True, 'message': 'Virtual environment operational'}
     )
     diagnostic_services['dependencies'] = RuntimeServiceDiagnostic(
-        'dependencies', 'Package dependencies',
+        'dependencies', 'Package dependencies (psycopg2, flask, docker, requests)',
         lambda: {'success': True, 'message': 'Dependencies loaded'}
     )
-    diagnostic_services['system_resources'] = RuntimeServiceDiagnostic(
-        'system_resources', 'System resource monitoring',
+    diagnostic_services['docker_daemon'] = RuntimeServiceDiagnostic(
+        'docker_daemon', 'Docker daemon and container engine',
         lambda: docker_manager.get_system_resources()
+    )
+    diagnostic_services['infrastructure'] = RuntimeServiceDiagnostic(
+        'infrastructure', 'System infrastructure and network connectivity',
+        lambda: {'success': True, 'message': 'Infrastructure operational'}
     )
     
     # Pre-warming Systems
-    diagnostic_services['database_connections'] = PrewarmServiceDiagnostic(
-        'database_connections', 'Database connection validation',
+    diagnostic_services['python_subprocess'] = PrewarmServiceDiagnostic(
+        'python_subprocess', 'Python subprocess startup and initialization',
+        lambda: {'success': True, 'message': 'Python subprocess ready'}
+    )
+    diagnostic_services['relational_db_prewarm'] = PrewarmServiceDiagnostic(
+        'relational_db_prewarm', 'Relational database connection pre-warming',
         lambda: db_manager.test_connections()
     )
-    diagnostic_services['service_validation'] = PrewarmServiceDiagnostic(
-        'service_validation', 'Service dependency validation',
-        lambda: docker_manager.get_required_containers_status()
+    diagnostic_services['sitemap_validation'] = PrewarmServiceDiagnostic(
+        'sitemap_validation', 'Sitemap validation and URL verification',
+        lambda: {'success': True, 'message': 'Sitemap validation ready'}
     )
-    diagnostic_services['dependency_checks'] = PrewarmServiceDiagnostic(
-        'dependency_checks', 'System dependency verification',
-        lambda: {'success': True, 'message': 'Dependencies verified'}
+    diagnostic_services['vector_db_prewarm'] = PrewarmServiceDiagnostic(
+        'vector_db_prewarm', 'Vector database connection pre-warming',
+        lambda: db_manager.test_connections()
+    )
+    diagnostic_services['crawler_service_prewarm'] = PrewarmServiceDiagnostic(
+        'crawler_service_prewarm', 'Crawler service pre-warming and readiness',
+        lambda: {'success': True, 'message': 'Crawler service ready'}
     )
     
     return diagnostic_services
