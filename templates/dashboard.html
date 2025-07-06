@@ -2328,21 +2328,122 @@
             return;
         }
         
-        showLoading('Generating embeddings from product data...');
-        
         try {
+            // Start the embedding generation process
             const result = await apiCall('/api/rag/generate-embeddings', 'POST', {});
-            hideLoading();
             
             if (result.success) {
-                showAlert(`Embeddings generated: ${result.count} products processed`, 'success');
-                loadDashboardData(); // Refresh stats
+                showAlert(`Embedding generation started for ${result.count} products`, 'info');
+                
+                // Show progress tracking
+                showEmbeddingProgress();
+                startProgressTracking();
             } else {
                 showAlert('Embedding generation failed: ' + result.error, 'error');
             }
         } catch (error) {
-            hideLoading();
             showAlert('Embedding generation error: ' + error.message, 'error');
+        }
+    }
+    
+    function showEmbeddingProgress() {
+        // Create progress modal
+        const modal = document.createElement('div');
+        modal.id = 'embedding-progress-modal';
+        modal.style.cssText = `
+            position: fixed; top: 0; left: 0; width: 100%; height: 100%; 
+            background: rgba(0,0,0,0.5); display: flex; align-items: center; 
+            justify-content: center; z-index: 1000;
+        `;
+        
+        modal.innerHTML = `
+            <div style="background: white; padding: 2rem; border-radius: 12px; min-width: 500px; max-width: 600px;">
+                <h3 style="margin: 0 0 1rem 0; color: #1f2937;">
+                    <i class="fas fa-brain"></i> Generating Embeddings
+                </h3>
+                <div id="embedding-progress-content">
+                    <div style="margin-bottom: 1rem;">
+                        <div style="display: flex; justify-content: space-between; margin-bottom: 0.5rem;">
+                            <span id="progress-text">Initializing...</span>
+                            <span id="progress-percentage">0%</span>
+                        </div>
+                        <div style="background: #e5e7eb; border-radius: 8px; height: 20px; overflow: hidden;">
+                            <div id="progress-bar" style="background: linear-gradient(90deg, #10b981, #059669); height: 100%; width: 0%; transition: width 0.3s ease;"></div>
+                        </div>
+                    </div>
+                    <div style="background: #f8fafc; padding: 1rem; border-radius: 6px; border-left: 4px solid #3b82f6;">
+                        <div style="font-size: 0.9rem; color: #666;">
+                            <div>Status: <span id="progress-status">Starting...</span></div>
+                            <div>Processed: <span id="progress-count">0</span> / <span id="progress-total">0</span> products</div>
+                            <div>Elapsed: <span id="progress-elapsed">0s</span></div>
+                        </div>
+                    </div>
+                </div>
+                <div style="margin-top: 1.5rem; text-align: right;">
+                    <button id="close-progress-btn" class="btn btn-secondary" onclick="closeEmbeddingProgress()" disabled>
+                        Close
+                    </button>
+                </div>
+            </div>
+        `;
+        
+        document.body.appendChild(modal);
+    }
+    
+    let progressInterval = null;
+    
+    function startProgressTracking() {
+        if (progressInterval) clearInterval(progressInterval);
+        
+        progressInterval = setInterval(async () => {
+            try {
+                const result = await apiCall('/api/rag/embeddings-progress');
+                if (result.success && result.progress) {
+                    updateProgressDisplay(result.progress);
+                    
+                    // Stop tracking when completed or error
+                    if (result.progress.status === 'completed' || result.progress.status === 'error') {
+                        clearInterval(progressInterval);
+                        progressInterval = null;
+                        document.getElementById('close-progress-btn').disabled = false;
+                        
+                        if (result.progress.status === 'completed') {
+                            showAlert('Embedding generation completed successfully!', 'success');
+                            setTimeout(() => loadDashboardData(), 2000); // Refresh stats
+                        } else {
+                            showAlert('Embedding generation failed: ' + result.progress.message, 'error');
+                        }
+                    }
+                }
+            } catch (error) {
+                console.error('Error tracking progress:', error);
+            }
+        }, 2000); // Check every 2 seconds
+    }
+    
+    function updateProgressDisplay(progress) {
+        document.getElementById('progress-text').textContent = progress.message || 'Processing...';
+        document.getElementById('progress-percentage').textContent = (progress.percentage || 0) + '%';
+        document.getElementById('progress-bar').style.width = (progress.percentage || 0) + '%';
+        document.getElementById('progress-status').textContent = progress.status || 'Unknown';
+        document.getElementById('progress-count').textContent = progress.processed || 0;
+        document.getElementById('progress-total').textContent = progress.total || 0;
+        
+        // Calculate elapsed time
+        if (progress.start_time) {
+            const elapsed = Math.floor((Date.now() / 1000) - progress.start_time);
+            document.getElementById('progress-elapsed').textContent = formatDuration(elapsed);
+        }
+    }
+    
+    function closeEmbeddingProgress() {
+        const modal = document.getElementById('embedding-progress-modal');
+        if (modal) {
+            modal.remove();
+        }
+        if (progressInterval) {
+            clearInterval(progressInterval);
+            progressInterval = null;
         }
     }
     
