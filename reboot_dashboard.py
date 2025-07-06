@@ -108,7 +108,7 @@ def initialize_diagnostic_services():
     )
     diagnostic_services['llm_api'] = ConceptualServiceDiagnostic(
         'llm_api', 'microservice', 'Claude API integration',
-        lambda: {'success': True, 'message': 'Claude API available'} if hasattr(rag_manager, 'claude_client') and rag_manager.claude_client else {'success': False, 'message': 'Claude API not configured'}
+        lambda: {'healthy': True, 'message': 'Claude API available'} if hasattr(rag_manager, 'rag_system') and hasattr(rag_manager.rag_system, 'claude_client') and rag_manager.rag_system.claude_client else {'healthy': False, 'message': 'Claude API not configured'}
     )
     diagnostic_services['intelligence_platform'] = ConceptualServiceDiagnostic(
         'intelligence_platform', 'microservice', 'AI intelligence manager',
