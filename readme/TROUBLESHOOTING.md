@@ -221,6 +221,94 @@ docker exec vector_db psql -U postgres -d postgres -c "SELECT COUNT(*) FROM prod
 - Vector DB should contain embeddings, not product data
 - Process takes 10-15 minutes for 4,785 products
 
+### 9. RAG Chat Returns "No Products Found" or Wrong Results
+
+**Symptoms:**
+- Chat queries like "list 3 blue tile" return no results
+- Chat finds wrong products (e.g., tools instead of tiles)
+- Queries like "slip-resistant tile" or "LFT thinset" fail
+- Error: "I couldn't find any products matching your query"
+
+**Root Cause:**
+- Search term extraction not optimized for tile-specific queries
+- SQL queries prioritizing wrong results (by SKU instead of relevance)
+- OpenAI API key missing (system falls back to text search)
+- Query routing sending product searches to analytical engine
+
+**Solution 1 - Search Term Enhancement:**
+
+Check `simple_rag.py` `_extract_search_terms()` function:
+```python
+# Should include these special case handlers:
+if 'slip' in query and ('resistant' in query or 'resist' in query):
+    return 'textured matte honed'  # Search for textured surfaces
+
+if 'lft' in query:
+    return 'lft'  # Search for LFT products (mortar/thinset)
+```
+
+**Solution 2 - Query Prioritization Fix:**
+
+In `_search_products_text_fallback()`, ensure proper ORDER BY:
+```python
+# Should prioritize titles with search terms, not just SKU order
+ORDER BY 
+    CASE WHEN ({title_priority_clause}) THEN 1 ELSE 2 END,
+    sku
+```
+
+**Solution 3 - Query Routing Fix:**
+
+In `chat()` method, ensure installation materials are detected as product searches:
+```python
+# Override: If asking about specific products, treat as product search
+specific_products = ['lft', 'thinset', 'mortar', 'grout', 'sealer', 'adhesive']
+if any(product in query_lower for product in specific_products):
+    is_product_search = True
+    is_analytical = False
+```
+
+**Solution 4 - Non-Tile Product Support:**
+
+Ensure non-tile queries (LFT, mortar, etc.) don't require tile filter:
+```python
+# Different filters for tile vs non-tile queries
+non_tile_terms = ['lft', 'thinset', 'mortar', 'adhesive', 'grout', 'sealer']
+is_non_tile_query = any(term in query.lower() for term in non_tile_terms)
+
+if is_non_tile_query:
+    filter_clause = ""  # No tile requirement for installation materials
+```
+
+**Testing the Fix:**
+```bash
+# Test all query types
+python3 -c "
+from simple_rag import SimpleTileShopRAG
+rag = SimpleTileShopRAG()
+
+queries = [
+    'list 3 blue tile',
+    'list 3 slip-resistant tile under 12$', 
+    'suggest building materials for porcelain floor tile',
+    'find best DCOF rated tile',
+    'what can you tell me about your LFT thinset'
+]
+
+for query in queries:
+    print(f'Testing: {query}')
+    response = rag.chat(query)
+    print('✅ SUCCESS' if 'couldn\\'t find' not in response else '❌ FAILED')
+"
+```
+
+**Expected Results:**
+- Blue tile: Marrakesh Blue, Hackney Dark Blue, Track Art Blue tiles
+- Slip-resistant: Matte/textured ceramic tiles suitable for slip resistance
+- Building materials: Tile protection kits, installation materials
+- DCOF/slip-resistant: Anti-slip porcelain tiles (alternative to DCOF ratings)
+- LFT thinset: Superior White LFT Bond Mortar with detailed specifications
+
 ## Diagnostic Framework Details
 
 ### Service Types and Their Status Logic

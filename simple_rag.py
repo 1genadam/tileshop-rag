@@ -27,10 +27,18 @@ except ImportError:
     ANTHROPIC_AVAILABLE = False
     logger.warning("Anthropic library not available - analytical queries will be limited")
 
+# Try to import OpenAI for embedding generation
+try:
+    import openai
+    OPENAI_AVAILABLE = True
+except ImportError:
+    OPENAI_AVAILABLE = False
+    logger.warning("OpenAI library not available - vector search will be limited")
+
 class SimpleTileShopRAG:
     def __init__(self):
-        # Supabase container for data access
-        self.supabase_container = 'supabase'
+        # Vector database container for data access
+        self.supabase_container = 'vector_db'
         self.db_name = 'postgres'
         
         # Initialize Claude API client
@@ -46,6 +54,19 @@ class SimpleTileShopRAG:
                     logger.error(f"Failed to initialize Claude API client: {e}")
             else:
                 logger.warning("ANTHROPIC_API_KEY not found in environment variables")
+        
+        # Initialize OpenAI client for embeddings
+        self.openai_client = None
+        if OPENAI_AVAILABLE:
+            api_key = os.getenv('OPENAI_API_KEY')
+            if api_key:
+                try:
+                    self.openai_client = openai.OpenAI(api_key=api_key)
+                    logger.info("OpenAI client initialized successfully")
+                except Exception as e:
+                    logger.error(f"Failed to initialize OpenAI client: {e}")
+            else:
+                logger.warning("OPENAI_API_KEY not found in environment variables")
     
     def _enhance_slip_resistant_query(self, query: str) -> str:
         """Enhance queries for slip-resistant tiles by mapping to database terms"""
@@ -73,6 +94,26 @@ class SimpleTileShopRAG:
                 return f"{query} {' '.join(enhanced_terms)}"
         
         return query
+    
+    def _generate_query_embedding(self, query: str) -> List[float]:
+        """Generate embedding for search query using OpenAI API"""
+        try:
+            if not self.openai_client:
+                logger.warning("OpenAI client not available for embedding generation")
+                return None
+            
+            # Generate embedding using OpenAI's text-embedding-3-small model
+            response = self.openai_client.embeddings.create(
+                model="text-embedding-3-small",
+                input=query,
+                encoding_format="float"
+            )
+            
+            return response.data[0].embedding
+            
+        except Exception as e:
+            logger.error(f"Error generating embedding: {e}")
+            return None
     
     def detect_subway_tile_query(self, query: str) -> Dict[str, Any]:
         """Enhanced detection for subway tile opportunities"""
@@ -251,110 +292,87 @@ class SimpleTileShopRAG:
         return "\n".join(response_parts)
     
     def search_products(self, query: str, limit: int = 3) -> List[Dict[str, Any]]:
-        """Search products using PostgreSQL full-text search via docker exec"""
+        """Search products using vector similarity search with text fallback"""
         try:
-            # Map slip-resistant terms to database values
-            query_mapped = self._enhance_slip_resistant_query(query)
+            # Try vector search first
+            vector_results = self.search_products_vector(query, limit)
             
-            # Escape the query for SQL
-            query_escaped = query_mapped.replace("'", "''")
+            # If vector search returns results, use them
+            if vector_results:
+                logger.info(f"Vector search returned {len(vector_results)} results")
+                return vector_results
             
-            # Check if query looks like a SKU (numeric or starts with #)
-            is_sku_query = query.strip().isdigit() or query.strip().startswith('#')
+            # Fallback to text search
+            logger.info("Vector search returned no results, falling back to text search")
+            return self._search_products_text_fallback(query, limit)
             
-            if is_sku_query:
-                # Direct SKU search for exact matches
-                clean_sku = query.strip().replace('#', '')
-                search_sql = f"""
-                    COPY (
-                        SELECT url, sku, title, description, price_per_box, price_per_sqft, price_per_piece,
-                               finish, color, size_shape, specifications, primary_image, image_variants, 
-                               product_category, slip_rating, 1.0 as relevance
-                        FROM product_data
-                        WHERE sku = '{clean_sku}' OR sku = '#{clean_sku}'
-                        LIMIT {limit}
-                    ) TO STDOUT CSV HEADER;
-                """
-            else:
-                # Determine product category filter based on query keywords - prioritize TILE for slip/floor queries
-                category_filter = ""
-                query_lower = query.lower()
-                
-                # PRIORITY: Slip/floor queries should default to TILE
-                if any(word in query_lower for word in ['slip', 'floor', 'textured', 'matte', 'glossy', 'anti-slip', 'non-slip']):
-                    category_filter = "AND product_category = 'TILE'"
-                elif any(word in query_lower for word in ['tile', 'tiles', 'ceramic', 'porcelain', 'mosaic', 'subway', 'marble']):
-                    category_filter = "AND product_category = 'TILE'"
-                elif any(word in query_lower for word in ['wood', 'hardwood', 'engineered']) and 'tile' not in query_lower:
-                    category_filter = "AND product_category = 'WOOD'"
-                elif any(word in query_lower for word in ['shelf', 'shelves']):
-                    category_filter = "AND product_category = 'SHELF'"
-                elif any(word in query_lower for word in ['threshold', 'threshhold']):
-                    category_filter = "AND product_category = 'THRESHOLD'"
-                elif any(word in query_lower for word in ['curb']):
-                    category_filter = "AND product_category = 'CURB'"
-                elif any(word in query_lower for word in ['laminate']):
-                    category_filter = "AND product_category = 'LAMINATE'"
-                elif any(word in query_lower for word in ['lvp', 'lvt', 'luxury vinyl']):
-                    category_filter = "AND product_category = 'LVP_LVT'"
-                elif any(word in query_lower for word in ['molding', 'trim', 'quarter round', 't-molding', 'stair', 'reducer']):
-                    category_filter = "AND product_category = 'TRIM_MOLDING'"
-                # If dimensions mentioned, likely tiles
-                elif any(word in query_lower for word in ['2x2', '3x6', '12x24', 'inch', 'in.']):
-                    category_filter = "AND product_category = 'TILE'"
-                
-                # Enhanced search for slip-resistant and color queries
-                slip_boost = ""
-                color_filter = ""
-                
-                if any(term in query_lower for term in ['slip', 'anti-slip', 'non-slip', 'slip resistant', 'slip-resistant']):
-                    # Add boost for slip-resistant tiles and include slip rating in search
-                    slip_boost = """
-                        + CASE WHEN slip_rating = 'SLIP_RESISTANT' THEN 0.5 ELSE 0 END
-                        + CASE WHEN finish ILIKE '%matte%' OR finish ILIKE '%honed%' OR finish ILIKE '%tumbled%' OR finish ILIKE '%textured%' THEN 0.3 ELSE 0 END
-                    """
-                
-                # Add color filtering for dark colors
-                if any(term in query_lower for term in ['dark', 'black', 'brown', 'grey', 'gray', 'charcoal', 'slate']):
-                    color_filter = """
-                        AND (color ILIKE '%dark%' OR color ILIKE '%black%' OR color ILIKE '%brown%' OR 
-                             color ILIKE '%grey%' OR color ILIKE '%gray%' OR color ILIKE '%charcoal%' OR 
-                             color ILIKE '%slate%' OR title ILIKE '%dark%' OR title ILIKE '%black%' OR 
-                             title ILIKE '%brown%' OR title ILIKE '%grey%' OR title ILIKE '%gray%')
-                    """
-                
-                # Use PostgreSQL full-text search via docker exec with category filtering
-                search_sql = f"""
-                    COPY (
-                        SELECT url, sku, title, description, price_per_box, price_per_sqft, price_per_piece,
-                               finish, color, size_shape, specifications, primary_image, image_variants, 
-                               product_category, slip_rating,
-                               (ts_rank(to_tsvector('english', 
-                                   COALESCE(sku, '') || ' ' ||
-                                   COALESCE(title, '') || ' ' || 
-                                   COALESCE(description, '') || ' ' || 
-                                   COALESCE(finish, '') || ' ' || 
-                                   COALESCE(color, '') || ' ' || 
-                                   COALESCE(size_shape, '') || ' ' ||
-                                   COALESCE(slip_rating, '')
-                               ), plainto_tsquery('english', '{query_escaped}')) {slip_boost}) as relevance
-                        FROM product_data
-                        WHERE (to_tsvector('english', 
-                            COALESCE(sku, '') || ' ' ||
-                            COALESCE(title, '') || ' ' || 
-                            COALESCE(description, '') || ' ' || 
-                            COALESCE(finish, '') || ' ' || 
-                            COALESCE(color, '') || ' ' || 
-                            COALESCE(size_shape, '') || ' ' ||
-                            COALESCE(slip_rating, '')
-                        ) @@ plainto_tsquery('english', '{query_escaped}')
-                        OR ('{query_lower}' LIKE '%slip%' AND slip_rating = 'SLIP_RESISTANT'))
-                        {category_filter}
-                        {color_filter}
-                        ORDER BY relevance DESC
-                        LIMIT {limit}
-                    ) TO STDOUT CSV HEADER;
-                """
+        except Exception as e:
+            logger.error(f"Error in search_products: {e}")
+            # Final fallback to text search
+            return self._search_products_text_fallback(query, limit)
+    
+    def search_products_vector(self, query: str, limit: int = 3) -> List[Dict[str, Any]]:
+        """Search products using vector similarity search via embeddings"""
+        try:
+            # Generate embedding for the search query
+            query_embedding = self._generate_query_embedding(query)
+            
+            if not query_embedding:
+                logger.warning("Could not generate embedding for query, falling back to text search")
+                return self._search_products_text_fallback(query, limit)
+            
+            # Convert embedding to PostgreSQL array format
+            embedding_str = '{' + ','.join(map(str, query_embedding)) + '}'
+            
+            # Use a simplified dot product for vector search (approximation of cosine similarity)
+            # This is more efficient than full cosine similarity calculation
+            search_sql = f"""
+                COPY (
+                    WITH query_embedding AS (
+                        SELECT '{embedding_str}'::float[] as qemb
+                    ),
+                    similarity_scores AS (
+                        SELECT 
+                            pe.sku,
+                            pe.title,
+                            pe.content,
+                            -- Calculate dot product similarity (normalized by query length)
+                            (
+                                SELECT SUM(
+                                    (pe.embedding)[i] * (qe.qemb)[i]
+                                ) / SQRT(
+                                    (SELECT SUM(power((qe.qemb)[i], 2)) FROM generate_series(1, array_length(qe.qemb, 1)) i)
+                                )
+                                FROM generate_series(1, LEAST(array_length(pe.embedding, 1), array_length(qe.qemb, 1))) i,
+                                     query_embedding qe
+                            ) AS similarity_score
+                        FROM product_embeddings pe, query_embedding qe
+                        WHERE pe.embedding IS NOT NULL 
+                          AND array_length(pe.embedding, 1) = array_length(qe.qemb, 1)
+                    )
+                    SELECT 
+                        ss.sku,
+                        ss.title,
+                        ss.content,
+                        ss.similarity_score,
+                        -- Extract price and other details from content
+                        CASE 
+                            WHEN ss.content ~ '\\$[0-9]+\\.[0-9]+' THEN 
+                                (regexp_matches(ss.content, '\\$([0-9]+\\.[0-9]+)', 'g'))[1]::decimal
+                            ELSE NULL
+                        END as price_estimate,
+                        -- Extract size information
+                        CASE 
+                            WHEN ss.content ~ '[0-9]+ x [0-9]+ in\\.' THEN 
+                                (regexp_matches(ss.content, '([0-9]+ x [0-9]+ in\\.)', 'g'))[1]
+                            ELSE NULL
+                        END as size_shape
+                    FROM similarity_scores ss
+                    WHERE ss.similarity_score > 0.1  -- Minimum similarity threshold
+                    ORDER BY ss.similarity_score DESC
+                    LIMIT {limit}
+                ) TO STDOUT CSV HEADER;
+            """
             
             result = subprocess.run([
                 'docker', 'exec', self.supabase_container,
@@ -373,7 +391,7 @@ class SimpleTileShopRAG:
                     for key, value in row.items():
                         if value == '':
                             product[key] = None
-                        elif key in ['price_per_box', 'price_per_sqft', 'price_per_piece', 'relevance']:
+                        elif key in ['similarity_score', 'price_estimate']:
                             product[key] = float(value) if value else None
                         else:
                             product[key] = value
@@ -383,7 +401,107 @@ class SimpleTileShopRAG:
             return formatted_results
             
         except Exception as e:
-            logger.error(f"Error searching products: {e}")
+            logger.error(f"Error in vector search: {e}")
+            # Fallback to text search if vector search fails
+            return self._search_products_text_fallback(query, limit)
+    
+    def _search_products_text_fallback(self, query: str, limit: int = 3) -> List[Dict[str, Any]]:
+        """Fallback text search using product_embeddings table content"""
+        try:
+            # Split query into individual terms for better matching
+            query_terms = query.lower().split()
+            
+            # Check if this is a price-filtered query
+            price_filter = ""
+            max_price = None
+            if 'under' in query.lower() and any('$' in term or term.isdigit() for term in query_terms):
+                # Extract price from query like "under 12$" or "under $12"
+                import re
+                price_match = re.search(r'under\s*\$?(\d+)', query.lower())
+                if price_match:
+                    max_price = float(price_match.group(1))
+            
+            # Create simpler WHERE clause with multiple terms
+            where_conditions = []
+            for term in query_terms:
+                if term not in ['under', '$', 'list', 'find', 'suggest', 'best'] and len(term) > 2:
+                    # Escape single quotes for SQL
+                    escaped_term = term.replace("'", "''")
+                    where_conditions.append(f"(LOWER(title) LIKE '%{escaped_term}%' OR LOWER(content) LIKE '%{escaped_term}%')")
+            
+            if not where_conditions:
+                return []
+            
+            where_clause = " OR ".join(where_conditions)
+            
+            # Check if this is a non-tile query (like LFT, thinset, mortar, grout)
+            non_tile_terms = ['lft', 'thinset', 'mortar', 'adhesive', 'grout', 'sealer']
+            is_non_tile_query = any(term in query.lower() for term in non_tile_terms)
+            
+            # Simple search with better relevance ordering
+            # Create priority scoring for better ordering
+            title_priority_conditions = []
+            for term in query_terms:
+                if term not in ['under', '$', 'list', 'find', 'suggest', 'best'] and len(term) > 2:
+                    escaped_term = term.replace("'", "''")
+                    title_priority_conditions.append(f"LOWER(title) LIKE '%{escaped_term}%'")
+            
+            title_priority_clause = " OR ".join(title_priority_conditions) if title_priority_conditions else "FALSE"
+            
+            # Different filters for tile vs non-tile queries
+            if is_non_tile_query:
+                filter_clause = ""  # No tile requirement for installation materials
+            else:
+                filter_clause = """
+                      AND LOWER(title) LIKE '%tile%'
+                      AND NOT (LOWER(title) LIKE '%tool%' OR LOWER(title) LIKE '%grout%' OR 
+                               LOWER(title) LIKE '%float%' OR LOWER(title) LIKE '%base%' OR
+                               LOWER(title) LIKE '%wedge%' OR LOWER(title) LIKE '%spacer%')"""
+            
+            search_sql = f"""
+                COPY (
+                    SELECT 
+                        sku,
+                        title,
+                        content,
+                        'text_search' as search_type
+                    FROM product_embeddings
+                    WHERE ({where_clause}){filter_clause}
+                    ORDER BY 
+                        CASE WHEN ({title_priority_clause}) THEN 1 ELSE 2 END,
+                        sku
+                    LIMIT {limit}
+                ) TO STDOUT CSV HEADER;
+            """
+            
+            result = subprocess.run([
+                'docker', 'exec', self.supabase_container,
+                'psql', '-U', 'postgres', '-d', self.db_name,
+                '-c', search_sql
+            ], capture_output=True, text=True, check=True)
+            
+            formatted_results = []
+            if result.stdout.strip():
+                csv_data = io.StringIO(result.stdout)
+                reader = csv.DictReader(csv_data)
+                
+                for row in reader:
+                    # Convert empty strings to None and parse types
+                    product = {}
+                    for key, value in row.items():
+                        if value == '':
+                            product[key] = None
+                        else:
+                            product[key] = value
+                    
+                    # Set relevance score for text search results
+                    product['relevance_score'] = 1.0
+                    formatted_results.append(product)
+            
+            return formatted_results
+            
+        except Exception as e:
+            logger.error(f"Error in text fallback search: {e}")
             return []
     
     def chat(self, query: str) -> str:
@@ -435,11 +553,17 @@ class SimpleTileShopRAG:
                     return self._handle_search_query(query)
             
             # Check if this is a product search query (looking for specific products)
-            search_indicators = ['looking for', 'find', 'show me', 'need', 'want', 'search', 'tiles', 'tile', 'floor', 'wall']
+            search_indicators = ['looking for', 'find', 'show me', 'need', 'want', 'search', 'tiles', 'tile', 'floor', 'wall', 'tell me about', 'what is', 'lft', 'thinset', 'mortar']
             analytical_indicators = ['cheapest', 'lowest', 'highest', 'most expensive', 'average', 'compare', 'best value', 'analyze']
             
             is_product_search = any(word in query_lower for word in search_indicators)
             is_analytical = any(word in query_lower for word in analytical_indicators)
+            
+            # Override: If it's asking about specific products (LFT, etc.), treat as product search
+            specific_products = ['lft', 'thinset', 'mortar', 'grout', 'sealer', 'adhesive']
+            if any(product in query_lower for product in specific_products):
+                is_product_search = True
+                is_analytical = False
             
             # If it's clearly a product search (not analytical), use database search for real results with images
             if is_product_search and not is_analytical:
@@ -575,38 +699,40 @@ Once I know the size, I can show you everything you'll need for professional ins
         for i, result in enumerate(results, 1):
             price_info = ""
             
-            # Show per-piece pricing first if available
-            if result.get('price_per_piece'):
+            # Handle price information from different sources
+            if result.get('price_estimate'):
+                price_info = f" - ${result['price_estimate']:.2f}"
+            elif result.get('price_per_piece'):
                 price_info = f" - ${result['price_per_piece']:.2f}/each"
             elif result.get('price_per_box'):
                 price_info = f" - ${result['price_per_box']:.2f}/box"
-                
-            # Add per sq ft pricing if available
-            if result.get('price_per_sqft'):
-                if price_info:
-                    price_info += f" (${result['price_per_sqft']:.2f}/sq ft)"
+            elif result.get('price_per_sqft'):
+                price_info = f" - ${result['price_per_sqft']:.2f}/sq ft"
+            
+            # Handle size information
+            size_str = f" - {result['size_shape']}" if result.get('size_shape') else ""
+            
+            # Handle content description (truncate if too long)
+            content_preview = ""
+            if result.get('content'):
+                content = result['content']
+                if len(content) > 200:
+                    content_preview = f"   {content[:200]}...\n"
                 else:
-                    price_info = f" - ${result['price_per_sqft']:.2f}/sq ft"
+                    content_preview = f"   {content}\n"
             
-            finish_color = []
-            if result['finish']:
-                finish_color.append(result['finish'])
-            if result['color']:
-                finish_color.append(result['color'])
-            
-            finish_color_str = " - " + " ".join(finish_color) if finish_color else ""
-            size_str = f" - {result['size_shape']}" if result['size_shape'] else ""
-            
-            # Add image if available
-            image_str = ""
-            if result.get('primary_image'):
-                image_str = f"   ![Product Image]({result['primary_image']})\n"
+            # Handle similarity score or relevance
+            score_info = ""
+            if result.get('similarity_score'):
+                score_info = f" (Match: {result['similarity_score']:.2f})"
+            elif result.get('relevance_score'):
+                score_info = f" (Relevance: {result['relevance_score']:.2f})"
             
             response_parts.append(
-                f"{i}. **{result['title']}** (SKU: {result['sku']})\n"
-                f"   {price_info}{finish_color_str}{size_str}\n"
-                f"{image_str}"
-                f"   {result['url']}\n"
+                f"{i}. **{result['title']}** (SKU: {result['sku']}){score_info}\n"
+                f"   {price_info}{size_str}\n"
+                f"{content_preview}"
+                f"   More details: https://www.tileshop.com/product/{result['sku']}\n"
             )
         
         return "\n".join(response_parts)
@@ -614,13 +740,28 @@ Once I know the size, I can show you everything you'll need for professional ins
     def _get_all_products_for_analysis(self, limit: int = 500) -> List[Dict[str, Any]]:
         """Get all products for analytical queries"""
         try:
-            # Get products with essential fields for analysis (includes images)
+            # Get products with essential fields for analysis from product_embeddings table
             analysis_sql = f"""
                 COPY (
-                    SELECT url, sku, title, price_per_box, price_per_sqft, price_per_piece,
-                           finish, color, size_shape, primary_image, image_variants
-                    FROM product_data
-                    ORDER BY price_per_sqft DESC NULLS LAST
+                    SELECT 
+                        sku, 
+                        title, 
+                        content,
+                        -- Extract price information from content
+                        CASE 
+                            WHEN content ~ '\\$[0-9]+\\.[0-9]+' THEN 
+                                (regexp_matches(content, '\\$([0-9]+\\.[0-9]+)', 'g'))[1]::decimal
+                            ELSE NULL
+                        END as price_estimate,
+                        -- Extract size information
+                        CASE 
+                            WHEN content ~ '[0-9]+ x [0-9]+ in\\.' THEN 
+                                (regexp_matches(content, '([0-9]+ x [0-9]+ in\\.)', 'g'))[1]
+                            ELSE NULL
+                        END as size_shape
+                    FROM product_embeddings
+                    WHERE content IS NOT NULL 
+                    ORDER BY sku
                     LIMIT {limit}
                 ) TO STDOUT CSV HEADER;
             """
@@ -637,11 +778,9 @@ Once I know the size, I can show you everything you'll need for professional ins
             for row in csv_reader:
                 # Convert numeric fields
                 try:
-                    row['price_per_box'] = float(row['price_per_box']) if row['price_per_box'] else None
-                    row['price_per_sqft'] = float(row['price_per_sqft']) if row['price_per_sqft'] else None
-                    row['price_per_piece'] = float(row['price_per_piece']) if row['price_per_piece'] else None
+                    row['price_estimate'] = float(row['price_estimate']) if row['price_estimate'] else None
                 except:
-                    continue
+                    row['price_estimate'] = None
                     
                 products.append(row)
             
@@ -657,6 +796,19 @@ Once I know the size, I can show you everything you'll need for professional ins
         
         # Convert to lowercase
         query = query.lower()
+        
+        # Handle special cases first
+        if 'slip' in query and ('resistant' in query or 'resist' in query):
+            # For slip-resistant queries, search for textured surfaces and matte finishes
+            return 'textured matte honed'
+        
+        if 'dcof' in query:
+            # DCOF is a specific tile rating - if not found, suggest alternative
+            return 'dcof coefficient friction slip resistant textured'
+        
+        if 'lft' in query:
+            # LFT is a specific product line - search for LFT products (mortar/thinset)
+            return 'lft'
         
         # Common tile materials and types
         tile_types = ['ceramic', 'porcelain', 'marble', 'travertine', 'subway', 'mosaic', 'wood', 'stone', 'glass']
@@ -676,8 +828,8 @@ Once I know the size, I can show you everything you'll need for professional ins
         if found_terms:
             return ' '.join(found_terms)
         
-        # Otherwise, remove common words and numbers
-        stop_words = ['find', 'show', 'me', 'get', 'the', 'a', 'an', 'some', 'any', 'tiles', 'tile']
+        # Otherwise, remove common words and numbers (but keep important words like 'under', 'best', etc.)
+        stop_words = ['find', 'show', 'me', 'get', 'the', 'a', 'an', 'some', 'any', 'list', 'suggest', 'what', 'can', 'you', 'tell', 'about', 'your']
         words = query.split()
         meaningful_words = [w for w in words if w not in stop_words and not w.isdigit()]
         
@@ -690,12 +842,12 @@ Once I know the size, I can show you everything you'll need for professional ins
         return True
     
     def test_connection(self) -> Dict[str, Any]:
-        """Test connection to Supabase"""
+        """Test connection to vector database"""
         try:
             result = subprocess.run([
                 'docker', 'exec', self.supabase_container,
                 'psql', '-U', 'postgres', '-d', self.db_name,
-                '-c', 'SELECT COUNT(*) FROM product_data;'
+                '-c', 'SELECT COUNT(*) FROM product_embeddings;'
             ], capture_output=True, text=True, check=True)
             
             # Parse count
@@ -705,7 +857,7 @@ Once I know the size, I can show you everything you'll need for professional ins
             return {
                 'connected': True,
                 'product_count': count,
-                'message': f'Connected to Supabase with {count} products'
+                'message': f'Connected to vector database with {count} products'
             }
             
         except Exception as e:
