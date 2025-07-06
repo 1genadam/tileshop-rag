@@ -782,7 +782,7 @@ Once I know the size, I can show you everything you'll need for professional ins
         return "\n".join(result_parts)
     
     def _handle_search_query(self, query: str) -> str:
-        """Handle regular search queries with enhanced image support"""
+        """Handle regular search queries with enhanced image support and supporting materials"""
         # Extract meaningful search terms from query
         search_terms = self._extract_search_terms(query)
         results = self.search_products(search_terms)
@@ -791,6 +791,9 @@ Once I know the size, I can show you everything you'll need for professional ins
             return "I couldn't find any products matching your query. Try searching for tile types, colors, finishes, or sizes."
         
         response_parts = [f"Here are {len(results)} products that match your query:\n"]
+        
+        # Track if we have tiles (not installation materials) for supporting materials suggestion
+        has_tiles = False
         
         for i, result in enumerate(results, 1):
             price_info = ""
@@ -811,6 +814,11 @@ Once I know the size, I can show you everything you'll need for professional ins
             # Handle color and finish information
             color_str = f" - {result['color']}" if result.get('color') else ""
             finish_str = f" - {result['finish']}" if result.get('finish') else ""
+            
+            # Check if this is a tile product (not installation materials)
+            title_lower = result.get('title', '').lower()
+            if 'tile' in title_lower and not any(material in title_lower for material in ['mortar', 'thinset', 'grout', 'sealer', 'adhesive']):
+                has_tiles = True
             
             # Handle content description (truncate if too long)
             content_preview = ""
@@ -846,6 +854,121 @@ Once I know the size, I can show you everything you'll need for professional ins
                 f"{content_preview}"
                 f"   More details: https://www.tileshop.com/product/{result['sku']}\n"
             )
+        
+        # Add supporting materials section if we found actual tiles
+        if has_tiles:
+            supporting_materials = self._generate_supporting_materials_section(query, results)
+            if supporting_materials:
+                response_parts.append(supporting_materials)
+        
+        return "\n".join(response_parts)
+    
+    def _generate_supporting_materials_section(self, query: str, results: List[Dict[str, Any]]) -> str:
+        """Generate supporting materials recommendations based on tile selection and application"""
+        if not results:
+            return ""
+        
+        query_lower = query.lower()
+        
+        # Determine application area based on query context
+        is_bathroom = any(term in query_lower for term in ['bathroom', 'shower', 'wet', 'bath'])
+        is_kitchen = any(term in query_lower for term in ['kitchen', 'backsplash', 'counter'])
+        is_basement = any(term in query_lower for term in ['basement', 'below grade'])
+        is_floor = any(term in query_lower for term in ['floor', 'flooring'])
+        is_wall = any(term in query_lower for term in ['wall', 'backsplash'])
+        is_heated = any(term in query_lower for term in ['heated', 'heating', 'radiant'])
+        
+        # Analyze tile characteristics from results
+        has_large_tiles = False
+        has_natural_stone = False
+        has_porcelain = False
+        
+        for result in results:
+            title = result.get('title', '').lower()
+            content = result.get('content', '').lower()
+            
+            # Check for large format tiles (>12 inches)
+            if any(size in title or size in content for size in ['24 x', '18 x', '16 x', '15 x', '14 x', '13 x']):
+                has_large_tiles = True
+            
+            # Check for porcelain first (takes precedence over natural stone keywords)
+            if 'porcelain' in title:
+                has_porcelain = True
+            # Only check for natural stone if not porcelain
+            elif any(stone in title for stone in ['marble', 'travertine', 'limestone', 'granite', 'slate']) and 'porcelain' not in title:
+                has_natural_stone = True
+        
+        # Generate materials list based on conditions
+        materials = []
+        
+        # Essential installation materials (always needed)
+        if has_large_tiles or has_porcelain:
+            materials.append("**LFT Thinset Mortar** - Superior bond strength for large format and porcelain tiles")
+        else:
+            materials.append("**Premium Thinset Mortar** - Standard installation adhesive")
+        
+        materials.append("**Tile Spacers/Wedges** - Ensure consistent joint spacing")
+        materials.append("**Grout** - Sanded for joints >1/8\", unsanded for smaller joints")
+        
+        # Wet area protection
+        if is_bathroom or is_kitchen or is_basement:
+            materials.append("**Backer-Lite Underlayment** - Moisture protection for wet areas")
+            materials.append("**Waterproof Membrane** - Additional moisture barrier")
+        
+        # Heated floor systems (only add if heated is specifically mentioned)
+        if is_heated:
+            materials.append("**Heated Floor Mat & Cable** - Radiant heating system for comfort")
+            materials.append("**Uncoupling Membrane** - Prevents tile cracking from thermal expansion")
+        
+        # Dry area underlayment
+        if is_floor and not (is_bathroom or is_kitchen or is_basement):
+            materials.append("**Permat Underlayment** - Crack isolation for dry areas")
+        
+        # Natural stone specific materials
+        if has_natural_stone:
+            materials.append("**Stone Sealer** - Protects natural stone from stains and moisture")
+            materials.append("**Stone-Safe Grout** - Non-acidic grout for natural stone")
+        else:
+            materials.append("**Grout Sealer** - Protects grout from moisture and stains")
+        
+        # Installation tools and finishing
+        materials.append("**Tile Leveling System** - Professional results with minimal lippage")
+        materials.append("**Trim Pieces** - Bullnose, edge trim for professional finishing")
+        
+        # Generate response section
+        area_context = ""
+        if is_bathroom:
+            area_context = " for your bathroom project"
+        elif is_kitchen:
+            area_context = " for your kitchen installation"
+        elif is_basement:
+            area_context = " for your basement flooring"
+        elif is_floor:
+            area_context = " for your floor installation"
+        elif is_wall:
+            area_context = " for your wall tiling"
+        
+        response_parts = [
+            f"\n🔧 **Supporting Materials Needed{area_context}:**\n"
+        ]
+        
+        for material in materials:
+            response_parts.append(f"• {material}")
+        
+        response_parts.extend([
+            "\n💡 **Professional Tips:**",
+            "• Purchase 10-15% extra tile for cuts and future repairs",
+            "• Use appropriate trowel size: 1/4\" notched for wall tiles, 3/8\" for floor tiles",
+            "• Allow proper cure time: 24 hours before grouting, 72 hours before heavy use"
+        ])
+        
+        if has_natural_stone:
+            response_parts.append("• Seal natural stone before and after grouting")
+        
+        if is_heated:
+            response_parts.append("• Install heating system before tile installation")
+        
+        response_parts.append("\n📞 **Need help calculating quantities?** Our team can provide detailed material estimates based on your project size.")
         
         return "\n".join(response_parts)
     
