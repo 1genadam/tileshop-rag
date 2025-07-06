@@ -646,7 +646,14 @@ Always present complete solutions including necessary installation materials, pr
     def chat(self, query: str) -> str:
         """Generate intelligent chat response - Smart routing based on query type"""
         try:
-            # Check for subway tile upselling opportunities FIRST
+            # Check for room design queries FIRST (highest priority for sales)
+            design_detection = self._detect_room_design_query(query)
+            
+            if design_detection['is_room_design'] or design_detection['needs_dimension_collection']:
+                logger.info(f"Detected room design query for {design_detection['room_type']}")
+                return self._handle_room_design_query(query, design_detection)
+            
+            # Check for subway tile upselling opportunities  
             subway_detection = self.detect_subway_tile_query(query)
             
             if subway_detection['is_subway_query'] and subway_detection['needs_upselling']:
@@ -1040,6 +1047,511 @@ Once I know the size, I can show you everything you'll need for professional ins
         ])
         
         return "\n".join(response_parts)
+    
+    def _detect_room_design_query(self, query: str) -> Dict[str, Any]:
+        """Detect if user wants room design assistance"""
+        query_lower = query.lower()
+        
+        # Room type detection
+        room_types = {
+            'bathroom': ['bathroom', 'bath', 'shower', 'powder room'],
+            'kitchen': ['kitchen', 'backsplash']
+        }
+        
+        detected_room = None
+        for room, keywords in room_types.items():
+            if any(keyword in query_lower for keyword in keywords):
+                detected_room = room
+                break
+        
+        # Design intent detection
+        design_indicators = [
+            'design', 'layout', 'plan', 'calculate', 'how much', 'how many',
+            'complete project', 'entire', 'whole', 'full renovation',
+            'dimensions', 'measurements', 'square feet', 'sq ft', 'project'
+        ]
+        
+        has_design_intent = any(indicator in query_lower for indicator in design_indicators)
+        
+        # Dimension patterns
+        dimension_patterns = [
+            r'\b(\d+)\s*x\s*(\d+)\b',  # "8x10" or "8 x 10"
+            r'\b(\d+)\s*ft\s*x\s*(\d+)\s*ft\b',  # "8ft x 10ft"
+            r'\b(\d+)\s*by\s*(\d+)\b',  # "8 by 10"
+            r'\b(\d+)\s*sq\s*ft\b',  # "80 sq ft"
+            r'\b(\d+)\s*square\s*feet\b'  # "80 square feet"
+        ]
+        
+        dimensions = None
+        for pattern in dimension_patterns:
+            match = re.search(pattern, query)
+            if match:
+                if 'sq' in pattern or 'square' in pattern:
+                    # Square footage provided
+                    dimensions = {'type': 'area', 'value': int(match.group(1))}
+                else:
+                    # Length x width provided
+                    dimensions = {
+                        'type': 'dimensions',
+                        'length': int(match.group(1)),
+                        'width': int(match.group(2))
+                    }
+                break
+        
+        return {
+            'is_room_design': detected_room is not None and has_design_intent,
+            'room_type': detected_room,
+            'has_dimensions': dimensions is not None,
+            'dimensions': dimensions,
+            'needs_dimension_collection': detected_room is not None and has_design_intent and dimensions is None
+        }
+    
+    def _handle_room_design_query(self, query: str, design_info: Dict[str, Any]) -> str:
+        """Handle room design queries with dimension collection and calculations"""
+        room_type = design_info['room_type']
+        
+        # Extract tile preference from query
+        search_terms = self._extract_search_terms(query)
+        tile_results = self.search_products(search_terms, limit=2)
+        
+        if not tile_results:
+            return f"I'd love to help you design your {room_type}! Let me find some tile options first. Could you tell me what style or color you're looking for?"
+        
+        # If no dimensions provided, collect them
+        if design_info['needs_dimension_collection']:
+            return self._request_room_dimensions(room_type, tile_results)
+        
+        # If dimensions provided, create complete design
+        if design_info['has_dimensions']:
+            return self._create_room_design(room_type, design_info['dimensions'], tile_results, query)
+        
+        return f"I'd love to help design your {room_type}! Let me gather some more information about your space."
+    
+    def _request_room_dimensions(self, room_type: str, tiles: List[Dict[str, Any]]) -> str:
+        """Request room dimensions from customer"""
+        primary_tile = tiles[0] if tiles else None
+        
+        if room_type == 'bathroom':
+            return f"""Perfect! I found some beautiful tiles for your bathroom project:
+
+**{primary_tile['title']}** - ${primary_tile.get('price_estimate', 'N/A')}/box
+🖼️ {primary_tile.get('primary_image', '')}
+
+To create your complete bathroom design and calculate exact materials, I need your room dimensions:
+
+**For a complete bathroom renovation, please provide:**
+📏 **Floor Area**: Length x Width (e.g., "8ft x 6ft" or "48 sq ft")
+📏 **Wall Area for Tiling**: Which walls and their dimensions
+   - Around tub/shower: Height x Width
+   - Vanity backsplash: Height x Width  
+   - Any accent walls: Height x Width
+
+**Example:** "My bathroom is 8x6 feet, and I want to tile the shower area which is 5 feet wide by 7 feet tall"
+
+Once I have your dimensions, I'll create a complete project plan with:
+✅ Exact tile quantities for floor and walls
+✅ All installation materials calculated precisely  
+✅ Professional layout recommendations
+✅ Complete project pricing
+
+What are your bathroom dimensions?"""
+
+        elif room_type == 'kitchen':
+            return f"""Excellent choice! I found perfect tiles for your kitchen:
+
+**{primary_tile['title']}** - ${primary_tile.get('price_estimate', 'N/A')}/box  
+🖼️ {primary_tile.get('primary_image', '')}
+
+To design your complete kitchen tile project, I need these measurements:
+
+**For kitchen floor and backsplash:**
+📏 **Kitchen Floor**: Length x Width (e.g., "12ft x 10ft")
+📏 **Backsplash Area**: Length x Height (e.g., "15ft x 1.5ft")
+   - Include any areas around stove, sink, counters
+   - Mention any windows or obstacles
+
+**Example:** "Kitchen is 12x10 feet, backsplash runs 15 feet long and 18 inches high, with a 3x4 foot window above the sink"
+
+I'll then provide:
+✅ Exact quantities for floor and backsplash
+✅ Complete installation material list
+✅ Layout suggestions for best visual impact
+✅ Full project cost breakdown
+
+What are your kitchen dimensions?"""
+        
+        return f"To design your {room_type}, I'll need the room dimensions. Could you share the length and width?"
+    
+    def _create_room_design(self, room_type: str, dimensions: Dict[str, Any], tiles: List[Dict[str, Any]], original_query: str) -> str:
+        """Create complete room design with calculations"""
+        primary_tile = tiles[0] if tiles else None
+        if not primary_tile:
+            return "I need to find suitable tiles first. Could you specify what type of tile you're looking for?"
+        
+        # Calculate areas based on dimension type
+        if dimensions['type'] == 'area':
+            floor_area = dimensions['value']
+            length = width = int(floor_area ** 0.5)  # Approximate square room
+        else:
+            length = dimensions['length']
+            width = dimensions['width'] 
+            floor_area = length * width
+        
+        if room_type == 'bathroom':
+            return self._design_bathroom(floor_area, length, width, primary_tile, tiles)
+        elif room_type == 'kitchen':
+            return self._design_kitchen(floor_area, length, width, primary_tile, tiles, original_query)
+        
+        return "I can help design bathrooms and kitchens. Which type of room are you working on?"
+    
+    def _design_bathroom(self, floor_area: int, length: int, width: int, primary_tile: Dict, all_tiles: List[Dict]) -> str:
+        """Create complete bathroom design with floor and wall calculations"""
+        
+        # Tile specifications
+        tile_name = primary_tile['title']
+        tile_sku = primary_tile['sku']
+        tile_price = primary_tile.get('price_estimate', 0) or 0
+        tile_image = primary_tile.get('primary_image', '')
+        
+        # Extract tile size (assume 6x6 if not found)
+        tile_size = self._extract_tile_size(primary_tile)
+        tile_sq_ft_per_box = tile_size['coverage_per_box']
+        
+        # Bathroom design calculations
+        floor_sq_ft = floor_area
+        
+        # Standard bathroom wall estimates
+        # Assume tub surround (5ft x 7ft) + vanity backsplash (4ft x 1.5ft)
+        tub_surround_area = 35  # 5 x 7 feet
+        vanity_backsplash = 6   # 4 x 1.5 feet
+        total_wall_area = tub_surround_area + vanity_backsplash
+        
+        # Total tile needed
+        total_tile_area = floor_sq_ft + total_wall_area
+        boxes_needed = (total_tile_area / tile_sq_ft_per_box) * 1.15  # 15% waste factor
+        total_tile_cost = boxes_needed * tile_price
+        
+        # Material calculations
+        materials = self._calculate_bathroom_materials(floor_sq_ft, total_wall_area, total_tile_area)
+        
+        response = f"""🏠 **Complete Bathroom Design Project**
+
+**Your Selected Tile:** {tile_name} (SKU: {tile_sku})
+🖼️ **Image:** {tile_image}
+
+📐 **Project Dimensions:**
+• **Floor Area:** {floor_sq_ft} sq ft ({length}' x {width}')
+• **Wall Tiling:** {total_wall_area} sq ft (tub surround + vanity backsplash)
+• **Total Tile Area:** {total_tile_area} sq ft
+
+📦 **Tile Requirements:**
+• **Boxes Needed:** {boxes_needed:.1f} boxes (includes 15% for cuts/repairs)
+• **Tile Cost:** ${total_tile_cost:.2f}
+
+🔧 **Complete Installation Package:**
+
+**Essential Materials:**
+✅ **LFT Thinset Mortar** - {materials['thinset_bags']} bags - ${materials['thinset_cost']:.2f}
+✅ **Tile Spacers (1/16")** - ${materials['spacers_cost']:.2f}
+✅ **Grout (Sanded)** - {materials['grout_bags']} bags - ${materials['grout_cost']:.2f}
+✅ **Backer-Lite Underlayment** - {materials['underlayment_sq_ft']} sq ft - ${materials['underlayment_cost']:.2f}
+✅ **Waterproof Membrane** - {materials['membrane_sq_ft']} sq ft - ${materials['membrane_cost']:.2f}
+✅ **Grout Sealer** - ${materials['sealer_cost']:.2f}
+✅ **Tile Leveling System** - ${materials['leveling_cost']:.2f}
+✅ **Bullnose Trim** - {materials['trim_linear_ft']} linear ft - ${materials['trim_cost']:.2f}
+
+**Professional Tools Package:**
+🔹 **Wet Tile Saw Rental** - ${materials['saw_rental']:.2f}
+🔹 **Professional Trowel Set** - ${materials['trowel_cost']:.2f}
+🔹 **Tile Nippers & Tools** - ${materials['tools_cost']:.2f}
+
+💰 **Investment Summary:**
+• **Tiles:** ${total_tile_cost:.2f}
+• **Essential Materials:** ${materials['materials_total']:.2f}
+• **Professional Tools:** ${materials['tools_total']:.2f}
+• **Complete Project Total:** ${total_tile_cost + materials['materials_total'] + materials['tools_total']:.2f}
+
+🎯 **Professional Layout Recommendations:**
+• Start floor layout from center of room for balanced appearance
+• Use bullnose trim on all exposed tile edges
+• Install floor first, then walls (floor tiles under wall tiles)
+• Consider running wall tiles to ceiling for modern, luxurious look
+
+💡 **Installation Timeline:**
+• **Day 1:** Surface prep and underlayment installation
+• **Day 2:** Floor tile installation 
+• **Day 3:** Wall tile installation
+• **Day 4:** Grouting and cleanup
+• **Day 5:** Sealing and final touches
+
+🏆 **This complete package ensures:**
+• Professional installation results
+• Long-lasting, moisture-resistant finish
+• All materials perfectly coordinated
+• No return trips for missing items
+
+📞 **Ready to transform your bathroom?** I can refine these calculations based on your exact layout preferences or help you explore coordinating accent tiles!"""
+
+        return response
+    
+    def _design_kitchen(self, floor_area: int, length: int, width: int, primary_tile: Dict, all_tiles: List[Dict], original_query: str) -> str:
+        """Create complete kitchen design with floor and backsplash calculations"""
+        
+        # Tile specifications
+        tile_name = primary_tile['title']
+        tile_sku = primary_tile['sku']
+        tile_price = primary_tile.get('price_estimate', 0) or 0
+        tile_image = primary_tile.get('primary_image', '')
+        
+        # Extract tile size
+        tile_size = self._extract_tile_size(primary_tile)
+        tile_sq_ft_per_box = tile_size['coverage_per_box']
+        
+        # Determine if floor, backsplash, or both
+        query_lower = original_query.lower()
+        needs_floor = 'floor' in query_lower or 'flooring' in query_lower
+        needs_backsplash = 'backsplash' in query_lower or 'wall' in query_lower
+        
+        # Default to both if not specified
+        if not needs_floor and not needs_backsplash:
+            needs_floor = needs_backsplash = True
+        
+        # Kitchen calculations
+        floor_sq_ft = floor_area if needs_floor else 0
+        
+        # Standard backsplash estimate: perimeter minus appliances
+        perimeter = 2 * (length + width)
+        backsplash_linear_ft = perimeter * 0.7  # 70% of perimeter (account for appliances)
+        backsplash_height = 1.5  # 18 inches standard
+        backsplash_sq_ft = backsplash_linear_ft * backsplash_height if needs_backsplash else 0
+        
+        # Total tile needed
+        total_tile_area = floor_sq_ft + backsplash_sq_ft
+        boxes_needed = (total_tile_area / tile_sq_ft_per_box) * 1.12  # 12% waste factor for kitchen
+        total_tile_cost = boxes_needed * tile_price
+        
+        # Material calculations
+        materials = self._calculate_kitchen_materials(floor_sq_ft, backsplash_sq_ft, total_tile_area, needs_floor, needs_backsplash)
+        
+        areas_text = ""
+        if needs_floor and needs_backsplash:
+            areas_text = f"• **Floor Area:** {floor_sq_ft} sq ft ({length}' x {width}')\n• **Backsplash Area:** {backsplash_sq_ft:.1f} sq ft ({backsplash_linear_ft:.1f} linear ft)"
+        elif needs_floor:
+            areas_text = f"• **Floor Area:** {floor_sq_ft} sq ft ({length}' x {width}')"
+        else:
+            areas_text = f"• **Backsplash Area:** {backsplash_sq_ft:.1f} sq ft ({backsplash_linear_ft:.1f} linear ft)"
+        
+        response = f"""🍳 **Complete Kitchen Design Project**
+
+**Your Selected Tile:** {tile_name} (SKU: {tile_sku})
+🖼️ **Image:** {tile_image}
+
+📐 **Project Dimensions:**
+{areas_text}
+• **Total Tile Area:** {total_tile_area:.1f} sq ft
+
+📦 **Tile Requirements:**
+• **Boxes Needed:** {boxes_needed:.1f} boxes (includes 12% for cuts/repairs)
+• **Tile Cost:** ${total_tile_cost:.2f}
+
+🔧 **Complete Installation Package:**
+
+**Essential Materials:**
+✅ **Premium Thinset Mortar** - {materials['thinset_bags']} bags - ${materials['thinset_cost']:.2f}
+✅ **Tile Spacers** - ${materials['spacers_cost']:.2f}
+✅ **Grout (Stain-Resistant)** - {materials['grout_bags']} bags - ${materials['grout_cost']:.2f}"""
+
+        if needs_floor:
+            response += f"""
+✅ **Permat Underlayment** - {materials['underlayment_sq_ft']} sq ft - ${materials['underlayment_cost']:.2f}"""
+        
+        if needs_backsplash:
+            response += f"""
+✅ **Backsplash Adhesive** - ${materials['backsplash_adhesive']:.2f}"""
+        
+        response += f"""
+✅ **Grout Sealer** - ${materials['sealer_cost']:.2f}
+✅ **Tile Leveling System** - ${materials['leveling_cost']:.2f}
+✅ **Edge Trim & Transitions** - ${materials['trim_cost']:.2f}
+
+**Professional Tools Package:**
+🔹 **Tile Saw & Cutting Tools** - ${materials['cutting_tools']:.2f}
+🔹 **Professional Trowel Set** - ${materials['trowel_cost']:.2f}
+🔹 **Installation Tools Kit** - ${materials['tools_cost']:.2f}
+
+💰 **Investment Summary:**
+• **Tiles:** ${total_tile_cost:.2f}
+• **Essential Materials:** ${materials['materials_total']:.2f}
+• **Professional Tools:** ${materials['tools_total']:.2f}
+• **Complete Project Total:** ${total_tile_cost + materials['materials_total'] + materials['tools_total']:.2f}
+
+🎯 **Professional Design Recommendations:**"""
+
+        if needs_floor and needs_backsplash:
+            response += """
+• Consider using same tile for cohesive look, or coordinate with complementary backsplash
+• Run floor tiles under appliances for consistent appearance
+• Use decorative trim where backsplash meets countertop"""
+        elif needs_floor:
+            response += """
+• Plan layout to minimize cuts at most visible areas
+• Consider larger format tiles for fewer grout lines
+• Use transition strips where tile meets other flooring"""
+        else:
+            response += """
+• Center pattern on most prominent wall (usually behind range)
+• Consider extending to ceiling for dramatic effect
+• Plan electrical outlet placement before installation"""
+        
+        response += f"""
+
+💡 **Installation Timeline:**
+• **Day 1:** Surface preparation and layout planning
+• **Day 2:** {"Floor installation" if needs_floor else "Backsplash installation"}"""
+        
+        if needs_floor and needs_backsplash:
+            response += """
+• **Day 3:** Backsplash installation"""
+        
+        response += """
+• **Day 3-4:** Grouting and cleanup  
+• **Day 4-5:** Sealing and final touches
+
+🏆 **This complete package ensures:**
+• Professional kitchen transformation
+• Durable, easy-to-clean surfaces
+• Perfectly coordinated materials
+• Comprehensive tool set for success
+
+📞 **Ready to create your dream kitchen?** I can adjust these calculations for your specific layout or suggest coordinating accent options!"""
+
+        return response
+    
+    def _extract_tile_size(self, tile: Dict[str, Any]) -> Dict[str, Any]:
+        """Extract tile size and calculate coverage from tile information"""
+        title = tile.get('title', '')
+        content = tile.get('content', '')
+        
+        # Look for size patterns like "6 x 6 in" or "12x24"
+        size_patterns = [
+            r'(\d+)\s*x\s*(\d+)\s*in',
+            r'(\d+)\s*x\s*(\d+)',
+            r'(\d+)"?\s*x\s*(\d+)"?'
+        ]
+        
+        length = width = 6  # Default 6x6 inches
+        
+        for pattern in size_patterns:
+            match = re.search(pattern, title + ' ' + content, re.IGNORECASE)
+            if match:
+                length = int(match.group(1))
+                width = int(match.group(2))
+                break
+        
+        # Calculate coverage (assuming standard box quantities)
+        tile_sq_ft = (length * width) / 144  # Convert sq inches to sq feet
+        
+        # Estimate pieces per box based on tile size
+        if tile_sq_ft <= 0.25:  # Small tiles (up to 6x6)
+            pieces_per_box = 44
+        elif tile_sq_ft <= 1.0:   # Medium tiles (up to 12x12)
+            pieces_per_box = 18
+        else:                     # Large tiles
+            pieces_per_box = 8
+        
+        coverage_per_box = tile_sq_ft * pieces_per_box
+        
+        return {
+            'length': length,
+            'width': width,
+            'sq_ft_per_tile': tile_sq_ft,
+            'pieces_per_box': pieces_per_box,
+            'coverage_per_box': coverage_per_box
+        }
+    
+    def _calculate_bathroom_materials(self, floor_area: int, wall_area: int, total_area: int) -> Dict[str, float]:
+        """Calculate all materials needed for bathroom installation"""
+        
+        # Thinset calculation (1 bag covers ~50 sq ft)
+        thinset_bags = max(2, int((total_area / 50) + 1))
+        
+        # Grout calculation (1 bag covers ~100-150 sq ft depending on tile size)
+        grout_bags = max(1, int((total_area / 125) + 1))
+        
+        # Trim calculation (perimeter + 20% extra)
+        perimeter = 2 * ((floor_area ** 0.5) * 2)  # Approximate perimeter
+        trim_linear_ft = perimeter * 1.2
+        
+        return {
+            'thinset_bags': thinset_bags,
+            'thinset_cost': thinset_bags * 35.0,
+            'grout_bags': grout_bags, 
+            'grout_cost': grout_bags * 28.0,
+            'spacers_cost': 15.0,
+            'underlayment_sq_ft': floor_area,
+            'underlayment_cost': floor_area * 1.20,
+            'membrane_sq_ft': wall_area,
+            'membrane_cost': wall_area * 0.85,
+            'sealer_cost': 25.0,
+            'leveling_cost': 45.0,
+            'trim_linear_ft': trim_linear_ft,
+            'trim_cost': trim_linear_ft * 3.50,
+            'materials_total': (thinset_bags * 35.0) + (grout_bags * 28.0) + 15.0 + (floor_area * 1.20) + (wall_area * 0.85) + 25.0 + 45.0 + (trim_linear_ft * 3.50),
+            'saw_rental': 75.0,
+            'trowel_cost': 85.0,
+            'tools_cost': 65.0,
+            'tools_total': 225.0
+        }
+    
+    def _calculate_kitchen_materials(self, floor_area: int, backsplash_area: float, total_area: float, needs_floor: bool, needs_backsplash: bool) -> Dict[str, float]:
+        """Calculate all materials needed for kitchen installation"""
+        
+        # Thinset calculation
+        thinset_bags = max(1, int((total_area / 50) + 1))
+        
+        # Grout calculation  
+        grout_bags = max(1, int((total_area / 125) + 1))
+        
+        materials = {
+            'thinset_bags': thinset_bags,
+            'thinset_cost': thinset_bags * 35.0,
+            'grout_bags': grout_bags,
+            'grout_cost': grout_bags * 32.0,  # Premium stain-resistant grout
+            'spacers_cost': 18.0,
+            'sealer_cost': 28.0,
+            'leveling_cost': 45.0,
+            'cutting_tools': 125.0,
+            'trowel_cost': 85.0,
+            'tools_cost': 55.0
+        }
+        
+        # Floor-specific materials
+        if needs_floor:
+            materials['underlayment_sq_ft'] = floor_area
+            materials['underlayment_cost'] = floor_area * 0.95
+        else:
+            materials['underlayment_sq_ft'] = 0
+            materials['underlayment_cost'] = 0
+        
+        # Backsplash-specific materials
+        if needs_backsplash:
+            materials['backsplash_adhesive'] = 45.0
+        else:
+            materials['backsplash_adhesive'] = 0
+        
+        # Trim costs
+        materials['trim_cost'] = 75.0 if (needs_floor or needs_backsplash) else 0
+        
+        # Calculate totals
+        materials['materials_total'] = (
+            materials['thinset_cost'] + materials['grout_cost'] + materials['spacers_cost'] +
+            materials['underlayment_cost'] + materials['backsplash_adhesive'] + 
+            materials['sealer_cost'] + materials['leveling_cost'] + materials['trim_cost']
+        )
+        
+        materials['tools_total'] = materials['cutting_tools'] + materials['trowel_cost'] + materials['tools_cost']
+        
+        return materials
     
     def _get_all_products_for_analysis(self, limit: int = 500) -> List[Dict[str, Any]]:
         """Get all products for analytical queries"""
