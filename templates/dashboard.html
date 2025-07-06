@@ -2537,7 +2537,6 @@ Status: ${comp.is_in_sync ? 'In Sync' : 'Out of Sync'}`;
                     message = health.message || 'Health check completed';
                 }
                 
-                
                 // Update the UI based on service type
                 if (serviceType === 'runtime') {
                     updateRuntimeStatus(serviceName, status, message);
@@ -2557,67 +2556,6 @@ Status: ${comp.is_in_sync ? 'In Sync' : 'Out of Sync'}`;
     // Pre-warming Status Functions
     let prewarmInterval = null;
     
-    async function updatePrewarmStatus() {
-        try {
-            const prewarmStatus = await apiCall('/api/acquisition/prewarm-status');
-            
-            if (prewarmStatus.success) {
-                const container = document.getElementById('prewarm-status-container');
-                
-                // Always show the pre-warming container (requested change)
-                container.style.display = 'block';
-                
-                // Update overall status
-                updatePrewarmOverallStatus(prewarmStatus);
-                
-                // Get database connection status from system stats
-                const systemStats = await apiCall('/api/system/stats');
-                let relationalDbStatus = false;
-                let vectorDbStatus = false;
-                
-                if (systemStats.success && systemStats.stats.db_connections) {
-                    const dbConnections = systemStats.stats.db_connections;
-                    if (typeof dbConnections === 'string' && dbConnections.includes('/')) {
-                        const [connected, total] = dbConnections.split('/').map(n => parseInt(n));
-                        relationalDbStatus = connected >= 1; // At least one database connected
-                        vectorDbStatus = connected >= 2; // Both databases connected
-                    }
-                }
-                
-                // Update individual component status
-                updatePrewarmComponent('subprocess', prewarmStatus.prewarm_status.virtual_env);
-                updatePrewarmComponent('relational-db', relationalDbStatus);
-                updatePrewarmComponent('vector-db', vectorDbStatus);
-                updatePrewarmComponent('sitemap', prewarmStatus.prewarm_status.sitemap_validation);
-                updatePrewarmComponent('crawl4ai', prewarmStatus.prewarm_status.crawl4ai_service);
-                
-                // Update progress if pre-warming is active
-                if (prewarmStatus.prewarm_in_progress) {
-                    // Show progress during active pre-warming
-                    updatePrewarmProgress(50); // Approximate progress
-                    
-                    // Start interval for updates if not already running
-                    if (!prewarmInterval) {
-                        prewarmInterval = setInterval(updatePrewarmStatus, 1000);
-                    }
-                } else {
-                    // Stop interval if pre-warming is complete
-                    if (prewarmInterval) {
-                        clearInterval(prewarmInterval);
-                        prewarmInterval = null;
-                    }
-                }
-            }
-        } catch (error) {
-            console.error('Error checking prewarm status:', error);
-            
-            // Hide container on error
-            const container = document.getElementById('prewarm-status-container');
-            if (container) {
-                container.style.display = 'none';
-            }
-        }
-    }
     
     function updatePrewarmOverallStatus(status) {
         const overallStatusEl = document.getElementById('prewarm-overall-status');
