@@ -1,173 +1,274 @@
-# Tileshop RAG System - Maintenance Guide
+# Tileshop RAG System - Complete Documentation
 
-**✅ PRODUCTION STATUS**: Optimized and stable (July 04, 2025)
+**✅ SYSTEM STATUS**: Phase 2 Diagnostic Framework Complete (July 6, 2025)
+
+## 📚 Documentation Index
+
+This directory contains all system documentation and guides:
+
+| File | Purpose | Use Case |
+|------|---------|----------|
+| **README.md** | Main project overview and quick start | First-time setup and daily operations |
+| **ARCHITECTURE.md** | Complete system architecture | Understanding system design and components |
+| **TROUBLESHOOTING.md** | Phase 2 diagnostic troubleshooting | Resolving service issues and errors |
 
 ## 🚀 Quick Start
 
 ```bash
-# Start the system
-python3 reboot_dashboard.py
+# Start the complete system
+python reboot_dashboard.py
 
-# Access dashboard
-http://127.0.0.1:8080
+# Access dashboard with all 17 services
+http://localhost:8080
+
+# Check all services health
+Click "Health Check All (17 Services)" button
 ```
 
-## 🔧 Key Maintenance Commands
+## 🎯 System Overview
+
+The Tileshop RAG System is a comprehensive intelligence platform featuring:
+
+- **17 monitored services** across 3 categories (Microservices, Runtime, Pre-warming)
+- **Unified diagnostic framework** with standardized health checks
+- **Real-time web scraping** with Crawl4AI integration
+- **RAG (Retrieval-Augmented Generation)** with Claude API
+- **Dual database architecture** (Relational + Vector)
+- **Comprehensive monitoring** and management dashboard
+
+## 🏗️ System Architecture
+
+### Service Categories (17 Total)
+
+**🔧 MICROSERVICES (6 services):**
+- Docker Engine, Relational DB, Vector DB, Crawler, API Gateway, Web Server, LLM API
+
+**⚙️ RUNTIME ENVIRONMENT (4 services):**
+- Python Environment, System Dependencies, Docker Daemon, Infrastructure
+
+**🔄 PRE-WARMING SYSTEMS (7 services):**
+- Python Subprocess, Database Pre-warming (x2), Sitemap Validation, Crawler Pre-warming
+
+### Core Components
+- **Flask Dashboard** (Port 8080) - Central management interface
+- **PostgreSQL** (Port 5432) - Primary relational database
+- **Vector Database** (Port 5433) - PostgreSQL + pgvector for embeddings
+- **Crawl4AI** (Port 11235) - Browser-based web scraping
+- **Kong Gateway** (Ports 8000, 8001, 8443) - API management
+- **Claude API** - AI-powered responses and analysis
+
+## 🔧 Core Operations
 
 ### Dashboard Management
 ```bash
-# Restart dashboard (optimized startup)
-python3 reboot_dashboard.py
+# Start dashboard with all diagnostic services
+python reboot_dashboard.py
 
-# Stop all processes
-python3 stop_all_processes.py
+# Stop dashboard
+pkill -f "python reboot_dashboard.py"
+
+# Check dashboard status
+ps aux | grep reboot_dashboard.py
 ```
 
-### Data Acquisition
+### Service Health Monitoring
 ```bash
-# Scrape single product (PRODUCTION METHOD)
-python3 curl_scraper.py "https://www.tileshop.com/products/product-url"
-
-# Batch acquisition
-python3 acquire_all_products.py
+# API endpoints for service management
+curl -s "http://localhost:8080/api/services/list"
+curl -s "http://localhost:8080/api/service/docker_engine/health"
+curl -s "http://localhost:8080/api/service/relational_db/logs"
+curl -s "http://localhost:8080/api/service/vector_db/debug"
 ```
 
-### System Health
+### Database Operations
 ```bash
-# Check database
-python3 db_connection_test.py
-
-# Audit data quality
-python3 audit_tile_data_extraction.py
-```
-
-## 📁 Critical Files
-
-### Core System
-- `reboot_dashboard.py` - Main dashboard server (Flask)
-- `curl_scraper.py` - Production scraper (100% reliable)
-- `tileshop_learner.py` - Data extraction engine
-- `enhanced_specification_extractor.py` - Auto-expanding schema
-
-### Database
-- `create_vector_tables.sql` - Database schema
-- `product_data` table - Main product storage
-
-### Configuration
-- `templates/dashboard.html` - Dashboard UI
-- Environment variables for database connection
-
-## 🔧 Common Issues & Solutions
-
-### Dashboard Won't Start
-```bash
-# Check if port 8080 is in use
-lsof -i :8080
-
-# Force restart
-python3 stop_all_processes.py && python3 reboot_dashboard.py
-```
-
-### Sitemap Download Button Not Working
-- **Fixed**: Function naming conflicts resolved
-- **Status**: Working correctly
-
-### Slow Performance
-- **Optimized**: Fast-boot mode enabled
-- **Status**: Dashboard starts quickly, monitoring disabled on startup
-
-### Data Extraction Issues
-- **Solution**: Use `curl_scraper.py` (100% success rate)
-- **Backup**: crawl4ai available if needed
-
-## 📊 System Architecture
-
-```
-Users → Dashboard (Flask) → curl_scraper.py → Database
-                         ↓
-                    Enhanced Extraction → Auto-Schema
-```
-
-## 🎯 Key Features
-
-- **Fast-boot dashboard** with reduced overhead
-- **100% reliable scraping** via curl_scraper.py
-- **Auto-expanding schema** for new product fields
-- **Real-time monitoring** of acquisition status
-- **Schema auto-scaling** (performance optimized)
-
-## 🔄 Process Inventory & Management
-
-### Dashboard Built-in Processes
-| **Process** | **Status** | **Resource Impact** | **When to Enable** |
-|-------------|------------|-------------------|-------------------|
-| **Background Status Updates** | ✅ Always Active | LOW | Required for dashboard |
-| **Integrated Monitoring System** | 🚫 Disabled (fast-boot) | MEDIUM | Production environments |
-| **Pre-warming System** | 🚫 On-demand only | HIGH (brief) | Before bulk operations |
-| **Audit Monitor** | 🚫 Disabled (fast-boot) | MEDIUM | During sitemap processing |
-
-### Standalone Monitoring Tools
-| **Script** | **Purpose** | **Usage** | **Resource Impact** |
-|------------|-------------|-----------|-------------------|
-| `monitor_sitemap.py` | Watch sitemap download progress | Manual execution | MEDIUM (300 API calls) |
-| `monitor_full_process.py` | Complete workflow monitoring | Production validation | HIGH (30min monitoring) |
-| `monitor_learning_start.py` | Learning process startup | Manual monitoring | MEDIUM (API polling) |
-| `monitor_live_download.py` | Live download progress | Real-time monitoring | MEDIUM (active polling) |
-| `audit_tile_data_extraction.py` | Data quality audit | Quality assurance | HIGH (full analysis) |
-| `schema_expansion_summary.py` | Schema analysis report | Documentation | LOW (report only) |
-
-### Process Usage Guidelines
-```bash
-# Fast startup (default - recommended)
-python3 reboot_dashboard.py  # Monitoring disabled for speed
-
-# Enable monitoring for production
-# Edit reboot_dashboard.py line 2189: start_integrated_monitoring()
-
-# Manual monitoring during operations
-python3 monitor_sitemap.py           # Watch sitemap downloads
-python3 monitor_full_process.py      # Full workflow validation
-python3 audit_tile_data_extraction.py  # Quality audit
-
-# On-demand system checks
-python3 db_connection_test.py        # Database health
-```
-
-### Performance Optimizations
-- **Fast-boot mode**: Monitoring disabled on startup for 5x faster initialization
-- **On-demand activation**: Heavy processes only run when explicitly needed
-- **Lightweight core**: Only essential WebSocket updates active by default
-- **Manual tools**: All monitoring scripts require explicit execution
-
-## 🆘 Troubleshooting Guides
-
-### Available Troubleshooting Resources
-- **`troubleshooting_guide_database_recovery.md`** - Database corruption recovery procedures
-  - Vector database corruption resolution
-  - Container replacement strategies  
-  - Service restoration order
-  - Prevention and monitoring tips
-
-### Quick Troubleshooting Index
-- **Database Issues**: See `troubleshooting_guide_database_recovery.md`
-- **Container Problems**: Docker management commands and recovery
-- **Service Connectivity**: Port conflicts and connection testing
-- **Performance Issues**: Memory pressure and load optimization
-
-### Emergency Recovery Commands
-```bash
-# Check all critical services
-docker ps | grep -E "(postgres|crawl4ai)"
-
 # Test database connections
-python3 -c "import psycopg2; conn=psycopg2.connect(host='localhost', port=5432, database='postgres', user='postgres', password='postgres'); print('✅ relational_db OK')"
+python -c "
+import psycopg2
+# Test relational database
+conn = psycopg2.connect(host='localhost', port=5432, database='postgres', user='robertsher')
+print('✅ Relational DB connected')
+conn.close()
 
-# Dashboard health check
-curl -s http://127.0.0.1:8080/api/system/health
+# Test vector database  
+conn = psycopg2.connect(host='localhost', port=5433, database='postgres', user='postgres', password='supabase123')
+print('✅ Vector DB connected')
+conn.close()
+"
 ```
 
-## 📋 Additional Documentation
+### Container Management
+```bash
+# Check all containers
+docker ps --format "table {{.Names}}\t{{.Status}}\t{{.Ports}}"
 
-For detailed issue resolution, see: [troubleshooting_guide.md](troubleshooting_guide.md)
+# Start core services
+docker start relational_db vector_db crawler api_gateway
 
-For complete documentation, see: [README_expanded.md](README_expanded.md)
+# Check logs
+docker logs --tail 20 relational_db
+docker logs --tail 20 vector_db
+```
+
+## 📊 Diagnostic Framework
+
+### Service Status Types
+- **Microservices**: `healthy` (green) / `issues` (red)
+- **Runtime**: `healthy` (green) / `issues` (red)  
+- **Pre-warming**: `ready` (green) / `not_ready` (yellow) / `error` (red)
+
+### Health Check Interface
+Each service provides:
+- **Health Check** 🔍 - Current operational status
+- **Logs** 📋 - Service-specific logs and information
+- **Debug** 🔧 - Advanced troubleshooting data
+
+### API Endpoints
+- `GET /api/services/list` - List all 17 services
+- `GET /api/service/{name}/health` - Service health status
+- `GET /api/service/{name}/logs` - Service logs
+- `GET /api/service/{name}/debug` - Debug information
+
+## 🔧 Configuration
+
+### Environment Variables (.env)
+```env
+# Claude API Configuration
+ANTHROPIC_API_KEY=sk-ant-api03-...
+
+# Relational Database
+POSTGRES_HOST=127.0.0.1
+POSTGRES_PORT=5432
+POSTGRES_USER=robertsher
+POSTGRES_DB=postgres
+
+# Vector Database (Supabase)
+SUPABASE_HOST=127.0.0.1
+SUPABASE_PORT=5433
+SUPABASE_USER=postgres
+SUPABASE_PASSWORD=supabase123
+SUPABASE_DB=postgres
+
+# Crawler Service
+CRAWL4AI_URL=http://localhost:11235
+CRAWL4AI_TOKEN=tileshop
+```
+
+### Docker Configuration
+```bash
+# Start Crawl4AI browser service
+docker run -d \
+  -p 11235:11235 \
+  --name crawler \
+  --shm-size=1g \
+  -e CRAWL4AI_API_TOKEN=tileshop \
+  unclecode/crawl4ai:browser
+```
+
+## 🚨 Common Issues & Quick Fixes
+
+### Services Stuck at "Checking..."
+```bash
+# Restart dashboard
+pkill -f "python reboot_dashboard.py"
+python reboot_dashboard.py
+```
+
+### Database Connection Issues
+```bash
+# Check container status
+docker ps | grep -E "(relational_db|vector_db)"
+
+# Restart databases
+docker restart relational_db vector_db
+```
+
+### Container Not Found Errors
+```bash
+# Check actual container names
+docker ps --format "table {{.Names}}\t{{.Status}}"
+
+# Ensure names match expectations:
+# - crawler (not crawl4ai-browser)
+# - api_gateway (not supabase-kong)
+```
+
+### JavaScript Errors in Browser
+- Check browser console (F12)
+- Look for missing function errors
+- Verify DOM element IDs match service names
+
+## 📈 Performance Features
+
+### Fast-Boot Mode
+- Dashboard starts quickly with monitoring disabled initially
+- Services load in parallel for optimal performance
+- Resource usage optimized for development
+
+### Real-Time Updates
+- WebSocket-based status updates
+- Automatic service health monitoring
+- Live progress tracking for operations
+
+### Scalable Architecture
+- Container-based microservices
+- Load balancer ready
+- Database replication support
+
+## 🛠️ Development Workflow
+
+### Adding New Services
+1. Create diagnostic class in `modules/service_diagnostic.py`
+2. Register service in `reboot_dashboard.py`
+3. Add UI elements in `templates/dashboard.html`
+4. Test health check API endpoints
+
+### Updating Service Logic
+1. Modify appropriate diagnostic class
+2. Update status mapping if needed
+3. Test via dashboard health checks
+4. Verify logs and debug information
+
+### Database Changes
+1. Update schema in both databases
+2. Modify `modules/db_manager.py` 
+3. Test connection and queries
+4. Update pre-warming services
+
+## 📋 Additional Resources
+
+### Detailed Documentation
+- **[ARCHITECTURE.md](ARCHITECTURE.md)** - Complete system architecture with diagrams, data flows, and technical specifications
+- **[TROUBLESHOOTING.md](TROUBLESHOOTING.md)** - Comprehensive troubleshooting guide for Phase 2 diagnostic framework
+
+### Key Modules
+- `modules/service_diagnostic.py` - Diagnostic framework classes
+- `modules/rag_manager.py` - RAG system and Claude API integration
+- `modules/db_manager.py` - Database connection and query management
+- `modules/intelligence_manager.py` - Web scraping and content processing
+- `reboot_dashboard.py` - Main dashboard application
+- `templates/dashboard.html` - Web interface
+
+### Support and Maintenance
+- All services monitored through unified dashboard
+- Automated health checks every 30 seconds
+- Error logging with detailed diagnostics
+- Recovery procedures documented in troubleshooting guide
+
+---
+
+**🎯 Quick Links:**
+- Dashboard: http://localhost:8080
+- Health Check: Click "Health Check All (17 Services)"
+- Service Logs: Individual service log buttons
+- Debug Info: Individual service debug buttons
+
+**📖 Full Documentation:**
+- System Architecture: [ARCHITECTURE.md](ARCHITECTURE.md)
+- Troubleshooting: [TROUBLESHOOTING.md](TROUBLESHOOTING.md)
+
+---
+
+*Last Updated: July 6, 2025*  
+*Diagnostic Framework: Phase 2 Complete*  
+*Status: All 17 services operational*
