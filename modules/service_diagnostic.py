@@ -360,11 +360,29 @@ class PrewarmServiceDiagnostic(ServiceDiagnostic):
         """Pre-warming system health check"""
         try:
             result = self.prewarm_func()
+            
+            # Handle different result formats
+            is_ready = False
+            if isinstance(result, dict):
+                # Check for direct success field
+                if 'success' in result:
+                    is_ready = result.get('success', False)
+                # Check for database connection results
+                elif any(key in result for key in ['relational_db', 'vector_db']):
+                    # For database pre-warming, check if all connections are successful
+                    db_results = [v for k, v in result.items() if k in ['relational_db', 'vector_db']]
+                    is_ready = all(db.get('connected', False) for db in db_results if isinstance(db, dict))
+                else:
+                    # Default to True if no specific structure found
+                    is_ready = True
+            else:
+                is_ready = bool(result)
+                
             return {
                 'success': True,
-                'status': 'ready' if result.get('success', False) else 'not_ready',
+                'status': 'ready' if is_ready else 'not_ready',
                 'details': result,
-                'message': result.get('message', 'Pre-warming check completed')
+                'message': result.get('message', 'Pre-warming check completed') if isinstance(result, dict) else 'Pre-warming check completed'
             }
         except Exception as e:
             return {
