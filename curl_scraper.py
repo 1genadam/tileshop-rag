@@ -7,7 +7,7 @@ Uses direct HTTP requests since curl gets the real product pages
 import subprocess
 import time
 import random
-from tileshop_learner import extract_product_data
+from tileshop_learner import extract_product_data, save_to_database
 
 def get_page_with_curl(url, user_agent=None):
     """Get page content using curl with your browser's user agent"""
@@ -96,6 +96,9 @@ def scrape_product_with_curl(url):
         print(f"     price_per_box: ${product_data.get('price_per_box', 'None')}")
         print(f"     price_per_piece: ${product_data.get('price_per_piece', 'None')}")
         print(f"     price_per_sqft: ${product_data.get('price_per_sqft', 'None')}")
+        
+        # Store crawl_results with the product_data for database saving
+        product_data['_crawl_results'] = crawl_results
     
     return product_data
 
@@ -145,10 +148,10 @@ def save_product_to_database(product_data):
     from tileshop_learner import save_to_database
     
     try:
-        # Create mock crawl_results since save_to_database needs it
-        crawl_results = {
+        # Use stored crawl_results if available, otherwise create mock
+        crawl_results = product_data.pop('_crawl_results', {
             'main': {'html': '', 'markdown': ''}
-        }
+        })
         save_to_database(product_data, crawl_results)
         print(f"    ✅ Saved to database: {product_data.get('title', 'Unknown')[:50]}...")
         return True
@@ -160,6 +163,9 @@ def save_product_to_database(product_data):
         print(f"      - Brand: {product_data.get('brand', 'N/A')}")
         print(f"      - Price: ${product_data.get('price_per_box', 'N/A')}")
         return False
+
+# Alias for compatibility
+save_product_data = save_product_to_database
 
 # Test URLs
 TEST_URLS = [

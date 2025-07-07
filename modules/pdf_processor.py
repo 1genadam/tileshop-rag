@@ -292,6 +292,8 @@ class PDFProcessor:
         current_content = []
         
         for part in parts:
+            if part is None:
+                continue
             part = part.strip()
             if not part:
                 continue

@@ -328,7 +328,7 @@ def extract_resources_from_tabs(crawl_results):
             if resources_html:
                 print(f"  📄 Resources tab HTML length: {len(resources_html)} chars")
                 
-                # Enhanced PDF detection patterns
+                # Enhanced PDF detection patterns including JSON-embedded PDFs
                 pdf_patterns = [
                     r'href="([^"]*\.pdf[^"]*)"[^>]*>([^<]+)',  # Original pattern
                     r'href="([^"]*\.pdf[^"]*)"',  # URL only
@@ -337,25 +337,44 @@ def extract_resources_from_tabs(crawl_results):
                     r'window\.open\(["\']([^"\']*\.pdf[^"\']*)["\']',  # Window.open
                 ]
                 
-                for i, pattern in enumerate(pdf_patterns):
-                    matches = re.findall(pattern, resources_html, re.IGNORECASE)
-                    if matches:
-                        print(f"  ✓ Pattern {i+1} found {len(matches)} PDF(s)")
-                        for match in matches:
-                            if isinstance(match, tuple):
-                                url, title = match[0], match[1].strip()
-                                resources.append({
-                                    'type': 'PDF',
-                                    'title': title or 'PDF Document',
-                                    'url': url
-                                })
-                            else:
-                                resources.append({
-                                    'type': 'PDF', 
-                                    'title': 'PDF Document',
-                                    'url': match
-                                })
-                        break  # Stop after first successful pattern
+                # Check for JSON-embedded PDFs (Tileshop pattern)
+                json_pdf_pattern = r'"Name":"([^"]+)"[^}]*"Url":"([^"]*\.pdf[^"]*)"'
+                json_matches = re.findall(json_pdf_pattern, resources_html, re.IGNORECASE)
+                if json_matches:
+                    print(f"  ✓ JSON pattern found {len(json_matches)} PDF(s)")
+                    # Use a set to deduplicate PDFs by URL
+                    seen_urls = set()
+                    for name, url in json_matches:
+                        if url not in seen_urls:
+                            resources.append({
+                                'type': 'PDF',
+                                'title': name.strip(),
+                                'url': url
+                            })
+                            seen_urls.add(url)
+                    # If we found JSON PDFs, we can skip the other patterns
+                
+                # Only try other patterns if JSON pattern didn't find anything
+                if not json_matches:
+                    for i, pattern in enumerate(pdf_patterns):
+                        matches = re.findall(pattern, resources_html, re.IGNORECASE)
+                        if matches:
+                            print(f"  ✓ Pattern {i+1} found {len(matches)} PDF(s)")
+                            for match in matches:
+                                if isinstance(match, tuple):
+                                    url, title = match[0], match[1].strip()
+                                    resources.append({
+                                        'type': 'PDF',
+                                        'title': title or 'PDF Document',
+                                        'url': url
+                                    })
+                                else:
+                                    resources.append({
+                                        'type': 'PDF', 
+                                        'title': 'PDF Document',
+                                        'url': match
+                                    })
+                            break  # Stop after first successful pattern
                 
                 if not resources:
                     print("  ❌ No PDFs found with any pattern")
@@ -1782,12 +1801,12 @@ def save_to_database(product_data, crawl_results):
         
         # Copy temp file to container and execute
         result1 = subprocess.run([
-            'docker', 'cp', temp_sql_file, 'postgres:/tmp/insert.sql'
+            'docker', 'cp', temp_sql_file, 'relational_db:/tmp/insert.sql'
         ], capture_output=True, text=True)
         
         if result1.returncode == 0:
             result2 = subprocess.run([
-                'docker', 'exec', 'postgres', 
+                'docker', 'exec', 'relational_db', 
                 'psql', '-U', 'postgres', '-f', '/tmp/insert.sql'
             ], capture_output=True, text=True)
             

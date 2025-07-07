@@ -67,69 +67,124 @@ The Tileshop RAG (Retrieval-Augmented Generation) system is a comprehensive inte
 - Database connection monitoring
 - RAG system interface
 
-### 2. Database Layer
+### 2. Database Layer - Dual Database Architecture
+
+The system uses **two separate PostgreSQL databases** for different purposes:
 
 #### Relational Database (`relational_db`)
-**Technology**: PostgreSQL
-**Port**: 5432
-**Purpose**: Primary data storage for structured information
+**Technology**: PostgreSQL  
+**Port**: 5432  
+**Purpose**: Complete product data storage with pricing and specifications
 
 **Schema**:
 ```sql
--- Product catalog
-CREATE TABLE products (
+-- Complete product information
+CREATE TABLE product_data (
     id SERIAL PRIMARY KEY,
-    name VARCHAR(255),
-    description TEXT,
-    price DECIMAL,
-    category VARCHAR(100),
-    url VARCHAR(500),
-    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
-);
-
--- Scraped content
-CREATE TABLE scraped_content (
-    id SERIAL PRIMARY KEY,
-    url VARCHAR(500),
+    url VARCHAR(500) NOT NULL UNIQUE,
+    sku VARCHAR(50),
     title TEXT,
-    content TEXT,
-    scraped_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
-);
-
--- System logs
-CREATE TABLE system_logs (
-    id SERIAL PRIMARY KEY,
-    service_name VARCHAR(100),
-    log_level VARCHAR(20),
-    message TEXT,
-    timestamp TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+    price_per_box NUMERIC(10,2),
+    price_per_sqft NUMERIC(10,2), 
+    price_per_piece NUMERIC(10,2),  -- For mortar, grout, single-unit products
+    coverage TEXT,
+    finish TEXT,
+    color TEXT,
+    size_shape TEXT,
+    description TEXT,
+    specifications JSONB,
+    resources TEXT,
+    primary_image TEXT,
+    image_variants JSONB,
+    brand VARCHAR(100),
+    thickness VARCHAR(20),
+    recommended_grout VARCHAR(100),
+    -- 25+ additional fields for complete product data
+    scraped_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
 );
 ```
 
 #### Vector Database (`vector_db`)
-**Technology**: PostgreSQL + pgvector extension
-**Port**: 5433
-**Purpose**: Semantic search and embeddings storage
+**Technology**: PostgreSQL (using FLOAT8[] arrays instead of pgvector)  
+**Port**: 5433  
+**Purpose**: Semantic search, embeddings storage, and RAG functionality
 
 **Schema**:
 ```sql
--- Vector embeddings
-CREATE TABLE embeddings (
+-- Vector embeddings for semantic search
+CREATE TABLE product_embeddings (
     id SERIAL PRIMARY KEY,
-    content_id INTEGER REFERENCES scraped_content(id),
-    embedding vector(1536),
+    sku VARCHAR(50),
+    title TEXT,
+    content TEXT,              -- Concatenated product information
+    embedding FLOAT8[],        -- 1536-dimensional embedding array
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
 );
+```
 
--- Document chunks
-CREATE TABLE document_chunks (
-    id SERIAL PRIMARY KEY,
-    document_id INTEGER,
-    chunk_text TEXT,
-    chunk_embedding vector(1536),
-    chunk_index INTEGER,
-    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
-);
+### **Database Architecture: Why Two Databases?**
+
+```
+┌─────────────────────────────────────────────────────────────────┐
+│                    DUAL DATABASE SYSTEM                        │
+├─────────────────────────────────────────────────────────────────┤
+│                                                                 │
+│  ┌─────────────────────┐              ┌─────────────────────┐   │
+│  │  RELATIONAL DB      │              │    VECTOR DB        │   │
+│  │  (product_data)     │              │ (product_embeddings)│   │
+│  │                     │              │                     │   │
+│  │ • Complete product  │              │ • SKU + Title       │   │
+│  │   specifications    │              │ • Content summary   │   │
+│  │ • Pricing data      │   ←──JOIN──→ │ • Vector embeddings │   │
+│  │ • Images & variants │              │ • Semantic search   │   │
+│  │ • 25+ detailed      │              │ • RAG functionality │   │
+│  │   fields            │              │                     │   │
+│  │                     │              │                     │   │
+│  │ Purpose:            │              │ Purpose:            │   │
+│  │ • Structured data   │              │ • AI-powered search │   │
+│  │ • Fast exact queries│              │ • Natural language  │   │
+│  │ • Business logic    │              │ • Content discovery │   │
+│  └─────────────────────┘              └─────────────────────┘   │
+│                                                                 │
+├─────────────────────────────────────────────────────────────────┤
+│                         SEARCH SYSTEM                          │
+│                                                                 │
+│  SKU Lookup: vector_db (primary) + relational_db (pricing)     │
+│  Text Search: vector_db (semantic) + relational_db (details)   │
+│  Product Details: relational_db (complete information)         │
+│                                                                 │
+└─────────────────────────────────────────────────────────────────┘
+```
+
+### **Data Flow Architecture**
+
+```
+Tileshop.com Scraping
+        ↓
+┌─────────────────────┐
+│  Intelligence       │ → Direct scraping results
+│  Manager            │
+└─────────────────────┘
+        ↓
+┌─────────────────────┐
+│  relational_db      │ → Complete product data, pricing, specifications
+│  (product_data)     │   images, technical details
+└─────────────────────┘
+        ↓
+┌─────────────────────┐
+│ Embedding Generator │ → Processes product data for AI search
+└─────────────────────┘
+        ↓
+┌─────────────────────┐
+│  vector_db          │ → SKU, title, content, embeddings
+│ (product_embeddings)│   optimized for semantic search
+└─────────────────────┘
+        ↓
+┌─────────────────────┐
+│  Search System      │ → JOINs both databases for complete results
+│  (simple_rag.py)    │   (content + pricing + images)
+└─────────────────────┘
 ```
 
 ### 3. Intelligence Layer
@@ -484,6 +539,24 @@ tileshop_rag/
 
 ---
 
-*System Architecture Version: 2.0*
-*Last Updated: July 6, 2025*
+## Recent Updates (July 7, 2025)
+
+### PDF Knowledge Base Integration
+- **✅ Complete PDF Pipeline**: JSON-embedded PDF extraction from Tileshop's Scene7 CDN
+- **✅ Resource Deduplication**: Shared PDFs automatically deduplicated by URL hash
+- **✅ Database Persistence**: Fixed Docker container references and crawl_results handling
+- **✅ Vector Integration**: PDF resources properly stored in relational database for RAG system
+- **Coverage**: Product Data Sheets, ANSI Test Results, Safety Data Sheets across all product types
+
+### System Reliability Improvements
+- **Database Persistence**: Fixed acquire_from_sitemap.py to properly save all scraped products
+- **Container Management**: Corrected Docker container names throughout the system
+- **Embedding Generation**: Now processes all available products correctly
+- **Pipeline Integration**: End-to-end data flow from scraping → database → vector embeddings
+
+---
+
+*System Architecture Version: 2.1*
+*Last Updated: July 7, 2025*
+*PDF Knowledge Base: Phase 1 Complete*
 *Diagnostic Framework: Phase 2 Complete*

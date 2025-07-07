@@ -361,8 +361,9 @@ def scrape_from_sitemap(max_products=None, resume=True, category=None):
             print(f"    Image: {'✓' if product_data.get('primary_image') else '✗'}")
             print(f"    Brand: {product_data.get('brand', 'N/A')}")
             
-            # Save to database
-            save_to_database(product_data, None)  # curl scraper doesn't need crawl_results
+            # Save to database using crawl_results from curl scraper
+            crawl_results = product_data.pop('_crawl_results', None)
+            save_to_database(product_data, crawl_results)
             successful_scrapes += 1
             
             # Update status in sitemap
