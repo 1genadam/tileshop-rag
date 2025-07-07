@@ -269,13 +269,33 @@ class EnhancedSpecificationExtractor:
             'status', 'locale', 'language', 'hostname', 'version'
         ]
         
-        # Additional patterns for corrupted/HTML data
+        # Enhanced patterns for corrupted/HTML data and erroneous parsing
         corrupted_patterns = [
-            '-care/installation/tools', 'Asset_Grid_All_V2', '_Detail:',
+            # HTML fragment patterns
+            '-care/installation/tools', 'Asset_Grid_All_V2', '_Detail:', '/>', '<',
             'Installation Guidelines', 'Samples Sent to', 'Piece Count',
             'Commercial Warranty', 'Frost Resistance', 'Wear Layer', 
-            'External Links', 'Image', '/>', 'ed', 'Application',
-            'Refresh Project', 'Color', 'Material', 'DesignInstallation'
+            'External Links', 'Image', 'ed', 'Application',
+            'Refresh Project', 'DesignInstallation',
+            
+            # Specific erroneous patterns you identified
+            '-care/installation/tools">', '_Detail:Asset_Grid_All_V2"}',
+            'by pairing this tile with', 'texture_Detail:Asset_Grid_All_V2',
+            
+            # HTML tag fragments and malformed JSON
+            '"}', '{"', '":"', '"Value":', '"Key":',
+            'class="', 'id="', 'src="', 'href="', 'alt="',
+            
+            # URL fragments and file paths
+            'http://', 'https://', '.com/', '.html', '.jsp', '.php',
+            '/assets/', '/images/', '/static/', '/content/',
+            
+            # JavaScript/CSS fragments
+            'function(', 'var ', 'return ', '$(', 'window.',
+            '.css', '.js', 'px;', 'margin:', 'padding:',
+            
+            # Empty or meaningless values
+            'null', 'undefined', 'none', 'n/a', 'tbd', 'tba'
         ]
         
         field_lower = field_name.lower()
@@ -306,12 +326,39 @@ class EnhancedSpecificationExtractor:
         if not any(keyword in field_lower for keyword in valid_spec_keywords):
             return False
         
-        # Skip values that look like HTML/URLs/JS
-        if any(char in value_lower for char in ['<', '>', '{', '}', 'function', 'var ', 'http', '"']):
+        # Enhanced validation for malformed data patterns
+        
+        # Skip values that look like HTML/URLs/JS/JSON fragments
+        malformed_indicators = ['<', '>', '{', '}', 'function', 'var ', 'http', '"', '/>', '_Detail:', 'Asset_Grid']
+        if any(indicator in value_lower for indicator in malformed_indicators):
             return False
         
-        # Skip very long values that are likely descriptions
+        # Skip values with excessive special characters (indicates HTML/JS fragments)
+        special_char_count = sum(1 for char in field_value if not char.isalnum() and char not in ' .-_')
+        if special_char_count > 3:  # Allow some special chars but not excessive
+            return False
+        
+        # Skip values that are obviously HTML fragments or partial sentences
+        html_fragment_patterns = [
+            r'by pairing this tile',  # Partial sentences from descriptions
+            r'care/installation',     # URL fragments
+            r'Asset_Grid_All',        # Asset reference fragments
+            r'\w+_Detail:',          # Malformed JSON keys
+            r'/>\s*$',               # HTML closing tags
+            r'^\s*\{',               # JSON fragments
+            r'\}\s*$',               # JSON fragments
+        ]
+        
+        for pattern in html_fragment_patterns:
+            if re.search(pattern, field_value, re.IGNORECASE):
+                return False
+        
+        # Skip very long values that are likely descriptions or malformed content
         if len(field_value) > 100:
+            return False
+        
+        # Additional check: skip single-character or obviously incomplete values
+        if len(field_value.strip()) < 2:
             return False
         
         return True
@@ -366,6 +413,61 @@ class EnhancedSpecificationExtractor:
             recommendations.append((field_name, sql_type, description))
         
         return recommendations
+
+def analyze_successful_sku_patterns(database_connection=None):
+    """
+    Analyze successfully processed SKUs to identify valid field patterns
+    This helps improve validation by understanding what good data looks like
+    """
+    print("🔍 Analyzing successful SKU patterns for validation improvement")
+    print("=" * 60)
+    
+    if not database_connection:
+        print("⚠️  Database connection required for pattern analysis")
+        return
+    
+    try:
+        # Query successful SKUs with specifications
+        query = """
+        SELECT sku, specifications 
+        FROM product_data 
+        WHERE specifications IS NOT NULL 
+        AND json_typeof(specifications) = 'object'
+        ORDER BY RANDOM() 
+        LIMIT 20
+        """
+        
+        cursor = database_connection.cursor()
+        cursor.execute(query)
+        results = cursor.fetchall()
+        
+        field_patterns = {}
+        
+        for sku, specs_json in results:
+            try:
+                if isinstance(specs_json, str):
+                    specs = json.loads(specs_json)
+                else:
+                    specs = specs_json
+                
+                print(f"\n📋 SKU {sku} - Valid patterns:")
+                for field, value in specs.items():
+                    if field not in field_patterns:
+                        field_patterns[field] = []
+                    field_patterns[field].append(str(value))
+                    print(f"   {field}: {value}")
+                    
+            except json.JSONDecodeError:
+                continue
+        
+        print(f"\n📊 Pattern Summary:")
+        print("=" * 40)
+        for field, values in field_patterns.items():
+            unique_values = list(set(values))[:5]  # Show first 5 unique values
+            print(f"{field}: {unique_values}")
+            
+    except Exception as e:
+        print(f"❌ Error analyzing patterns: {e}")
 
 def test_enhanced_extraction():
     """Test the enhanced specification extractor"""

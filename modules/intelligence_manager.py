@@ -525,13 +525,25 @@ class ScraperManager:
                         url_end = len(line)
                     self.stats['current_url'] = line[url_start:url_end]
                 
-            # Look for error patterns (broader patterns)
+            # Look for actual error patterns (improved logic to avoid false positives)
             error_patterns = [
-                'error', 'failed to', '❌', '⚠️', 'exception', 'timeout',
-                'could not', 'unable to', 'failed', 'error:', 'warning:'
+                'exception', 'timeout', 'could not', 'unable to', 'error:', 'warning:',
+                'failed to', 'connection error', 'network error', 'http error'
             ]
             
-            if any(pattern in line_lower for pattern in error_patterns):
+            # Exclude false positives - don't count these as errors:
+            false_positive_patterns = [
+                'failed: 0',  # Status messages showing zero failures
+                'no pdfs found',  # Normal when products don't have PDFs
+                'no predictive pdfs',  # Normal operational message
+                'no specific applications found',  # Normal when specs don't specify applications
+                'status - pending:',  # Status reports
+                'completed:',  # Progress reports
+            ]
+            
+            # Only count as error if it matches error patterns AND doesn't match false positives
+            if (any(pattern in line_lower for pattern in error_patterns) and 
+                not any(fp_pattern in line_lower for fp_pattern in false_positive_patterns)):
                 self.stats['error_count'] += 1
                 
             # Look for total count patterns (broader patterns)
@@ -709,13 +721,25 @@ class ScraperManager:
                         url_end = len(line)
                     temp_stats['current_url'] = line[url_start:url_end]
             
-            # Count errors (use same patterns as _process_log_line)
+            # Count actual errors with improved logic to avoid false positives
             error_patterns = [
-                'error', 'failed to', '❌', '⚠️', 'exception', 'timeout',
-                'could not', 'unable to', 'failed', 'error:', 'warning:'
+                'exception', 'timeout', 'could not', 'unable to', 'error:', 'warning:',
+                'failed to', 'connection error', 'network error', 'http error'
             ]
             
-            if any(pattern in line_lower for pattern in error_patterns):
+            # Exclude false positives - don't count these as errors:
+            false_positive_patterns = [
+                'failed: 0',  # Status messages showing zero failures
+                'no pdfs found',  # Normal when products don't have PDFs
+                'no predictive pdfs',  # Normal operational message
+                'no specific applications found',  # Normal when specs don't specify applications
+                'status - pending:',  # Status reports
+                'completed:',  # Progress reports
+            ]
+            
+            # Only count as error if it matches error patterns AND doesn't match false positives
+            if (any(pattern in line_lower for pattern in error_patterns) and 
+                not any(fp_pattern in line_lower for fp_pattern in false_positive_patterns)):
                 temp_stats['error_count'] += 1
             
             # Extract total count (use same patterns as _process_log_line)
@@ -770,13 +794,22 @@ class ScraperManager:
                 current_success = enhanced_stats.get('success_count', 0)
                 current_error = enhanced_stats.get('error_count', 0)
                 
-                # Only update counts if sitemap shows more progress (prevents backwards jumps)
-                if completed_count > current_success:
-                    logger.debug(f"Success count updated: {current_success} → {completed_count}")
-                    enhanced_stats['success_count'] = completed_count
-                if failed_count > current_error:
-                    logger.debug(f"Error count updated: {current_error} → {failed_count}")
-                    enhanced_stats['error_count'] = failed_count
+                # Check if this is a fresh sitemap (all URLs pending, none completed)
+                is_fresh_sitemap = (completed_count == 0 and failed_count == 0 and pending_count == total_urls)
+                
+                if is_fresh_sitemap:
+                    # Reset all counts for a fresh sitemap
+                    logger.debug(f"Fresh sitemap detected - resetting counts to 0")
+                    enhanced_stats['success_count'] = 0
+                    enhanced_stats['error_count'] = 0
+                else:
+                    # Only update counts if sitemap shows more progress (prevents backwards jumps)
+                    if completed_count > current_success:
+                        logger.debug(f"Success count updated: {current_success} → {completed_count}")
+                        enhanced_stats['success_count'] = completed_count
+                    if failed_count > current_error:
+                        logger.debug(f"Error count updated: {current_error} → {failed_count}")
+                        enhanced_stats['error_count'] = failed_count
                     
                 enhanced_stats['products_processed'] = enhanced_stats['success_count'] + enhanced_stats['error_count']
                 
