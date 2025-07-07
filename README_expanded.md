@@ -614,6 +614,25 @@ User has the following containerized services running on `app-network`:
 - **DASHBOARD_IMPROVEMENTS_CATALOG.md**: Catalog of all UI/UX enhancements for preservation
 - **DATABASE_SCHEMA_ENHANCEMENTS.md**: Schema improvements documentation for reapplication
 - **EXTRACTION_RECOVERY_LOG.md**: Timeline and process log for future issue resolution
+- **ACQUISITION_TROUBLESHOOTING.md**: Guide for resolving acquisition control counter issues
+
+### 🔧 **Recent Fixes (July 6, 2025)**
+
+#### **Pricing Logic Corrections**
+- **Fixed Price Classification**: Single prices now correctly stored as `price_per_piece` (not `price_per_box`)
+- **Example**: Superior White LFT Bond Mortar $35.99/each → stored as `price_per_piece: 35.99`
+- **Logic**: When only one price shown → `price_per_piece`; Multiple prices → `price_per_sqft` + `price_per_box`
+
+#### **Search System Improvements**
+- **SQL Error Resolution**: Fixed undefined table alias errors in search queries
+- **Search Precision**: Changed from OR to AND logic for better multi-term matching
+- **Database Integration**: Non-tile products now display accurate pricing from relational database
+- **Example**: "Superior LFT" search now correctly returns LFT mortar with $35.99 pricing
+
+#### **Acquisition Control Reset**
+- **Issue**: Fresh sitemap downloads showed non-zero processed/error counts
+- **Solution**: Database clearing procedure and recovery file reset
+- **Documentation**: Complete troubleshooting guide for acquisition counter issues
 
 ---
 
