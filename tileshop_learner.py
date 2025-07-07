@@ -1674,8 +1674,88 @@ def extract_product_data(crawl_results, base_url, category=None):
             if not data.get('category'):
                 data['category'] = 'uncategorized'
     
+    # Enhanced Data Inference - Fill in missing critical fields
+    _enhance_missing_data(data)
     
     return data
+
+def _enhance_missing_data(data):
+    """Enhanced inference to fill in missing critical fields"""
+    print("🔍 Enhancing missing data with intelligent inference...")
+    
+    title = data.get('title', '').lower() if data.get('title') else ''
+    description = data.get('description', '').lower() if data.get('description') else ''
+    combined_text = f"{title} {description}"
+    
+    # 1. Material Type Inference
+    if not data.get('material_type') and title:
+        if 'porcelain' in title:
+            data['material_type'] = 'Porcelain'
+            print(f"  ✓ Inferred material_type: Porcelain (from title)")
+        elif 'ceramic' in title:
+            data['material_type'] = 'Ceramic'
+            print(f"  ✓ Inferred material_type: Ceramic (from title)")
+        elif 'stone' in title or 'marble' in title:
+            data['material_type'] = 'Natural Stone'
+            print(f"  ✓ Inferred material_type: Natural Stone (from title)")
+        elif 'vinyl' in title or 'lvt' in title:
+            data['material_type'] = 'Vinyl'
+            print(f"  ✓ Inferred material_type: Vinyl (from title)")
+        elif 'wood' in title or 'laminate' in title:
+            data['material_type'] = 'Wood/Laminate'
+            print(f"  ✓ Inferred material_type: Wood/Laminate (from title)")
+    
+    # 2. Product Category Inference  
+    if not data.get('category') and title:
+        if 'tile' in title:
+            data['category'] = 'tile'
+            print(f"  ✓ Inferred category: tile (from title)")
+        elif 'plank' in title:
+            data['category'] = 'plank'
+            print(f"  ✓ Inferred category: plank (from title)")
+        elif 'mosaic' in title:
+            data['category'] = 'mosaic'
+            print(f"  ✓ Inferred category: mosaic (from title)")
+    
+    # 3. Pattern Inference (Yes/No based on description)
+    if not data.get('specifications', {}).get('pattern'):
+        if 'pattern' in combined_text:
+            # Check for specific pattern-related terms
+            pattern_terms = ['pattern', 'pairing', 'combine', 'mix', 'blend', 'coordinate']
+            if any(term in combined_text for term in pattern_terms):
+                if not data.get('specifications'):
+                    data['specifications'] = {}
+                data['specifications']['pattern'] = 'Yes'
+                print(f"  ✓ Inferred pattern: Yes (pattern mentioned in text)")
+        else:
+            if not data.get('specifications'):
+                data['specifications'] = {}
+            data['specifications']['pattern'] = 'No'
+            print(f"  ✓ Inferred pattern: No (no pattern mentioned)")
+    
+    # 4. Enhanced Application Areas from title
+    if not data.get('application_areas') and title:
+        applications = []
+        if 'wall' in title and 'floor' in title:
+            applications = ['walls', 'floors']
+        elif 'wall' in title:
+            applications = ['walls']
+        elif 'floor' in title:
+            applications = ['floors']
+        
+        if applications:
+            data['application_areas'] = applications
+            print(f"  ✓ Inferred application_areas: {applications} (from title)")
+    
+    # 5. Size/Shape inference from title
+    if not data.get('size_shape') and title:
+        # Look for dimensions in title
+        import re
+        size_pattern = r'(\d+(?:\.\d+)?\s*x\s*\d+(?:\.\d+)?(?:\s*x\s*\d+(?:\.\d+)?)?\s*in\.?)'
+        size_match = re.search(size_pattern, title)
+        if size_match:
+            data['size_shape'] = size_match.group(1)
+            print(f"  ✓ Inferred size_shape: {size_match.group(1)} (from title)")
 
 def save_to_database(product_data, crawl_results):
     """Save product data to PostgreSQL using docker exec with temp file"""
