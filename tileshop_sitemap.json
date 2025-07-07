@@ -1,3057 +1,2677 @@
 {
-  "downloaded_at": "2025-07-05T18:25:19.786345",
+  "downloaded_at": "2025-07-07T18:34:10.762602",
   "total_urls": 4778,
   "status": "ready",
   "urls": [
     {
       "url": "https://www.tileshop.com/products/marmi-imperiali-zenobia-porcelain-wall-and-floor-tile-12-in-684287",
       "lastmod": null,
-      "scraped_at": "2025-07-05T22:57:16.693849",
+      "scraped_at": "2025-07-07T18:34:50.230860",
       "scrape_status": "completed"
     },
     {
       "url": "https://www.tileshop.com/products/marmi-imperiali-domitia-porcelain-wall-and-floor-tile-12-in-684286",
       "lastmod": null,
-      "scraped_at": "2025-07-05T22:57:25.066165",
+      "scraped_at": "2025-07-07T18:34:58.514882",
       "scrape_status": "completed"
     },
     {
       "url": "https://www.tileshop.com/products/marmi-imperiali-aurelia-porcelain-wall-and-floor-tile-12-in-684285",
       "lastmod": null,
-      "scraped_at": "2025-07-05T22:57:33.472056",
+      "scraped_at": "2025-07-07T18:35:07.012792",
       "scrape_status": "completed"
     },
     {
       "url": "https://www.tileshop.com/products/linewood-white-matte-ceramic-wall-tile-12-x-36-in-485020",
       "lastmod": null,
-      "scraped_at": "2025-07-05T22:57:42.322774",
+      "scraped_at": "2025-07-07T18:35:15.422071",
       "scrape_status": "completed"
     },
     {
       "url": "https://www.tileshop.com/products/laura-park-bespoke-white-ceramic-wall-tile-256-x-10-in-485000",
       "lastmod": null,
-      "scraped_at": "2025-07-05T22:57:50.877463",
+      "scraped_at": "2025-07-07T18:35:24.805168",
       "scrape_status": "completed"
     },
     {
       "url": "https://www.tileshop.com/products/laura-park-bespoke-aegean-blue-ceramic-wall-tile-256-x-10-in-484999",
       "lastmod": null,
-      "scraped_at": "2025-07-05T22:57:59.225421",
+      "scraped_at": "2025-07-07T18:35:33.762637",
       "scrape_status": "completed"
     },
     {
       "url": "https://www.tileshop.com/products/laura-park-bespoke-taupe-ceramic-wall-tile-256-x-10-in-484998",
       "lastmod": null,
-      "scraped_at": "2025-07-05T22:58:08.270027",
+      "scraped_at": "2025-07-07T18:35:41.573218",
       "scrape_status": "completed"
     },
     {
       "url": "https://www.tileshop.com/products/laura-park-bespoke-white-ceramic-wall-tile-256-x-5-in-484997",
       "lastmod": null,
-      "scraped_at": "2025-07-05T22:58:16.626848",
+      "scraped_at": "2025-07-07T18:35:51.231725",
       "scrape_status": "completed"
     },
     {
       "url": "https://www.tileshop.com/products/laura-park-bespoke-aegean-blue-ceramic-wall-tile-256-x-5-in-484996",
       "lastmod": null,
-      "scraped_at": "2025-07-05T22:58:25.317168",
+      "scraped_at": "2025-07-07T18:35:58.598091",
       "scrape_status": "completed"
     },
     {
       "url": "https://www.tileshop.com/products/laura-park-bespoke-taupe-ceramic-wall-tile-256-x-5-in-484995",
       "lastmod": null,
-      "scraped_at": "2025-07-05T22:58:34.080988",
+      "scraped_at": "2025-07-07T18:36:06.747149",
       "scrape_status": "completed"
     },
     {
       "url": "https://www.tileshop.com/products/laura-park-bespoke-white-ceramic-wall-tile-5-x-5-in-484994",
       "lastmod": null,
-      "scraped_at": "2025-07-05T22:58:42.706399",
+      "scraped_at": "2025-07-07T18:36:14.446419",
       "scrape_status": "completed"
     },
     {
       "url": "https://www.tileshop.com/products/laura-park-bespoke-aegean-blue-ceramic-wall-tile-5-x-5-in-484993",
       "lastmod": null,
-      "scraped_at": "2025-07-05T22:58:52.646924",
+      "scraped_at": "2025-07-07T18:36:24.246847",
       "scrape_status": "completed"
     },
     {
       "url": "https://www.tileshop.com/products/laura-park-bespoke-taupe-ceramic-wall-tile-5-x-5-in-484992",
       "lastmod": null,
-      "scraped_at": "2025-07-05T22:59:00.340759",
+      "scraped_at": "2025-07-07T18:36:33.994990",
       "scrape_status": "completed"
     },
     {
       "url": "https://www.tileshop.com/products/marmoreal-cement-smoke-quarter-round-84-in-683996",
       "lastmod": null,
-      "scraped_at": "2025-07-05T22:59:10.760063",
+      "scraped_at": "2025-07-07T18:36:41.984425",
       "scrape_status": "completed"
     },
     {
       "url": "https://www.tileshop.com/products/marmoreal-cement-smoke-flush-stair-84-in-683995",
       "lastmod": null,
-      "scraped_at": "2025-07-05T22:59:18.793512",
+      "scraped_at": "2025-07-07T18:36:52.375508",
       "scrape_status": "completed"
     },
     {
       "url": "https://www.tileshop.com/products/marmoreal-cement-smoke-overlap-stair-84-in-683994",
       "lastmod": null,
-      "scraped_at": "2025-07-05T22:59:27.155972",
+      "scraped_at": "2025-07-07T18:37:00.823565",
       "scrape_status": "completed"
     },
     {
       "url": "https://www.tileshop.com/products/marmoreal-cement-smoke-reducer-84-in-683993",
       "lastmod": null,
-      "scraped_at": "2025-07-05T22:59:34.281319",
+      "scraped_at": "2025-07-07T18:37:10.089872",
       "scrape_status": "completed"
     },
     {
       "url": "https://www.tileshop.com/products/marmoreal-cement-smoke-t-molding-84-in-683992",
       "lastmod": null,
-      "scraped_at": "2025-07-05T22:59:44.189306",
+      "scraped_at": "2025-07-07T18:37:17.205468",
       "scrape_status": "completed"
     },
     {
       "url": "https://www.tileshop.com/products/marmoreal-cement-silver-grey-quarter-round-84-in-683991",
       "lastmod": null,
-      "scraped_at": "2025-07-05T22:59:53.233023",
+      "scraped_at": "2025-07-07T18:37:24.599507",
       "scrape_status": "completed"
     },
     {
       "url": "https://www.tileshop.com/products/marmoreal-cement-silver-grey-flush-stair-84-in-683990",
       "lastmod": null,
-      "scraped_at": "2025-07-05T23:00:02.545121",
+      "scraped_at": "2025-07-07T18:37:33.368817",
       "scrape_status": "completed"
     },
     {
       "url": "https://www.tileshop.com/products/marmoreal-cement-silver-grey-overlap-stair-84-in-683989",
       "lastmod": null,
-      "scraped_at": "2025-07-05T23:00:12.042759",
+      "scraped_at": "2025-07-07T18:37:40.818200",
       "scrape_status": "completed"
     },
     {
       "url": "https://www.tileshop.com/products/marmoreal-cement-silver-grey-reducer-84-in-683988",
       "lastmod": null,
-      "scraped_at": "2025-07-05T23:00:20.934636",
+      "scraped_at": "2025-07-07T18:37:49.376900",
       "scrape_status": "completed"
     },
     {
       "url": "https://www.tileshop.com/products/marmoreal-cement-silver-grey-t-molding-84-in-683987",
       "lastmod": null,
-      "scraped_at": "2025-07-05T23:00:30.274639",
+      "scraped_at": "2025-07-07T18:37:57.367382",
       "scrape_status": "completed"
     },
     {
       "url": "https://www.tileshop.com/products/marmoreal-cement-taupe-quarter-round-84-in-683986",
       "lastmod": null,
-      "scraped_at": "2025-07-05T23:00:39.233714",
+      "scraped_at": "2025-07-07T18:38:05.620018",
       "scrape_status": "completed"
     },
     {
       "url": "https://www.tileshop.com/products/marmoreal-cement-taupe-flush-stair-84-in-683985",
       "lastmod": null,
-      "scraped_at": "2025-07-05T23:00:47.327255",
+      "scraped_at": "2025-07-07T18:38:14.865283",
       "scrape_status": "completed"
     },
     {
       "url": "https://www.tileshop.com/products/marmoreal-cement-taupe-overlap-stair-84-in-683984",
       "lastmod": null,
-      "scraped_at": "2025-07-05T23:00:55.249250",
+      "scraped_at": "2025-07-07T18:38:23.669062",
       "scrape_status": "completed"
     },
     {
       "url": "https://www.tileshop.com/products/marmoreal-cement-taupe-reducer-84-in-683983",
       "lastmod": null,
-      "scraped_at": "2025-07-05T23:01:03.302632",
+      "scraped_at": "2025-07-07T18:38:31.446521",
       "scrape_status": "completed"
     },
     {
       "url": "https://www.tileshop.com/products/marmoreal-cement-taupe-t-molding-84-in-683982",
       "lastmod": null,
-      "scraped_at": "2025-07-05T23:01:13.543957",
+      "scraped_at": "2025-07-07T18:38:39.462045",
       "scrape_status": "completed"
     },
     {
       "url": "https://www.tileshop.com/products/marmoreal-silver-emperador-quarter-round-84-in-683981",
       "lastmod": null,
-      "scraped_at": "2025-07-05T23:01:23.164684",
+      "scraped_at": "2025-07-07T18:38:47.137001",
       "scrape_status": "completed"
     },
     {
       "url": "https://www.tileshop.com/products/marmoreal-silver-emperador-flush-stair-84-in-683980",
       "lastmod": null,
-      "scraped_at": "2025-07-05T23:01:30.897658",
+      "scraped_at": "2025-07-07T18:38:54.875846",
       "scrape_status": "completed"
     },
     {
       "url": "https://www.tileshop.com/products/marmoreal-silver-emperador-overlap-stair-84-in-683979",
       "lastmod": null,
-      "scraped_at": "2025-07-05T23:01:39.608923",
+      "scraped_at": "2025-07-07T18:39:03.811088",
       "scrape_status": "completed"
     },
     {
       "url": "https://www.tileshop.com/products/marmoreal-silver-emperador-reducer-84-in-683978",
       "lastmod": null,
-      "scraped_at": "2025-07-05T23:01:49.528364",
+      "scraped_at": "2025-07-07T18:39:14.045792",
       "scrape_status": "completed"
     },
     {
       "url": "https://www.tileshop.com/products/marmoreal-silver-emperador-t-molding-84-in-683977",
       "lastmod": null,
-      "scraped_at": "2025-07-05T23:01:57.956184",
+      "scraped_at": "2025-07-07T18:39:23.634364",
       "scrape_status": "completed"
     },
     {
       "url": "https://www.tileshop.com/products/marmoreal-carrara-quarter-round-84-in-683976",
       "lastmod": null,
-      "scraped_at": "2025-07-05T23:02:06.843899",
+      "scraped_at": "2025-07-07T18:39:32.888292",
       "scrape_status": "completed"
     },
     {
       "url": "https://www.tileshop.com/products/marmoreal-carrara-flush-stair-84-in-683975",
       "lastmod": null,
-      "scraped_at": "2025-07-05T23:02:15.109896",
+      "scraped_at": "2025-07-07T18:39:42.827703",
       "scrape_status": "completed"
     },
     {
       "url": "https://www.tileshop.com/products/marmoreal-carrara-reducer-84-in-683973",
       "lastmod": null,
-      "scraped_at": "2025-07-05T23:02:22.287961",
+      "scraped_at": "2025-07-07T18:39:52.621739",
       "scrape_status": "completed"
     },
     {
       "url": "https://www.tileshop.com/products/marmoreal-carrara-overlap-stair-84-in-683974",
       "lastmod": null,
-      "scraped_at": "2025-07-05T23:02:32.046194",
+      "scraped_at": "2025-07-07T18:40:01.341891",
       "scrape_status": "completed"
     },
     {
       "url": "https://www.tileshop.com/products/marmoreal-carrara-t-molding-84-in-683972",
       "lastmod": null,
-      "scraped_at": "2025-07-05T23:02:42.629237",
+      "scraped_at": "2025-07-07T18:40:08.825591",
       "scrape_status": "completed"
     },
     {
       "url": "https://www.tileshop.com/products/marmoreal-calacatta-quarter-round-84-in-683971",
       "lastmod": null,
-      "scraped_at": "2025-07-05T23:02:52.259712",
+      "scraped_at": "2025-07-07T18:40:18.014339",
       "scrape_status": "completed"
     },
     {
       "url": "https://www.tileshop.com/products/marmoreal-calacatta-flush-stair-84-in-683970",
       "lastmod": null,
-      "scraped_at": "2025-07-05T23:03:03.330494",
+      "scraped_at": "2025-07-07T18:40:27.159036",
       "scrape_status": "completed"
     },
     {
       "url": "https://www.tileshop.com/products/marmoreal-calacatta-overlap-stair-84-in-683969",
       "lastmod": null,
-      "scraped_at": "2025-07-05T23:03:12.349017",
+      "scraped_at": "2025-07-07T18:40:35.755996",
       "scrape_status": "completed"
     },
     {
       "url": "https://www.tileshop.com/products/marmoreal--calacatta-reducer-84-in-683968",
       "lastmod": null,
-      "scraped_at": "2025-07-05T23:03:20.581642",
+      "scraped_at": "2025-07-07T18:40:43.051670",
       "scrape_status": "completed"
     },
     {
       "url": "https://www.tileshop.com/products/marmoreal-calacatta-t-molding-84-in-683967",
       "lastmod": null,
-      "scraped_at": "2025-07-05T23:03:28.771580",
+      "scraped_at": "2025-07-07T18:40:50.752408",
       "scrape_status": "completed"
     },
     {
       "url": "https://www.tileshop.com/products/terracotta-burgundy-skirting-outside-corner-quarry-wall-trim-tile-683831",
       "lastmod": null,
-      "scraped_at": "2025-07-05T23:03:37.120923",
+      "scraped_at": "2025-07-07T18:40:59.039438",
       "scrape_status": "completed"
     },
     {
       "url": "https://www.tileshop.com/products/terracotta-burgundy-skirting-inside-corner-quarry-wall-trim-tile-683830",
       "lastmod": null,
-      "scraped_at": "2025-07-05T23:03:47.792998",
+      "scraped_at": "2025-07-07T18:41:08.376130",
       "scrape_status": "completed"
     },
     {
       "url": "https://www.tileshop.com/products/terracotta-burgundy-skirting-quarry-wall-trim-tile-683829",
       "lastmod": null,
-      "scraped_at": "2025-07-05T23:03:56.608141",
+      "scraped_at": "2025-07-07T18:41:16.822509",
       "scrape_status": "completed"
     },
     {
       "url": "https://www.tileshop.com/products/arabian-niro-white-polished-porcelain-wall-and-floor-tile-24-x-24-in-684347",
       "lastmod": null,
-      "scraped_at": "2025-07-05T23:04:06.096721",
+      "scraped_at": "2025-07-07T18:41:26.679658",
       "scrape_status": "completed"
     },
     {
       "url": "https://www.tileshop.com/products/arabian-niro-white-polished-porcelain-wall-and-floor-tile-12-x-24-in-684346",
       "lastmod": null,
-      "scraped_at": "2025-07-05T23:04:15.691311",
+      "scraped_at": "2025-07-07T18:41:35.601067",
       "scrape_status": "completed"
     },
     {
       "url": "https://www.tileshop.com/products/arabian-niro-white-matte-porcelain-wall-and-floor-tile-24-x-24-in-684344",
       "lastmod": null,
-      "scraped_at": "2025-07-05T23:04:25.360131",
+      "scraped_at": "2025-07-07T18:41:43.396189",
       "scrape_status": "completed"
     },
     {
       "url": "https://www.tileshop.com/products/arabian-niro-white-matte-porcelain-wall-and-floor-tile-12-x-24-in-684343",
       "lastmod": null,
-      "scraped_at": "2025-07-05T23:04:35.645571",
+      "scraped_at": "2025-07-07T18:41:53.502624",
       "scrape_status": "completed"
     },
     {
       "url": "https://www.tileshop.com/products/arabian-pisa-oro-polished-porcelain-wall-and-floor-tile-24-x-24-in-684341",
       "lastmod": null,
-      "scraped_at": "2025-07-05T23:04:43.279072",
+      "scraped_at": "2025-07-07T18:42:01.489281",
       "scrape_status": "completed"
     },
     {
       "url": "https://www.tileshop.com/products/arabian-pisa-oro-polished-porcelain-wall-and-floor-tile-12-x-24-in-684340",
       "lastmod": null,
-      "scraped_at": "2025-07-05T23:04:51.876142",
+      "scraped_at": "2025-07-07T18:42:11.452280",
       "scrape_status": "completed"
     },
     {
       "url": "https://www.tileshop.com/products/arabian-pisa-oro-matte-porcelain-wall-and-floor-tile-24-x-24-in-684339",
       "lastmod": null,
-      "scraped_at": "2025-07-05T23:05:01.377332",
+      "scraped_at": "2025-07-07T18:42:18.705865",
       "scrape_status": "completed"
     },
     {
       "url": "https://www.tileshop.com/products/arabian-pisa-oro-matte-porcelain-wall-and-floor-tile-12-x-24-in-684338",
       "lastmod": null,
-      "scraped_at": "2025-07-05T23:05:11.615025",
+      "scraped_at": "2025-07-07T18:42:26.474042",
       "scrape_status": "completed"
     },
     {
       "url": "https://www.tileshop.com/products/arabian-lenci-white-polished-porcelain-wall-and-floor-tile-24-x-48-in-684337",
       "lastmod": null,
-      "scraped_at": "2025-07-05T23:05:19.727224",
+      "scraped_at": "2025-07-07T18:42:34.687297",
       "scrape_status": "completed"
     },
     {
       "url": "https://www.tileshop.com/products/arabian-lenci-white-polished-porcelain-wall-and-floor-tile-24-x-24-in-684336",
       "lastmod": null,
-      "scraped_at": "2025-07-05T23:05:28.240096",
+      "scraped_at": "2025-07-07T18:42:45.008930",
       "scrape_status": "completed"
     },
     {
       "url": "https://www.tileshop.com/products/arabian-lenci-white-polished-wall-and-floor-tile-12-x-24-in-684335",
       "lastmod": null,
-      "scraped_at": "2025-07-05T23:05:38.506709",
+      "scraped_at": "2025-07-07T18:42:52.691089",
       "scrape_status": "completed"
     },
     {
       "url": "https://www.tileshop.com/products/arabian-lenci-white-matte-porcelain-wall-and-floor-tile-12-x-24-in-684334",
       "lastmod": null,
-      "scraped_at": "2025-07-05T23:05:47.058681",
+      "scraped_at": "2025-07-07T18:43:01.096904",
       "scrape_status": "completed"
     },
     {
       "url": "https://www.tileshop.com/products/arabian-tresana-white-polished-porcelain-wall-and-floor-tile-24-x-48-in-684333",
       "lastmod": null,
-      "scraped_at": "2025-07-05T23:05:55.940151",
+      "scraped_at": "2025-07-07T18:43:09.884475",
       "scrape_status": "completed"
     },
     {
       "url": "https://www.tileshop.com/products/arabian-tresana-white-polished-porcelain-wall-and-floor-tile-24-x-24-in-684332",
       "lastmod": null,
-      "scraped_at": "2025-07-05T23:06:05.750018",
+      "scraped_at": "2025-07-07T18:43:18.924119",
       "scrape_status": "completed"
     },
     {
       "url": "https://www.tileshop.com/products/arabian-tresana-white-polished-porcelain-wall-and-floor-tile-12-x-24-in-684331",
       "lastmod": null,
-      "scraped_at": "2025-07-05T23:06:14.896060",
+      "scraped_at": "2025-07-07T18:43:29.199725",
       "scrape_status": "completed"
     },
     {
       "url": "https://www.tileshop.com/products/arabian-tresana-white-matte-porcelain-wall-and-floor-tile-24-x-48-in-684330",
       "lastmod": null,
-      "scraped_at": "2025-07-05T23:06:24.657132",
+      "scraped_at": "2025-07-07T18:43:37.815538",
       "scrape_status": "completed"
     },
     {
       "url": "https://www.tileshop.com/products/arabian-tresana-white-matte-porcelain-wall-and-floor-tile-24-x-24-in-684329",
       "lastmod": null,
-      "scraped_at": "2025-07-05T23:06:33.025172",
+      "scraped_at": "2025-07-07T18:43:45.653886",
       "scrape_status": "completed"
     },
     {
       "url": "https://www.tileshop.com/products/arabian-tresana-white-matte-porcelain-wall-and-floor-tile-12-x-24-in-684328",
       "lastmod": null,
-      "scraped_at": "2025-07-05T23:06:42.086946",
+      "scraped_at": "2025-07-07T18:43:53.241159",
       "scrape_status": "completed"
     },
     {
       "url": "https://www.tileshop.com/products/arabian-niro-white-polished-porcelain-wall-and-floor-tile-24-x-48-in-684348",
       "lastmod": null,
-      "scraped_at": "2025-07-05T23:06:49.464368",
+      "scraped_at": "2025-07-07T18:44:01.187979",
       "scrape_status": "completed"
     },
     {
       "url": "https://www.tileshop.com/products/arabian-niro-white-matte-porcelain-wall-and-floor-tile-24-x-48-in-684345",
       "lastmod": null,
-      "scraped_at": "2025-07-05T23:06:52.534675",
-      "scrape_status": "failed",
-      "error": "Curl scraper failed to extract data"
+      "scraped_at": "2025-07-07T18:44:09.574886",
+      "scrape_status": "completed"
     },
     {
       "url": "https://www.tileshop.com/products/arabian-pisa-oro-polished-porcelain-wall-and-floor-tile-24-x-48-in-684342",
       "lastmod": null,
-      "scraped_at": "2025-07-05T23:06:52.582438",
-      "scrape_status": "failed",
-      "error": "Curl scraper failed to extract data"
+      "scraped_at": "2025-07-07T18:44:17.054290",
+      "scrape_status": "completed"
     },
     {
       "url": "https://www.tileshop.com/products/oak-cremona-torro-laminate-t-molding-169-x-84-in-684435",
       "lastmod": null,
-      "scraped_at": "2025-07-05T23:06:52.626107",
-      "scrape_status": "failed",
-      "error": "Curl scraper failed to extract data"
+      "scraped_at": "2025-07-07T18:44:25.486580",
+      "scrape_status": "completed"
     },
     {
       "url": "https://www.tileshop.com/products/oak-cremona-torro-laminate-reducer-175-x-84-in-684434",
       "lastmod": null,
-      "scraped_at": "2025-07-05T23:06:52.682987",
-      "scrape_status": "failed",
-      "error": "Curl scraper failed to extract data"
+      "scraped_at": "2025-07-07T18:44:34.072320",
+      "scrape_status": "completed"
     },
     {
       "url": "https://www.tileshop.com/products/oak-cremona-torro-laminate-overlap-stair-nose-2-x-84-in-684433",
       "lastmod": null,
-      "scraped_at": "2025-07-05T23:06:52.761654",
-      "scrape_status": "failed",
-      "error": "Curl scraper failed to extract data"
+      "scraped_at": "2025-07-07T18:44:43.251682",
+      "scrape_status": "completed"
     },
     {
       "url": "https://www.tileshop.com/products/oak-cremona-torro-laminate-flush-stair-nose-2-x-84-in-684432",
       "lastmod": null,
-      "scraped_at": "2025-07-05T23:06:52.813755",
-      "scrape_status": "failed",
-      "error": "Curl scraper failed to extract data"
+      "scraped_at": "2025-07-07T18:44:52.680084",
+      "scrape_status": "completed"
     },
     {
       "url": "https://www.tileshop.com/products/oak-cremona-torro-laminate-quarter-round-75-x-84-in-684431",
       "lastmod": null,
-      "scraped_at": "2025-07-05T23:06:52.858406",
-      "scrape_status": "failed",
-      "error": "Curl scraper failed to extract data"
+      "scraped_at": "2025-07-07T18:45:01.739653",
+      "scrape_status": "completed"
     },
     {
       "url": "https://www.tileshop.com/products/historic-oak-laminate-quarter-round-75-x-84-in-684278",
       "lastmod": null,
-      "scraped_at": "2025-07-05T23:06:52.898013",
-      "scrape_status": "failed",
-      "error": "Curl scraper failed to extract data"
+      "scraped_at": "2025-07-07T18:45:10.743856",
+      "scrape_status": "completed"
     },
     {
       "url": "https://www.tileshop.com/products/historic-oak-laminate-flush-stair-nose-2-x-84-in-684277",
       "lastmod": null,
-      "scraped_at": "2025-07-05T23:06:52.932303",
-      "scrape_status": "failed",
-      "error": "Curl scraper failed to extract data"
+      "scraped_at": "2025-07-07T18:45:20.138231",
+      "scrape_status": "completed"
     },
     {
       "url": "https://www.tileshop.com/products/historic-oak-laminate-overlap-stair-nose-2-x-84-in-684276",
       "lastmod": null,
-      "scraped_at": "2025-07-05T23:06:52.981433",
-      "scrape_status": "failed",
-      "error": "Curl scraper failed to extract data"
+      "scraped_at": "2025-07-07T18:45:31.025100",
+      "scrape_status": "completed"
     },
     {
       "url": "https://www.tileshop.com/products/historic-oak-laminate-reducer-175-x-84-in-684275",
       "lastmod": null,
-      "scraped_at": "2025-07-05T23:06:53.033518",
-      "scrape_status": "failed",
-      "error": "Curl scraper failed to extract data"
+      "scraped_at": "2025-07-07T18:45:43.973012",
+      "scrape_status": "completed"
     },
     {
       "url": "https://www.tileshop.com/products/historic-oak-laminate-t-molding-169-x-84-in-684274",
       "lastmod": null,
-      "scraped_at": "2025-07-05T23:06:53.090744",
-      "scrape_status": "failed",
-      "error": "Curl scraper failed to extract data"
+      "scraped_at": "2025-07-07T18:45:53.908176",
+      "scrape_status": "completed"
     },
     {
       "url": "https://www.tileshop.com/products/sundance-oak-laminate-quarter-round-75-x-84-in-684273",
       "lastmod": null,
-      "scraped_at": "2025-07-05T23:06:53.122361",
-      "scrape_status": "failed",
-      "error": "Curl scraper failed to extract data"
+      "scraped_at": "2025-07-07T18:46:01.825338",
+      "scrape_status": "completed"
     },
     {
       "url": "https://www.tileshop.com/products/sundance-oak-laminate-flush-stair-nose-2-x-84-in-684272",
       "lastmod": null,
-      "scraped_at": "2025-07-05T23:06:53.160237",
-      "scrape_status": "failed",
-      "error": "Curl scraper failed to extract data"
+      "scraped_at": "2025-07-07T18:46:10.808325",
+      "scrape_status": "completed"
     },
     {
       "url": "https://www.tileshop.com/products/sundance-oak-laminate-overlap-stair-nose-2-x-84-in-684271",
       "lastmod": null,
-      "scraped_at": "2025-07-05T23:06:53.199891",
-      "scrape_status": "failed",
-      "error": "Curl scraper failed to extract data"
+      "scraped_at": "2025-07-07T18:46:19.664039",
+      "scrape_status": "completed"
     },
     {
       "url": "https://www.tileshop.com/products/sundance-oak-laminate-t-molding-169-x-84-in-684269",
       "lastmod": null,
-      "scraped_at": "2025-07-05T23:06:53.237301",
-      "scrape_status": "failed",
-      "error": "Curl scraper failed to extract data"
+      "scraped_at": "2025-07-07T18:46:29.706199",
+      "scrape_status": "completed"
     },
     {
       "url": "https://www.tileshop.com/products/sundance-oak-laminate-reducer-175-x-84-in-684270",
       "lastmod": null,
-      "scraped_at": "2025-07-05T23:06:53.313550",
-      "scrape_status": "failed",
-      "error": "Curl scraper failed to extract data"
+      "scraped_at": "2025-07-07T18:46:38.009119",
+      "scrape_status": "completed"
     },
     {
       "url": "https://www.tileshop.com/products/natura-montreux-oak-laminate-quarter-round-75-x-84-in-684268",
       "lastmod": null,
-      "scraped_at": "2025-07-05T23:06:53.384246",
-      "scrape_status": "failed",
-      "error": "Curl scraper failed to extract data"
+      "scraped_at": "2025-07-07T18:46:45.946879",
+      "scrape_status": "completed"
     },
     {
       "url": "https://www.tileshop.com/products/natura-montreux-oak-laminate-flush-stair-nose-2-x-84-in-684267",
       "lastmod": null,
-      "scraped_at": "2025-07-05T23:06:53.430180",
-      "scrape_status": "failed",
-      "error": "Curl scraper failed to extract data"
+      "scraped_at": "2025-07-07T18:46:53.841901",
+      "scrape_status": "completed"
     },
     {
       "url": "https://www.tileshop.com/products/natura-montreux-oak-laminate-overlap-stair-nose-2-x-84-in-684266",
       "lastmod": null,
-      "scraped_at": "2025-07-05T23:06:53.489469",
-      "scrape_status": "failed",
-      "error": "Curl scraper failed to extract data"
+      "scraped_at": "2025-07-07T18:47:03.551512",
+      "scrape_status": "completed"
     },
     {
       "url": "https://www.tileshop.com/products/natura-montreux-oak-laminate-reducer-175-x-84-in-684265",
       "lastmod": null,
-      "scraped_at": "2025-07-05T23:06:53.570428",
-      "scrape_status": "failed",
-      "error": "Curl scraper failed to extract data"
+      "scraped_at": "2025-07-07T18:47:12.465431",
+      "scrape_status": "completed"
     },
     {
       "url": "https://www.tileshop.com/products/natura-montreux-oak-laminate-t-molding-169-x-84-in-684264",
       "lastmod": null,
-      "scraped_at": "2025-07-05T23:06:53.629788",
-      "scrape_status": "failed",
-      "error": "Curl scraper failed to extract data"
+      "scraped_at": "2025-07-07T18:47:21.558862",
+      "scrape_status": "completed"
     },
     {
       "url": "https://www.tileshop.com/products/farro-blonde-montreux-oak-laminate-quarter-round-75-x-84-in-684263",
       "lastmod": null,
-      "scraped_at": "2025-07-05T23:06:53.708903",
-      "scrape_status": "failed",
-      "error": "Curl scraper failed to extract data"
+      "scraped_at": "2025-07-07T18:47:30.266494",
+      "scrape_status": "completed"
     },
     {
       "url": "https://www.tileshop.com/products/farro-blonde-montreux-oak-laminate-flush-stair-nose-2-x-84-in-684262",
       "lastmod": null,
-      "scraped_at": "2025-07-05T23:06:53.754992",
-      "scrape_status": "failed",
-      "error": "Curl scraper failed to extract data"
+      "scraped_at": "2025-07-07T18:47:37.121929",
+      "scrape_status": "completed"
     },
     {
       "url": "https://www.tileshop.com/products/farro-blonde-montreux-oak-laminate-overlap-stair-nose-2-x-84-in-684261",
       "lastmod": null,
-      "scraped_at": "2025-07-05T23:06:53.868709",
-      "scrape_status": "failed",
-      "error": "Curl scraper failed to extract data"
+      "scraped_at": "2025-07-07T18:47:44.500131",
+      "scrape_status": "completed"
     },
     {
       "url": "https://www.tileshop.com/products/farro-blonde-montreux-oak-laminate-reducer-175-x-84-in-684260",
       "lastmod": null,
-      "scraped_at": "2025-07-05T23:06:53.900561",
-      "scrape_status": "failed",
-      "error": "Curl scraper failed to extract data"
+      "scraped_at": "2025-07-07T18:47:52.701086",
+      "scrape_status": "completed"
     },
     {
       "url": "https://www.tileshop.com/products/farro-blonde-montreux-oak-laminate-t-molding-169-x-84-in-684259",
       "lastmod": null,
-      "scraped_at": "2025-07-05T23:06:53.931384",
-      "scrape_status": "failed",
-      "error": "Curl scraper failed to extract data"
+      "scraped_at": "2025-07-07T18:48:01.061719",
+      "scrape_status": "completed"
     },
     {
       "url": "https://www.tileshop.com/products/blonde-montreux-oak-laminate-quarter-round-75-x-84-in-684258",
       "lastmod": null,
-      "scraped_at": "2025-07-05T23:06:53.964671",
-      "scrape_status": "failed",
-      "error": "Curl scraper failed to extract data"
+      "scraped_at": "2025-07-07T18:48:09.881990",
+      "scrape_status": "completed"
     },
     {
       "url": "https://www.tileshop.com/products/blonde-montreux-oak-laminate-flush-stair-nose-2-x-84-in-684257",
       "lastmod": null,
-      "scraped_at": "2025-07-05T23:06:53.998189",
-      "scrape_status": "failed",
-      "error": "Curl scraper failed to extract data"
+      "scraped_at": "2025-07-07T18:48:17.920589",
+      "scrape_status": "completed"
     },
     {
       "url": "https://www.tileshop.com/products/blonde-montreux-oak-laminate-overlap-stair-nose-2-x-84-in-684256",
       "lastmod": null,
-      "scraped_at": "2025-07-05T23:06:54.033200",
-      "scrape_status": "failed",
-      "error": "Curl scraper failed to extract data"
+      "scraped_at": "2025-07-07T18:48:26.361007",
+      "scrape_status": "completed"
     },
     {
       "url": "https://www.tileshop.com/products/blonde-montreux-oak-laminate-reducer-175-x-84-in-684255",
       "lastmod": null,
-      "scraped_at": "2025-07-05T23:06:54.065941",
-      "scrape_status": "failed",
-      "error": "Curl scraper failed to extract data"
+      "scraped_at": "2025-07-07T18:48:36.148251",
+      "scrape_status": "completed"
     },
     {
       "url": "https://www.tileshop.com/products/blonde-montreux-laminate-oak-t-molding-169-x-84-in-684254",
       "lastmod": null,
-      "scraped_at": "2025-07-05T23:06:54.098172",
-      "scrape_status": "failed",
-      "error": "Curl scraper failed to extract data"
+      "scraped_at": "2025-07-07T18:48:43.345548",
+      "scrape_status": "completed"
     },
     {
       "url": "https://www.tileshop.com/products/oak-kansas-witchita-laminate-quarter-round-75-x-84-in-684253",
       "lastmod": null,
-      "scraped_at": "2025-07-05T23:06:54.130091",
-      "scrape_status": "failed",
-      "error": "Curl scraper failed to extract data"
+      "scraped_at": "2025-07-07T18:48:51.823217",
+      "scrape_status": "completed"
     },
     {
       "url": "https://www.tileshop.com/products/oak-kansas-witchita-laminate-flush-stair-nose-2-x-84-in-684252",
       "lastmod": null,
-      "scraped_at": "2025-07-05T23:06:54.162622",
-      "scrape_status": "failed",
-      "error": "Curl scraper failed to extract data"
+      "scraped_at": "2025-07-07T18:49:00.695249",
+      "scrape_status": "completed"
     },
     {
       "url": "https://www.tileshop.com/products/oak-kansas-witchita-laminate-overlap-stair-nose-2-x-84-in-684251",
       "lastmod": null,
-      "scraped_at": "2025-07-05T23:06:54.205976",
-      "scrape_status": "failed",
-      "error": "Curl scraper failed to extract data"
+      "scraped_at": "2025-07-07T18:49:08.912260",
+      "scrape_status": "completed"
     },
     {
       "url": "https://www.tileshop.com/products/oak-kansas-witchita-laminate-reducer-175-x-84-in-684250",
       "lastmod": null,
-      "scraped_at": "2025-07-05T23:06:54.249067",
-      "scrape_status": "failed",
-      "error": "Curl scraper failed to extract data"
+      "scraped_at": "2025-07-07T18:49:16.031818",
+      "scrape_status": "completed"
     },
     {
       "url": "https://www.tileshop.com/products/oak-kansas-witchita-laminate-t-molding-169-x-84-in-684249",
       "lastmod": null,
-      "scraped_at": "2025-07-05T23:06:54.303179",
-      "scrape_status": "failed",
-      "error": "Curl scraper failed to extract data"
+      "scraped_at": "2025-07-07T18:49:25.519728",
+      "scrape_status": "completed"
     },
     {
       "url": "https://www.tileshop.com/products/oak-kansas-overland-laminate-quarter-round-75-x-84-in-684248",
       "lastmod": null,
-      "scraped_at": "2025-07-05T23:06:54.352010",
-      "scrape_status": "failed",
-      "error": "Curl scraper failed to extract data"
+      "scraped_at": "2025-07-07T18:49:35.743844",
+      "scrape_status": "completed"
     },
     {
       "url": "https://www.tileshop.com/products/oak-kansas-overland-laminate-flush-stair-nose-2-x-84-in-684247",
       "lastmod": null,
-      "scraped_at": "2025-07-05T23:06:54.404755",
-      "scrape_status": "failed",
-      "error": "Curl scraper failed to extract data"
+      "scraped_at": "2025-07-07T18:49:45.638190",
+      "scrape_status": "completed"
     },
     {
       "url": "https://www.tileshop.com/products/oak-kansas-overland-laminate-overlap-stair-nose-2-x-84-in-684246",
       "lastmod": null,
-      "scraped_at": "2025-07-05T23:06:54.451527",
-      "scrape_status": "failed",
-      "error": "Curl scraper failed to extract data"
+      "scraped_at": "2025-07-07T18:49:55.045448",
+      "scrape_status": "completed"
     },
     {
       "url": "https://www.tileshop.com/products/oak-kansas-overland-laminate-reducer-175-x-84-in-684245",
       "lastmod": null,
-      "scraped_at": "2025-07-05T23:06:54.525180",
-      "scrape_status": "failed",
-      "error": "Curl scraper failed to extract data"
+      "scraped_at": "2025-07-07T18:50:03.028680",
+      "scrape_status": "completed"
     },
     {
       "url": "https://www.tileshop.com/products/oak-kansas-overland-laminate-t-molding-169-x-84-in-684244",
       "lastmod": null,
-      "scraped_at": "2025-07-05T23:06:54.589937",
-      "scrape_status": "failed",
-      "error": "Curl scraper failed to extract data"
+      "scraped_at": "2025-07-07T18:50:13.716201",
+      "scrape_status": "completed"
     },
     {
       "url": "https://www.tileshop.com/products/oak-brera-classic-laminate-quarter-round-75-x-84-in-684243",
       "lastmod": null,
-      "scraped_at": "2025-07-05T23:06:54.647037",
-      "scrape_status": "failed",
-      "error": "Curl scraper failed to extract data"
+      "scraped_at": "2025-07-07T18:50:21.567295",
+      "scrape_status": "completed"
     },
     {
       "url": "https://www.tileshop.com/products/oak-brera-classic-laminate-flush-stair-nose-2-x-84-in-684242",
       "lastmod": null,
-      "scraped_at": "2025-07-05T23:06:54.684224",
-      "scrape_status": "failed",
-      "error": "Curl scraper failed to extract data"
+      "scraped_at": "2025-07-07T18:50:31.936333",
+      "scrape_status": "completed"
     },
     {
       "url": "https://www.tileshop.com/products/oak-brera-classic-laminate-overlap-stair-nose-2-x-84-in-684241",
       "lastmod": null,
-      "scraped_at": "2025-07-05T23:06:54.716931",
-      "scrape_status": "failed",
-      "error": "Curl scraper failed to extract data"
+      "scraped_at": "2025-07-07T18:50:39.707299",
+      "scrape_status": "completed"
     },
     {
       "url": "https://www.tileshop.com/products/oak-brera-classic-laminate-reducer-175-x-84-in-684240",
       "lastmod": null,
-      "scraped_at": "2025-07-05T23:06:54.773493",
-      "scrape_status": "failed",
-      "error": "Curl scraper failed to extract data"
+      "scraped_at": "2025-07-07T18:50:47.523537",
+      "scrape_status": "completed"
     },
     {
       "url": "https://www.tileshop.com/products/oak-brera-classic-laminate-t-molding-169-x-84-in-684239",
       "lastmod": null,
-      "scraped_at": "2025-07-05T23:06:54.881412",
-      "scrape_status": "failed",
-      "error": "Curl scraper failed to extract data"
+      "scraped_at": "2025-07-07T18:50:56.839920",
+      "scrape_status": "completed"
     },
     {
       "url": "https://www.tileshop.com/products/oak-wimbledon-laminate-quarter-round-75-x-84-in-684238",
       "lastmod": null,
-      "scraped_at": "2025-07-05T23:06:54.936639",
-      "scrape_status": "failed",
-      "error": "Curl scraper failed to extract data"
+      "scraped_at": "2025-07-07T18:51:05.308371",
+      "scrape_status": "completed"
     },
     {
       "url": "https://www.tileshop.com/products/oak-wimbledon-laminate-flush-stair-nose-2-x-84-in-684237",
       "lastmod": null,
-      "scraped_at": "2025-07-05T23:06:54.992587",
-      "scrape_status": "failed",
-      "error": "Curl scraper failed to extract data"
+      "scraped_at": "2025-07-07T18:51:12.843461",
+      "scrape_status": "completed"
     },
     {
       "url": "https://www.tileshop.com/products/oak-wimbledon-laminate-overlap-stair-nose-2-x-84-in-684236",
       "lastmod": null,
-      "scraped_at": "2025-07-05T23:06:55.041707",
-      "scrape_status": "failed",
-      "error": "Curl scraper failed to extract data"
+      "scraped_at": "2025-07-07T18:51:20.923142",
+      "scrape_status": "completed"
     },
     {
       "url": "https://www.tileshop.com/products/oak-wimbledon-laminate-reducer-175-x-84-in-684235",
       "lastmod": null,
-      "scraped_at": "2025-07-05T23:06:55.098359",
-      "scrape_status": "failed",
-      "error": "Curl scraper failed to extract data"
+      "scraped_at": "2025-07-07T18:51:30.260658",
+      "scrape_status": "completed"
     },
     {
       "url": "https://www.tileshop.com/products/oak-wimbledon-laminate-t-molding-169-x-84-in-684234",
       "lastmod": null,
-      "scraped_at": "2025-07-05T23:06:56.151514",
-      "scrape_status": "failed",
-      "error": "Curl scraper failed to extract data"
+      "scraped_at": "2025-07-07T18:51:38.810558",
+      "scrape_status": "completed"
     },
     {
       "url": "https://www.tileshop.com/products/hickory-sunday-laminate-quarter-round-75-x-84-in-684233",
       "lastmod": null,
-      "scraped_at": "2025-07-05T23:06:56.201188",
-      "scrape_status": "failed",
-      "error": "Curl scraper failed to extract data"
+      "scraped_at": "2025-07-07T18:51:46.749193",
+      "scrape_status": "completed"
     },
     {
       "url": "https://www.tileshop.com/products/hickory-sunday-laminate-flush-stair-nose-2-x-84-in-684232",
       "lastmod": null,
-      "scraped_at": "2025-07-05T23:06:56.233049",
-      "scrape_status": "failed",
-      "error": "Curl scraper failed to extract data"
+      "scraped_at": "2025-07-07T18:51:53.391635",
+      "scrape_status": "completed"
     },
     {
       "url": "https://www.tileshop.com/products/hickory-sunday-laminate-overlap-stair-nose-2-x-84-in-684231",
       "lastmod": null,
-      "scraped_at": "2025-07-05T23:06:56.264577",
-      "scrape_status": "failed",
-      "error": "Curl scraper failed to extract data"
+      "scraped_at": "2025-07-07T18:52:02.326489",
+      "scrape_status": "completed"
     },
     {
       "url": "https://www.tileshop.com/products/hickory-sunday-laminate-reducer-175-x-84-in-684230",
       "lastmod": null,
-      "scraped_at": "2025-07-05T23:06:56.296109",
-      "scrape_status": "failed",
-      "error": "Curl scraper failed to extract data"
+      "scraped_at": "2025-07-07T18:52:09.922520",
+      "scrape_status": "completed"
     },
     {
       "url": "https://www.tileshop.com/products/hickory-sunday-laminate-t-molding-169-x-84-in-684229",
       "lastmod": null,
-      "scraped_at": "2025-07-05T23:06:56.325969",
-      "scrape_status": "failed",
-      "error": "Curl scraper failed to extract data"
+      "scraped_at": "2025-07-07T18:52:17.763831",
+      "scrape_status": "completed"
     },
     {
       "url": "https://www.tileshop.com/products/oak-cremona-laminate-flush-stair-nose-2-x-84-in-684227",
       "lastmod": null,
-      "scraped_at": "2025-07-05T23:06:56.353693",
-      "scrape_status": "failed",
-      "error": "Curl scraper failed to extract data"
+      "scraped_at": "2025-07-07T18:52:25.745058",
+      "scrape_status": "completed"
     },
     {
       "url": "https://www.tileshop.com/products/oak-cremona-laminate-quarter-round-75-x-84-in-684228",
       "lastmod": null,
-      "scraped_at": "2025-07-05T23:06:56.381450",
-      "scrape_status": "failed",
-      "error": "Curl scraper failed to extract data"
+      "scraped_at": "2025-07-07T18:52:35.396512",
+      "scrape_status": "completed"
     },
     {
       "url": "https://www.tileshop.com/products/oak-cremona-laminate-overlap-stair-nose-2-x-84-in-684226",
       "lastmod": null,
-      "scraped_at": "2025-07-05T23:06:56.409109",
-      "scrape_status": "failed",
-      "error": "Curl scraper failed to extract data"
+      "scraped_at": "2025-07-07T18:52:44.643011",
+      "scrape_status": "completed"
     },
     {
       "url": "https://www.tileshop.com/products/oak-cremona-laminate-reducer-175-x-84-in-684225",
       "lastmod": null,
-      "scraped_at": "2025-07-05T23:06:56.436910",
-      "scrape_status": "failed",
-      "error": "Curl scraper failed to extract data"
+      "scraped_at": "2025-07-07T18:52:52.279585",
+      "scrape_status": "completed"
     },
     {
       "url": "https://www.tileshop.com/products/oak-cremona-laminate-t-molding-169-x-84-in-684224",
       "lastmod": null,
-      "scraped_at": "2025-07-05T23:06:56.464645",
-      "scrape_status": "failed",
-      "error": "Curl scraper failed to extract data"
+      "scraped_at": "2025-07-07T18:53:00.649060",
+      "scrape_status": "completed"
     },
     {
       "url": "https://www.tileshop.com/products/oak-newhaven-waterbury-laminate-quarter-round-75-x-84-in-684223",
       "lastmod": null,
-      "scraped_at": "2025-07-05T23:06:56.492343",
-      "scrape_status": "failed",
-      "error": "Curl scraper failed to extract data"
+      "scraped_at": "2025-07-07T18:53:08.717223",
+      "scrape_status": "completed"
     },
     {
       "url": "https://www.tileshop.com/products/oak-newhaven-waterbury-laminate-flush-stair-nose-2-x-84-in-684222",
       "lastmod": null,
-      "scraped_at": "2025-07-05T23:06:56.519927",
-      "scrape_status": "failed",
-      "error": "Curl scraper failed to extract data"
+      "scraped_at": "2025-07-07T18:53:17.441613",
+      "scrape_status": "completed"
     },
     {
       "url": "https://www.tileshop.com/products/oak-newhaven-waterbury-laminate-overlap-stair-nose-2-x-84-in-684221",
       "lastmod": null,
-      "scraped_at": "2025-07-05T23:06:56.547495",
-      "scrape_status": "failed",
-      "error": "Curl scraper failed to extract data"
+      "scraped_at": "2025-07-07T18:53:26.532478",
+      "scrape_status": "completed"
     },
     {
       "url": "https://www.tileshop.com/products/oak-newhaven-waterbury-laminate-reducer-175-x-84-in-684220",
       "lastmod": null,
-      "scraped_at": "2025-07-05T23:06:56.575072",
-      "scrape_status": "failed",
-      "error": "Curl scraper failed to extract data"
+      "scraped_at": "2025-07-07T18:53:35.138107",
+      "scrape_status": "completed"
     },
     {
       "url": "https://www.tileshop.com/products/oak-newhaven-waterbury-laminate-t-molding-169-x-84-in-684219",
       "lastmod": null,
-      "scraped_at": "2025-07-05T23:06:56.603124",
-      "scrape_status": "failed",
-      "error": "Curl scraper failed to extract data"
+      "scraped_at": "2025-07-07T18:53:42.330391",
+      "scrape_status": "completed"
     },
     {
       "url": "https://www.tileshop.com/products/oak-freysted-atacama-laminate-quarter-round-75-x-84-in-684218",
       "lastmod": null,
-      "scraped_at": "2025-07-05T23:06:56.630752",
-      "scrape_status": "failed",
-      "error": "Curl scraper failed to extract data"
+      "scraped_at": "2025-07-07T18:53:52.172505",
+      "scrape_status": "completed"
     },
     {
       "url": "https://www.tileshop.com/products/oak-freysted-atacama-laminate-overlap-stair-nose-2-x-84-in-684216",
       "lastmod": null,
-      "scraped_at": "2025-07-05T23:06:56.658993",
-      "scrape_status": "failed",
-      "error": "Curl scraper failed to extract data"
+      "scraped_at": "2025-07-07T18:54:02.536647",
+      "scrape_status": "completed"
     },
     {
       "url": "https://www.tileshop.com/products/oak-freysted-atacama-laminate-flush-stair-nose-2-x-84-in-684217",
       "lastmod": null,
-      "scraped_at": "2025-07-05T23:06:56.687393",
-      "scrape_status": "failed",
-      "error": "Curl scraper failed to extract data"
+      "scraped_at": "2025-07-07T18:54:10.546876",
+      "scrape_status": "completed"
     },
     {
       "url": "https://www.tileshop.com/products/oak-freysted-atacama-laminate-reducer-175-x-84-in-684215",
       "lastmod": null,
-      "scraped_at": "2025-07-05T23:06:56.716065",
-      "scrape_status": "failed",
-      "error": "Curl scraper failed to extract data"
+      "scraped_at": "2025-07-07T18:54:19.169909",
+      "scrape_status": "completed"
     },
     {
       "url": "https://www.tileshop.com/products/oak-freysted-atacama-laminate-t-molding-169-x-84-in-684214",
       "lastmod": null,
-      "scraped_at": "2025-07-05T23:06:56.744545",
-      "scrape_status": "failed",
-      "error": "Curl scraper failed to extract data"
+      "scraped_at": "2025-07-07T18:54:27.093561",
+      "scrape_status": "completed"
     },
     {
       "url": "https://www.tileshop.com/products/hickory-scuol-laminate-quarter-round-75-x-84-in-684213",
       "lastmod": null,
-      "scraped_at": "2025-07-05T23:06:56.772642",
-      "scrape_status": "failed",
-      "error": "Curl scraper failed to extract data"
+      "scraped_at": "2025-07-07T18:54:34.443648",
+      "scrape_status": "completed"
     },
     {
       "url": "https://www.tileshop.com/products/hickory-scuol-laminate-flush-stair-nose-2-x-84-in-684212",
       "lastmod": null,
-      "scraped_at": "2025-07-05T23:06:56.800509",
-      "scrape_status": "failed",
-      "error": "Curl scraper failed to extract data"
+      "scraped_at": "2025-07-07T18:54:43.312320",
+      "scrape_status": "completed"
     },
     {
       "url": "https://www.tileshop.com/products/hickory-scuol-laminate-overlap-stair-nose-2-x-84-in-684211",
       "lastmod": null,
-      "scraped_at": "2025-07-05T23:06:56.828329",
-      "scrape_status": "failed",
-      "error": "Curl scraper failed to extract data"
+      "scraped_at": "2025-07-07T18:54:51.952458",
+      "scrape_status": "completed"
     },
     {
       "url": "https://www.tileshop.com/products/hickory-scuol-laminate-reducer-175-x-84-in-684210",
       "lastmod": null,
-      "scraped_at": "2025-07-05T23:06:56.856051",
-      "scrape_status": "failed",
-      "error": "Curl scraper failed to extract data"
+      "scraped_at": "2025-07-07T18:55:02.085455",
+      "scrape_status": "completed"
     },
     {
       "url": "https://www.tileshop.com/products/hickory-scuol-laminate-t-molding-169-x-84-in-684209",
       "lastmod": null,
-      "scraped_at": "2025-07-05T23:06:56.883586",
-      "scrape_status": "failed",
-      "error": "Curl scraper failed to extract data"
+      "scraped_at": "2025-07-07T18:55:10.386185",
+      "scrape_status": "completed"
     },
     {
       "url": "https://www.tileshop.com/products/borghini-classico-natural-porcelain-mosaic-wall-and-floor-tile-12-x-12-in-684457",
       "lastmod": null,
-      "scraped_at": "2025-07-05T23:06:56.911142",
-      "scrape_status": "failed",
-      "error": "Curl scraper failed to extract data"
+      "scraped_at": "2025-07-07T18:55:17.329370",
+      "scrape_status": "completed"
     },
     {
       "url": "https://www.tileshop.com/products/borghini-classico-natural-porcelain-wall-and-floor-tile-12-x-24-in-684456",
       "lastmod": null,
-      "scraped_at": "2025-07-05T23:06:56.941329",
-      "scrape_status": "failed",
-      "error": "Curl scraper failed to extract data"
+      "scraped_at": "2025-07-07T18:55:26.145354",
+      "scrape_status": "completed"
     },
     {
       "url": "https://www.tileshop.com/products/borghini-classico-polished-porcelain-wall-and-floor-tile-12-x-24-in-684455",
       "lastmod": null,
-      "scraped_at": "2025-07-05T23:06:56.969102",
-      "scrape_status": "failed",
-      "error": "Curl scraper failed to extract data"
+      "scraped_at": "2025-07-07T18:55:35.290051",
+      "scrape_status": "completed"
     },
     {
       "url": "https://www.tileshop.com/products/laura-park-cosmo-aegean-blue-porcelain-wall-and-floor-tile-8-in-684385",
       "lastmod": null,
-      "scraped_at": "2025-07-05T23:06:56.996725",
-      "scrape_status": "failed",
-      "error": "Curl scraper failed to extract data"
+      "scraped_at": null,
+      "scrape_status": "pending"
     },
     {
       "url": "https://www.tileshop.com/products/laura-park-cosmo-forest-green-porcelain-wall-and-floor-tile-8-in-684384",
       "lastmod": null,
-      "scraped_at": "2025-07-05T23:06:57.024246",
-      "scrape_status": "failed",
-      "error": "Curl scraper failed to extract data"
+      "scraped_at": null,
+      "scrape_status": "pending"
     },
     {
       "url": "https://www.tileshop.com/products/laura-park-cosmo-cocoa-porcelain-wall-and-floor-tile-8-in-684383",
       "lastmod": null,
-      "scraped_at": "2025-07-05T23:06:57.051683",
-      "scrape_status": "failed",
-      "error": "Curl scraper failed to extract data"
+      "scraped_at": null,
+      "scrape_status": "pending"
     },
     {
       "url": "https://www.tileshop.com/products/laura-park-cosmo-taupe-porcelain-wall-and-floor-tile-8-in-684382",
       "lastmod": null,
-      "scraped_at": "2025-07-05T23:06:57.079203",
-      "scrape_status": "failed",
-      "error": "Curl scraper failed to extract data"
+      "scraped_at": null,
+      "scrape_status": "pending"
     },
     {
       "url": "https://www.tileshop.com/products/laura-park-martini-olives-taupe-porcelain-wall-and-floor-tile-13-x-13-in-684375",
       "lastmod": null,
-      "scraped_at": "2025-07-05T23:06:57.106739",
-      "scrape_status": "failed",
-      "error": "Curl scraper failed to extract data"
+      "scraped_at": null,
+      "scrape_status": "pending"
     },
     {
       "url": "https://www.tileshop.com/products/clay-toasted-matte-porcelain-wall-and-floor-tile-125-x-10-in-684366",
       "lastmod": null,
-      "scraped_at": "2025-07-05T23:06:57.134454",
-      "scrape_status": "failed",
-      "error": "Curl scraper failed to extract data"
+      "scraped_at": null,
+      "scrape_status": "pending"
     },
     {
       "url": "https://www.tileshop.com/products/clay-toasted-matte-porcelain-wall-and-floor-tile-49-x-49-in-684365",
       "lastmod": null,
-      "scraped_at": "2025-07-05T23:06:57.162481",
-      "scrape_status": "failed",
-      "error": "Curl scraper failed to extract data"
+      "scraped_at": null,
+      "scrape_status": "pending"
     },
     {
       "url": "https://www.tileshop.com/products/clay-toasted-matte-porcelain-wall-and-floor-tile-24-x-49-in-684364",
       "lastmod": null,
-      "scraped_at": "2025-07-05T23:06:57.190227",
-      "scrape_status": "failed",
-      "error": "Curl scraper failed to extract data"
+      "scraped_at": null,
+      "scrape_status": "pending"
     },
     {
       "url": "https://www.tileshop.com/products/laura-park-la-fleur-forest-green-porcelain-wall-and-floor-tile-6-x-6-in-684359",
       "lastmod": null,
-      "scraped_at": "2025-07-05T23:06:57.217871",
-      "scrape_status": "failed",
-      "error": "Curl scraper failed to extract data"
+      "scraped_at": null,
+      "scrape_status": "pending"
     },
     {
       "url": "https://www.tileshop.com/products/laura-park-la-fleur-aegean-blue-porcelain-wall-and-floor-tile-6-x-6-in-684358",
       "lastmod": null,
-      "scraped_at": "2025-07-05T23:06:57.247995",
-      "scrape_status": "failed",
-      "error": "Curl scraper failed to extract data"
+      "scraped_at": null,
+      "scrape_status": "pending"
     },
     {
       "url": "https://www.tileshop.com/products/laura-park-watercolor-marble-herringbone-porcelain-mosaic-wall-and-floor-tile-684324",
       "lastmod": null,
-      "scraped_at": "2025-07-05T23:06:57.276509",
-      "scrape_status": "failed",
-      "error": "Curl scraper failed to extract data"
+      "scraped_at": null,
+      "scrape_status": "pending"
     },
     {
       "url": "https://www.tileshop.com/products/laura-park-watercolor-marble-porcelain-wall-and-floor-tile-12-x-24-in-684323",
       "lastmod": null,
-      "scraped_at": "2025-07-05T23:06:57.304810",
-      "scrape_status": "failed",
-      "error": "Curl scraper failed to extract data"
+      "scraped_at": null,
+      "scrape_status": "pending"
     },
     {
       "url": "https://www.tileshop.com/products/laura-park-seaside-marble-herringbone-porcelain-mosaic-wall-and-floor-tile-684322",
       "lastmod": null,
-      "scraped_at": "2025-07-05T23:06:57.333240",
-      "scrape_status": "failed",
-      "error": "Curl scraper failed to extract data"
+      "scraped_at": null,
+      "scrape_status": "pending"
     },
     {
       "url": "https://www.tileshop.com/products/laura-park-seaside-marble-porcelain-wall-and-floor-tile-12-x-24-in-684321",
       "lastmod": null,
-      "scraped_at": "2025-07-05T23:06:57.361787",
-      "scrape_status": "failed",
-      "error": "Curl scraper failed to extract data"
+      "scraped_at": null,
+      "scrape_status": "pending"
     },
     {
       "url": "https://www.tileshop.com/products/parallelo-white-porcelain-wall-and-floor-tile-15-x-30-in-684282",
       "lastmod": null,
-      "scraped_at": "2025-07-05T23:06:57.389927",
-      "scrape_status": "failed",
-      "error": "Curl scraper failed to extract data"
+      "scraped_at": null,
+      "scrape_status": "pending"
     },
     {
       "url": "https://www.tileshop.com/products/alpi-polished-porcelain-wall-and-floor-tile-12-x-24-in-684179",
       "lastmod": null,
-      "scraped_at": "2025-07-05T23:06:57.417529",
-      "scrape_status": "failed",
-      "error": "Curl scraper failed to extract data"
+      "scraped_at": null,
+      "scrape_status": "pending"
     },
     {
       "url": "https://www.tileshop.com/products/monterosa-polished-porcelain-wall-and-floor-tile-12-x-24-in-684178",
       "lastmod": null,
-      "scraped_at": "2025-07-05T23:06:57.445077",
-      "scrape_status": "failed",
-      "error": "Curl scraper failed to extract data"
+      "scraped_at": null,
+      "scrape_status": "pending"
     },
     {
       "url": "https://www.tileshop.com/products/nikki-chu-fusi-carbon-steel-porcelain-wall-and-floor-tile-12-x-24-in-684051",
       "lastmod": null,
-      "scraped_at": "2025-07-05T23:06:57.472594",
-      "scrape_status": "failed",
-      "error": "Curl scraper failed to extract data"
+      "scraped_at": null,
+      "scrape_status": "pending"
     },
     {
       "url": "https://www.tileshop.com/products/nikki-chu-fusi-sand-dune-porcelain-wall-and-floor-tile-12-x-24-in-684050",
       "lastmod": null,
-      "scraped_at": "2025-07-05T23:06:57.500268",
-      "scrape_status": "failed",
-      "error": "Curl scraper failed to extract data"
+      "scraped_at": null,
+      "scrape_status": "pending"
     },
     {
       "url": "https://www.tileshop.com/products/nikki-chu-fusi-stone-porcelain-wall-and-floor-tile-12-x-24-in-684049",
       "lastmod": null,
-      "scraped_at": "2025-07-05T23:06:57.528068",
-      "scrape_status": "failed",
-      "error": "Curl scraper failed to extract data"
+      "scraped_at": null,
+      "scrape_status": "pending"
     },
     {
       "url": "https://www.tileshop.com/products/nikki-chu-mrembo-polished-porcelain-wall-and-floor-tile-12-x-24-in-684048",
       "lastmod": null,
-      "scraped_at": "2025-07-05T23:06:57.556056",
-      "scrape_status": "failed",
-      "error": "Curl scraper failed to extract data"
+      "scraped_at": null,
+      "scrape_status": "pending"
     },
     {
       "url": "https://www.tileshop.com/products/nikki-chu-mrembo-honed-porcelain-wall-and-floor-tile-12-x-24-in-684047",
       "lastmod": null,
-      "scraped_at": "2025-07-05T23:06:57.583571",
-      "scrape_status": "failed",
-      "error": "Curl scraper failed to extract data"
+      "scraped_at": null,
+      "scrape_status": "pending"
     },
     {
       "url": "https://www.tileshop.com/products/borghini-classico-bucatini-matte-ceramic-wall-tile-4-x-16-in-485018",
       "lastmod": null,
-      "scraped_at": "2025-07-05T23:06:57.611366",
-      "scrape_status": "failed",
-      "error": "Curl scraper failed to extract data"
+      "scraped_at": null,
+      "scrape_status": "pending"
     },
     {
       "url": "https://www.tileshop.com/products/borghini-classico-matte-ceramic-wall-tile-4-x-16-in-485017",
       "lastmod": null,
-      "scraped_at": "2025-07-05T23:06:57.639576",
-      "scrape_status": "failed",
-      "error": "Curl scraper failed to extract data"
+      "scraped_at": null,
+      "scrape_status": "pending"
     },
     {
       "url": "https://www.tileshop.com/products/borghini-classico-glossy-ceramic-wall-tile-4-x-16-in-485016",
       "lastmod": null,
-      "scraped_at": "2025-07-05T23:06:57.667442",
-      "scrape_status": "failed",
-      "error": "Curl scraper failed to extract data"
+      "scraped_at": null,
+      "scrape_status": "pending"
     },
     {
       "url": "https://www.tileshop.com/products/signature-oatmeal-frame-gloss-ceramic-subway-wall-tile-4-x-8-in-484963",
       "lastmod": null,
-      "scraped_at": "2025-07-05T23:06:57.695479",
-      "scrape_status": "failed",
-      "error": "Curl scraper failed to extract data"
+      "scraped_at": null,
+      "scrape_status": "pending"
     },
     {
       "url": "https://www.tileshop.com/products/signature-oatmeal-bevel-gloss-ceramic-subway-wall-tile-4-x-8-in-484962",
       "lastmod": null,
-      "scraped_at": "2025-07-05T23:06:57.723320",
-      "scrape_status": "failed",
-      "error": "Curl scraper failed to extract data"
+      "scraped_at": null,
+      "scrape_status": "pending"
     },
     {
       "url": "https://www.tileshop.com/products/signature-bianco-frame-matte-ceramic-subway-wall-tile-4-x-8-in-484955",
       "lastmod": null,
-      "scraped_at": "2025-07-05T23:06:57.750929",
-      "scrape_status": "failed",
-      "error": "Curl scraper failed to extract data"
+      "scraped_at": null,
+      "scrape_status": "pending"
     },
     {
       "url": "https://www.tileshop.com/products/signature-bianco-bevel-matte-ceramic-subway-wall-tile-4-x-8-in-484954",
       "lastmod": null,
-      "scraped_at": "2025-07-05T23:06:57.778856",
-      "scrape_status": "failed",
-      "error": "Curl scraper failed to extract data"
+      "scraped_at": null,
+      "scrape_status": "pending"
     },
     {
       "url": "https://www.tileshop.com/products/glacial-blanco-gloss-ceramic-subway-wall-tile-4-x-8-in-484977",
       "lastmod": null,
-      "scraped_at": "2025-07-05T23:06:57.806560",
-      "scrape_status": "failed",
-      "error": "Curl scraper failed to extract data"
+      "scraped_at": null,
+      "scrape_status": "pending"
     },
     {
       "url": "https://www.tileshop.com/products/glacial-blanco-gloss-ceramic-wall-tile-10-x-16-in-484976",
       "lastmod": null,
-      "scraped_at": "2025-07-05T23:06:57.834683",
-      "scrape_status": "failed",
-      "error": "Curl scraper failed to extract data"
+      "scraped_at": null,
+      "scrape_status": "pending"
     },
     {
       "url": "https://www.tileshop.com/products/signature-pewter-frame-gloss-ceramic-wall-tile-4-x-8-in-484965",
       "lastmod": null,
-      "scraped_at": "2025-07-05T23:06:57.863296",
-      "scrape_status": "failed",
-      "error": "Curl scraper failed to extract data"
+      "scraped_at": null,
+      "scrape_status": "pending"
     },
     {
       "url": "https://www.tileshop.com/products/signature-pewter-bevel-gloss-ceramic-subway-wall-tile-4-x-8-in-484964",
       "lastmod": null,
-      "scraped_at": "2025-07-05T23:06:57.891837",
-      "scrape_status": "failed",
-      "error": "Curl scraper failed to extract data"
+      "scraped_at": null,
+      "scrape_status": "pending"
     },
     {
       "url": "https://www.tileshop.com/products/signature-ivory-frame-gloss-ceramic-subway-wall-tile-4-x-8-in-484961",
       "lastmod": null,
-      "scraped_at": "2025-07-05T23:06:57.920598",
-      "scrape_status": "failed",
-      "error": "Curl scraper failed to extract data"
+      "scraped_at": null,
+      "scrape_status": "pending"
     },
     {
       "url": "https://www.tileshop.com/products/signature-ivory-bevel-gloss-ceramic-subway-wall-tile-4-x-8-in-484960",
       "lastmod": null,
-      "scraped_at": "2025-07-05T23:06:57.948996",
-      "scrape_status": "failed",
-      "error": "Curl scraper failed to extract data"
+      "scraped_at": null,
+      "scrape_status": "pending"
     },
     {
       "url": "https://www.tileshop.com/products/signature-gris-frame-matte-ceramic-subway-wall-tile-4-x-8-in-484959",
       "lastmod": null,
-      "scraped_at": "2025-07-05T23:06:57.977524",
-      "scrape_status": "failed",
-      "error": "Curl scraper failed to extract data"
+      "scraped_at": null,
+      "scrape_status": "pending"
     },
     {
       "url": "https://www.tileshop.com/products/signature-gris-bevel-matte-ceramic-subway-wall-tile-4-x-8-in-484958",
       "lastmod": null,
-      "scraped_at": "2025-07-05T23:06:58.005229",
-      "scrape_status": "failed",
-      "error": "Curl scraper failed to extract data"
+      "scraped_at": null,
+      "scrape_status": "pending"
     },
     {
       "url": "https://www.tileshop.com/products/signature-gris-frame-gloss-ceramic-subway-wall-tile-4-x-8-in-484957",
       "lastmod": null,
-      "scraped_at": "2025-07-05T23:06:58.032673",
-      "scrape_status": "failed",
-      "error": "Curl scraper failed to extract data"
+      "scraped_at": null,
+      "scrape_status": "pending"
     },
     {
       "url": "https://www.tileshop.com/products/signature-gris-bevel-gloss-ceramic-subway-wall-tile-4-x-8-in-484956",
       "lastmod": null,
-      "scraped_at": "2025-07-05T23:06:58.060316",
-      "scrape_status": "failed",
-      "error": "Curl scraper failed to extract data"
+      "scraped_at": null,
+      "scrape_status": "pending"
     },
     {
       "url": "https://www.tileshop.com/products/signature-bianco-frame-gloss-ceramic-subway-wall-tile-4-x-8-in-484953",
       "lastmod": null,
-      "scraped_at": "2025-07-05T23:06:58.087843",
-      "scrape_status": "failed",
-      "error": "Curl scraper failed to extract data"
+      "scraped_at": null,
+      "scrape_status": "pending"
     },
     {
       "url": "https://www.tileshop.com/products/santorini-matte-porcelain-wall-and-floor-tile-12-x-24-in-683834",
       "lastmod": null,
-      "scraped_at": "2025-07-05T23:06:58.115521",
-      "scrape_status": "failed",
-      "error": "Curl scraper failed to extract data"
+      "scraped_at": null,
+      "scrape_status": "pending"
     },
     {
       "url": "https://www.tileshop.com/products/andros-blanco-gloss-ceramic-wall-tile-10-x-20-in-485002",
       "lastmod": null,
-      "scraped_at": "2025-07-05T23:06:58.143444",
-      "scrape_status": "failed",
-      "error": "Curl scraper failed to extract data"
+      "scraped_at": null,
+      "scrape_status": "pending"
     },
     {
       "url": "https://www.tileshop.com/products/urbanstone-black-satin-hex-matte-porcelain-wall-and-floor-tile-684009",
       "lastmod": null,
-      "scraped_at": "2025-07-05T23:06:58.171229",
-      "scrape_status": "failed",
-      "error": "Curl scraper failed to extract data"
+      "scraped_at": null,
+      "scrape_status": "pending"
     },
     {
       "url": "https://www.tileshop.com/products/ubranstone-black-satin-matte-porcelain-wall-and-floor-tile-12-x-24-in-684008",
       "lastmod": null,
-      "scraped_at": "2025-07-05T23:06:58.198793",
-      "scrape_status": "failed",
-      "error": "Curl scraper failed to extract data"
+      "scraped_at": null,
+      "scrape_status": "pending"
     },
     {
       "url": "https://www.tileshop.com/products/urbanstone-gris-satin-hex-matte-porcelain-wall-and-floor-tile-684007",
       "lastmod": null,
-      "scraped_at": "2025-07-05T23:06:58.226415",
-      "scrape_status": "failed",
-      "error": "Curl scraper failed to extract data"
+      "scraped_at": null,
+      "scrape_status": "pending"
     },
     {
       "url": "https://www.tileshop.com/products/urbanstone-gris-satin-matte-porcelain-wall-and-floor-tile-12-x-24-in-684006",
       "lastmod": null,
-      "scraped_at": "2025-07-05T23:06:58.254111",
-      "scrape_status": "failed",
-      "error": "Curl scraper failed to extract data"
+      "scraped_at": null,
+      "scrape_status": "pending"
     },
     {
       "url": "https://www.tileshop.com/products/urbanstone-shell-satin-hex-matte-porcelain-wall-and-floor-tile-684005",
       "lastmod": null,
-      "scraped_at": "2025-07-05T23:06:58.281658",
-      "scrape_status": "failed",
-      "error": "Curl scraper failed to extract data"
+      "scraped_at": null,
+      "scrape_status": "pending"
     },
     {
       "url": "https://www.tileshop.com/products/urbanstone-shell-satin-matte-porcelain-wall-and-floor-tile-12-x-24-in-684004",
       "lastmod": null,
-      "scraped_at": "2025-07-05T23:06:58.309608",
-      "scrape_status": "failed",
-      "error": "Curl scraper failed to extract data"
+      "scraped_at": null,
+      "scrape_status": "pending"
     },
     {
       "url": "https://www.tileshop.com/products/vermeer-structured-grey-porcelain-wall-and-floor-tile-12-x-24-in-683891",
       "lastmod": null,
-      "scraped_at": "2025-07-05T23:06:58.337298",
-      "scrape_status": "failed",
-      "error": "Curl scraper failed to extract data"
+      "scraped_at": null,
+      "scrape_status": "pending"
     },
     {
       "url": "https://www.tileshop.com/products/vermeer-structured-white-porcelain-wall-and-floor-tile-12-x-24-in-683890",
       "lastmod": null,
-      "scraped_at": "2025-07-05T23:06:58.364810",
-      "scrape_status": "failed",
-      "error": "Curl scraper failed to extract data"
+      "scraped_at": null,
+      "scrape_status": "pending"
     },
     {
       "url": "https://www.tileshop.com/products/naturalz-matte-ash-porcelain-wall-and-floor-tile-12-x-24-in-683889",
       "lastmod": null,
-      "scraped_at": "2025-07-05T23:06:58.392810",
-      "scrape_status": "failed",
-      "error": "Curl scraper failed to extract data"
+      "scraped_at": null,
+      "scrape_status": "pending"
     },
     {
       "url": "https://www.tileshop.com/products/naturalz-matte-silver-porcelain-wall-and-floor-tile-12-x-24-in-683888",
       "lastmod": null,
-      "scraped_at": "2025-07-05T23:06:58.420843",
-      "scrape_status": "failed",
-      "error": "Curl scraper failed to extract data"
+      "scraped_at": null,
+      "scrape_status": "pending"
     },
     {
       "url": "https://www.tileshop.com/products/terracotta-burgundy-field-quarry-wall-and-floor-tile-6-x-6-in-683828",
       "lastmod": null,
-      "scraped_at": "2025-07-05T23:06:58.448909",
-      "scrape_status": "failed",
-      "error": "Curl scraper failed to extract data"
+      "scraped_at": null,
+      "scrape_status": "pending"
     },
     {
       "url": "https://www.tileshop.com/products/aurea-quadri-caldo-bianco-nero-or-porcelain-wall-and-floor-tile-12-x-12-in-684015",
       "lastmod": null,
-      "scraped_at": "2025-07-05T23:06:58.477405",
-      "scrape_status": "failed",
-      "error": "Curl scraper failed to extract data"
+      "scraped_at": null,
+      "scrape_status": "pending"
     },
     {
       "url": "https://www.tileshop.com/products/aurea-basketweave-bianco-nero-porcelain-mosaic-wall-and-floor-tile-12-x-12-in-684014",
       "lastmod": null,
-      "scraped_at": "2025-07-05T23:06:58.505946",
-      "scrape_status": "failed",
-      "error": "Curl scraper failed to extract data"
+      "scraped_at": null,
+      "scrape_status": "pending"
     },
     {
       "url": "https://www.tileshop.com/products/antique-aurea-bianco-navona-porcelain-wall-and-floor-tile-12-x-12-in-684013",
       "lastmod": null,
-      "scraped_at": "2025-07-05T23:06:58.534333",
-      "scrape_status": "failed",
-      "error": "Curl scraper failed to extract data"
+      "scraped_at": null,
+      "scrape_status": "pending"
     },
     {
       "url": "https://www.tileshop.com/products/antique-aurea-nero-trastevere-porcelain-wall-and-floor-tile-12-x-12-in-684012",
       "lastmod": null,
-      "scraped_at": "2025-07-05T23:06:58.562320",
-      "scrape_status": "failed",
-      "error": "Curl scraper failed to extract data"
+      "scraped_at": null,
+      "scrape_status": "pending"
     },
     {
       "url": "https://www.tileshop.com/products/verona-bianco-ceramic-wall-tile-8-x-20-in-484403",
       "lastmod": null,
-      "scraped_at": "2025-07-05T23:06:58.589917",
-      "scrape_status": "failed",
-      "error": "Curl scraper failed to extract data"
+      "scraped_at": null,
+      "scrape_status": "pending"
     },
     {
       "url": "https://www.tileshop.com/products/superior-feather-edge-patch-and-skim-coat-8-lb-52333",
       "lastmod": null,
-      "scraped_at": "2025-07-05T23:06:58.617580",
-      "scrape_status": "failed",
-      "error": "Curl scraper failed to extract data"
+      "scraped_at": null,
+      "scrape_status": "pending"
     },
     {
       "url": "https://www.tileshop.com/products/",
       "lastmod": null,
-      "scraped_at": "2025-07-05T23:06:58.645199",
-      "scrape_status": "failed",
-      "error": "Curl scraper failed to extract data"
+      "scraped_at": null,
+      "scrape_status": "pending"
     },
     {
       "url": "https://www.tileshop.com/products/terracotta-grey-skirting-outside-corner-quarry-wall-trim-tile-683827",
       "lastmod": null,
-      "scraped_at": "2025-07-05T23:06:58.672898",
-      "scrape_status": "failed",
-      "error": "Curl scraper failed to extract data"
+      "scraped_at": null,
+      "scrape_status": "pending"
     },
     {
       "url": "https://www.tileshop.com/products/terracotta-grey-skirting-inside-corner-quarry-wall-trim-tile-683826",
       "lastmod": null,
-      "scraped_at": "2025-07-05T23:06:58.700575",
-      "scrape_status": "failed",
-      "error": "Curl scraper failed to extract data"
+      "scraped_at": null,
+      "scrape_status": "pending"
     },
     {
       "url": "https://www.tileshop.com/products/terracotta-grey-skirting-quarry-wall-trim-tile-683825",
       "lastmod": null,
-      "scraped_at": "2025-07-05T23:06:58.728692",
-      "scrape_status": "failed",
-      "error": "Curl scraper failed to extract data"
+      "scraped_at": null,
+      "scrape_status": "pending"
     },
     {
       "url": "https://www.tileshop.com/products/terracotta-grey-field-quarry-wall-and-floor-tile-6-x-6-in-683824",
       "lastmod": null,
-      "scraped_at": "2025-07-05T23:06:58.756299",
-      "scrape_status": "failed",
-      "error": "Curl scraper failed to extract data"
+      "scraped_at": null,
+      "scrape_status": "pending"
     },
     {
       "url": "https://www.tileshop.com/products/silverstone-esm-polished-porcelain-wall-and-floor-tile-19-x-39-in-683780",
       "lastmod": null,
-      "scraped_at": "2025-07-05T23:06:58.784283",
-      "scrape_status": "failed",
-      "error": "Curl scraper failed to extract data"
+      "scraped_at": null,
+      "scrape_status": "pending"
     },
     {
       "url": "https://www.tileshop.com/products/pure-white-esm-polished-porcelain-wall-and-floor-tile-33-x-33-in-683779",
       "lastmod": null,
-      "scraped_at": "2025-07-05T23:06:58.811930",
-      "scrape_status": "failed",
-      "error": "Curl scraper failed to extract data"
+      "scraped_at": null,
+      "scrape_status": "pending"
     },
     {
       "url": "https://www.tileshop.com/products/spazzolato-vecchio-esm-matte-porcelain-wall-and-floor-tile-33-x-33-in-683778",
       "lastmod": null,
-      "scraped_at": "2025-07-05T23:06:58.839606",
-      "scrape_status": "failed",
-      "error": "Curl scraper failed to extract data"
+      "scraped_at": null,
+      "scrape_status": "pending"
     },
     {
       "url": "https://www.tileshop.com/products/panna-chiaro-honed-marble-curb-61-x-66-x-6-in-651061",
       "lastmod": null,
-      "scraped_at": "2025-07-05T23:06:58.867272",
-      "scrape_status": "failed",
-      "error": "Curl scraper failed to extract data"
+      "scraped_at": null,
+      "scrape_status": "pending"
     },
     {
       "url": "https://www.tileshop.com/products/max-rapolano-ivory-matte-porcelain-mosaic-wall-and-floor-tile-684142",
       "lastmod": null,
-      "scraped_at": "2025-07-05T23:06:58.894919",
-      "scrape_status": "failed",
-      "error": "Curl scraper failed to extract data"
+      "scraped_at": null,
+      "scrape_status": "pending"
     },
     {
       "url": "https://www.tileshop.com/products/max-rapolano-ivory-matte-porcelain-wall-and-floor-tile-12-x-24-in-684138",
       "lastmod": null,
-      "scraped_at": "2025-07-05T23:06:58.922532",
-      "scrape_status": "failed",
-      "error": "Curl scraper failed to extract data"
+      "scraped_at": null,
+      "scrape_status": "pending"
     },
     {
       "url": "https://www.tileshop.com/products/statuario-nuovo-polished-porcelain-wall-and-floor-tile-12-x-24-in-684137",
       "lastmod": null,
-      "scraped_at": "2025-07-05T23:06:58.950150",
-      "scrape_status": "failed",
-      "error": "Curl scraper failed to extract data"
+      "scraped_at": null,
+      "scrape_status": "pending"
     },
     {
       "url": "https://www.tileshop.com/products/masterstone-white-polished-porcelain-mosaic-wall-and-floor-tile-684139",
       "lastmod": null,
-      "scraped_at": "2025-07-05T23:06:58.977701",
-      "scrape_status": "failed",
-      "error": "Curl scraper failed to extract data"
+      "scraped_at": null,
+      "scrape_status": "pending"
     },
     {
       "url": "https://www.tileshop.com/products/masterstone-white-polished-porcelain-wall-and-floor-tile-12-x-24-in-684135",
       "lastmod": null,
-      "scraped_at": "2025-07-05T23:06:59.006331",
-      "scrape_status": "failed",
-      "error": "Curl scraper failed to extract data"
+      "scraped_at": null,
+      "scrape_status": "pending"
     },
     {
       "url": "https://www.tileshop.com/products/calacata-white-polished-porcelain-mosaic-wall-and-floor-tile-684140",
       "lastmod": null,
-      "scraped_at": "2025-07-05T23:06:59.034152",
-      "scrape_status": "failed",
-      "error": "Curl scraper failed to extract data"
+      "scraped_at": null,
+      "scrape_status": "pending"
     },
     {
       "url": "https://www.tileshop.com/products/calacata-white-polished-porcelain-wall-and-floor-tile-12-x-24-in-684136",
       "lastmod": null,
-      "scraped_at": "2025-07-05T23:06:59.062692",
-      "scrape_status": "failed",
-      "error": "Curl scraper failed to extract data"
+      "scraped_at": null,
+      "scrape_status": "pending"
     },
     {
       "url": "https://www.tileshop.com/products/prato-white-ceramic-wall-tile-8-x-20-in-484413",
       "lastmod": null,
-      "scraped_at": "2025-07-05T23:06:59.091478",
-      "scrape_status": "failed",
-      "error": "Curl scraper failed to extract data"
+      "scraped_at": null,
+      "scrape_status": "pending"
     },
     {
       "url": "https://www.tileshop.com/products/statuario-nuovo-polished-porcelain-wall-panel-30-x-94-in-684134",
       "lastmod": null,
-      "scraped_at": "2025-07-05T23:06:59.120029",
-      "scrape_status": "failed",
-      "error": "Curl scraper failed to extract data"
+      "scraped_at": null,
+      "scrape_status": "pending"
     },
     {
       "url": "https://www.tileshop.com/products/statuario-nuovo-polished-porcelain-wall-panel-32-x-94-in-684133",
       "lastmod": null,
-      "scraped_at": "2025-07-05T23:06:59.148347",
-      "scrape_status": "failed",
-      "error": "Curl scraper failed to extract data"
+      "scraped_at": null,
+      "scrape_status": "pending"
     },
     {
       "url": "https://www.tileshop.com/products/statuario-nuovo-polished-porcelain-shower-kit-30-x-94-+-32-x-94-in-684132",
       "lastmod": null,
-      "scraped_at": "2025-07-05T23:06:59.176048",
-      "scrape_status": "failed",
-      "error": "Curl scraper failed to extract data"
+      "scraped_at": null,
+      "scrape_status": "pending"
     },
     {
       "url": "https://www.tileshop.com/products/statuario-nuovo-polished-porcelain-wall-panel-30-x-64-in-684131",
       "lastmod": null,
-      "scraped_at": "2025-07-05T23:06:59.203769",
-      "scrape_status": "failed",
-      "error": "Curl scraper failed to extract data"
+      "scraped_at": null,
+      "scrape_status": "pending"
     },
     {
       "url": "https://www.tileshop.com/products/statuario-nuovo-polished-porcelain-wall-panel-32-x-64-in-684130",
       "lastmod": null,
-      "scraped_at": "2025-07-05T23:06:59.231405",
-      "scrape_status": "failed",
-      "error": "Curl scraper failed to extract data"
+      "scraped_at": null,
+      "scrape_status": "pending"
     },
     {
       "url": "https://www.tileshop.com/products/statuario-nuovo-polished-porcelain-tub-kit-30-x-64-+-32-x-64-in-684129",
       "lastmod": null,
-      "scraped_at": "2025-07-05T23:06:59.259373",
-      "scrape_status": "failed",
-      "error": "Curl scraper failed to extract data"
+      "scraped_at": null,
+      "scrape_status": "pending"
     },
     {
       "url": "https://www.tileshop.com/products/calacatta-white-polished-porcelain-wall-panel-30-x-94-in-684128",
       "lastmod": null,
-      "scraped_at": "2025-07-05T23:06:59.287035",
-      "scrape_status": "failed",
-      "error": "Curl scraper failed to extract data"
+      "scraped_at": null,
+      "scrape_status": "pending"
     },
     {
       "url": "https://www.tileshop.com/products/calacatta-white-polished-porcelain-wall-panel-32-x-94-in-684127",
       "lastmod": null,
-      "scraped_at": "2025-07-05T23:06:59.314706",
-      "scrape_status": "failed",
-      "error": "Curl scraper failed to extract data"
+      "scraped_at": null,
+      "scrape_status": "pending"
     },
     {
       "url": "https://www.tileshop.com/products/calacata-white-polished-shower-kit-30-x-94-+-32-x-94-in-684126",
       "lastmod": null,
-      "scraped_at": "2025-07-05T23:06:59.342338",
-      "scrape_status": "failed",
-      "error": "Curl scraper failed to extract data"
+      "scraped_at": null,
+      "scrape_status": "pending"
     },
     {
       "url": "https://www.tileshop.com/products/calacatta-white-polished-porcelain-wall-panel-32-x-64-in-684124",
       "lastmod": null,
-      "scraped_at": "2025-07-05T23:06:59.369904",
-      "scrape_status": "failed",
-      "error": "Curl scraper failed to extract data"
+      "scraped_at": null,
+      "scrape_status": "pending"
     },
     {
       "url": "https://www.tileshop.com/products/calacatta-white-polished-porcelain-tub-kit-30-x-64+32-x-64-in-684123",
       "lastmod": null,
-      "scraped_at": "2025-07-05T23:06:59.397506",
-      "scrape_status": "failed",
-      "error": "Curl scraper failed to extract data"
+      "scraped_at": null,
+      "scrape_status": "pending"
     },
     {
       "url": "https://www.tileshop.com/products/masterstone-white-polished-porcelain-wall-panel-30-x-94-in-684122",
       "lastmod": null,
-      "scraped_at": "2025-07-05T23:06:59.425203",
-      "scrape_status": "failed",
-      "error": "Curl scraper failed to extract data"
+      "scraped_at": null,
+      "scrape_status": "pending"
     },
     {
       "url": "https://www.tileshop.com/products/masterstone-white-polished-porcelain-wall-panel-32-x-94-in-684121",
       "lastmod": null,
-      "scraped_at": "2025-07-05T23:06:59.452857",
-      "scrape_status": "failed",
-      "error": "Curl scraper failed to extract data"
+      "scraped_at": null,
+      "scrape_status": "pending"
     },
     {
       "url": "https://www.tileshop.com/products/masterstone-white-polished-porcelain-shower-kit-30-x-94+32-x-94-in-684120",
       "lastmod": null,
-      "scraped_at": "2025-07-05T23:06:59.480355",
-      "scrape_status": "failed",
-      "error": "Curl scraper failed to extract data"
+      "scraped_at": null,
+      "scrape_status": "pending"
     },
     {
       "url": "https://www.tileshop.com/products/masterstone-white-polished-porcelain-wall-panel-30-x-64-in-684119",
       "lastmod": null,
-      "scraped_at": "2025-07-05T23:06:59.507961",
-      "scrape_status": "failed",
-      "error": "Curl scraper failed to extract data"
+      "scraped_at": null,
+      "scrape_status": "pending"
     },
     {
       "url": "https://www.tileshop.com/products/masterstone-white-polished-porcelain-wall-panel-32-x-64-in-684118",
       "lastmod": null,
-      "scraped_at": "2025-07-05T23:06:59.535510",
-      "scrape_status": "failed",
-      "error": "Curl scraper failed to extract data"
+      "scraped_at": null,
+      "scrape_status": "pending"
     },
     {
       "url": "https://www.tileshop.com/products/masterstone-white-polished-porcelain-tub-kit-30-x-64-+-32-x-64-in-684117",
       "lastmod": null,
-      "scraped_at": "2025-07-05T23:06:59.563138",
-      "scrape_status": "failed",
-      "error": "Curl scraper failed to extract data"
+      "scraped_at": null,
+      "scrape_status": "pending"
     },
     {
       "url": "https://www.tileshop.com/products/max-rapolano-ivory-matte-porcelain-wall-panel-30-x-94-in-684116",
       "lastmod": null,
-      "scraped_at": "2025-07-05T23:06:59.590645",
-      "scrape_status": "failed",
-      "error": "Curl scraper failed to extract data"
+      "scraped_at": null,
+      "scrape_status": "pending"
     },
     {
       "url": "https://www.tileshop.com/products/max-rapolano-ivory-matte-porcelain-wall-panel-32-x-94-in-684115",
       "lastmod": null,
-      "scraped_at": "2025-07-05T23:06:59.618235",
-      "scrape_status": "failed",
-      "error": "Curl scraper failed to extract data"
+      "scraped_at": null,
+      "scrape_status": "pending"
     },
     {
       "url": "https://www.tileshop.com/products/max-rapolano-ivory-matte-shower-kit-30-x-94-+-32-x-94-in-684114",
       "lastmod": null,
-      "scraped_at": "2025-07-05T23:06:59.646417",
-      "scrape_status": "failed",
-      "error": "Curl scraper failed to extract data"
+      "scraped_at": null,
+      "scrape_status": "pending"
     },
     {
       "url": "https://www.tileshop.com/products/max-rapolano-ivory-matte-porcelain-wall-panel-32-x-64-in-684112",
       "lastmod": null,
-      "scraped_at": "2025-07-05T23:06:59.675523",
-      "scrape_status": "failed",
-      "error": "Curl scraper failed to extract data"
+      "scraped_at": null,
+      "scrape_status": "pending"
     },
     {
       "url": "https://www.tileshop.com/products/max-rapolano-ivory-matte-porcelain-wall-panel-30-x-64-in-684113",
       "lastmod": null,
-      "scraped_at": "2025-07-05T23:06:59.704106",
-      "scrape_status": "failed",
-      "error": "Curl scraper failed to extract data"
+      "scraped_at": null,
+      "scrape_status": "pending"
     },
     {
       "url": "https://www.tileshop.com/products/max-rapolano-ivory-matte-porcelain-tub-kit-30-x-64-+-32-x-64-in-684111",
       "lastmod": null,
-      "scraped_at": "2025-07-05T23:06:59.732446",
-      "scrape_status": "failed",
-      "error": "Curl scraper failed to extract data"
+      "scraped_at": null,
+      "scrape_status": "pending"
     },
     {
       "url": "https://www.tileshop.com/products/calacatta-white-polished-porcelain-wall-panel-30-x-64-in-684125",
       "lastmod": null,
-      "scraped_at": "2025-07-05T23:06:59.760140",
-      "scrape_status": "failed",
-      "error": "Curl scraper failed to extract data"
+      "scraped_at": null,
+      "scrape_status": "pending"
     },
     {
       "url": "https://www.tileshop.com/products/fired-earth-stoneware-rainwashed-ceramic-wall-tile-2-x-10-in-484942",
       "lastmod": null,
-      "scraped_at": "2025-07-05T23:06:59.787661",
-      "scrape_status": "failed",
-      "error": "Curl scraper failed to extract data"
+      "scraped_at": null,
+      "scrape_status": "pending"
     },
     {
       "url": "https://www.tileshop.com/products/fired-earth-stoneware-powder-ceramic-wall-tile-2-x-10-in-484941",
       "lastmod": null,
-      "scraped_at": "2025-07-05T23:06:59.815314",
-      "scrape_status": "failed",
-      "error": "Curl scraper failed to extract data"
+      "scraped_at": null,
+      "scrape_status": "pending"
     },
     {
       "url": "https://www.tileshop.com/products/fired-earth-stoneware-linen-brick-ceramic-wall-tile-2-x-10-in-484940",
       "lastmod": null,
-      "scraped_at": "2025-07-05T23:06:59.842954",
-      "scrape_status": "failed",
-      "error": "Curl scraper failed to extract data"
+      "scraped_at": null,
+      "scrape_status": "pending"
     },
     {
       "url": "https://www.tileshop.com/products/fired-earth-stoneware-indigo-spruce-ceramic-wall-tile-2-x-10-in-484939",
       "lastmod": null,
-      "scraped_at": "2025-07-05T23:06:59.870576",
-      "scrape_status": "failed",
-      "error": "Curl scraper failed to extract data"
+      "scraped_at": null,
+      "scrape_status": "pending"
     },
     {
       "url": "https://www.tileshop.com/products/fired-earth-stoneware-blue-mist-ceramic-wall-tile-2-x-10-in-484938",
       "lastmod": null,
-      "scraped_at": "2025-07-05T23:06:59.901326",
-      "scrape_status": "failed",
-      "error": "Curl scraper failed to extract data"
+      "scraped_at": null,
+      "scrape_status": "pending"
     },
     {
       "url": "https://www.tileshop.com/products/historic-oak-laminate-5-x-25-in-684181",
       "lastmod": null,
-      "scraped_at": "2025-07-05T23:06:59.928885",
-      "scrape_status": "failed",
-      "error": "Curl scraper failed to extract data"
+      "scraped_at": null,
+      "scrape_status": "pending"
     },
     {
       "url": "https://www.tileshop.com/products/sundance-oak-laminate-5-x-25-in-684180",
       "lastmod": null,
-      "scraped_at": "2025-07-05T23:06:59.956704",
-      "scrape_status": "failed",
-      "error": "Curl scraper failed to extract data"
+      "scraped_at": null,
+      "scrape_status": "pending"
     },
     {
       "url": "https://www.tileshop.com/products/heritage-oak-engineered-hardwood-quarter-round-78-in-684107",
       "lastmod": null,
-      "scraped_at": "2025-07-05T23:06:59.984341",
-      "scrape_status": "failed",
-      "error": "Curl scraper failed to extract data"
+      "scraped_at": null,
+      "scrape_status": "pending"
     },
     {
       "url": "https://www.tileshop.com/products/heritage-oak-engineered-hardwood-flush-stair-nose-78-in-684106",
       "lastmod": null,
-      "scraped_at": "2025-07-05T23:07:00.011840",
-      "scrape_status": "failed",
-      "error": "Curl scraper failed to extract data"
+      "scraped_at": null,
+      "scrape_status": "pending"
     },
     {
       "url": "https://www.tileshop.com/products/heritage-oak-engineered-hardwood-overlap-stair-nose-78-in-684105",
       "lastmod": null,
-      "scraped_at": "2025-07-05T23:07:00.039485",
-      "scrape_status": "failed",
-      "error": "Curl scraper failed to extract data"
+      "scraped_at": null,
+      "scrape_status": "pending"
     },
     {
       "url": "https://www.tileshop.com/products/heritage-oak-engineered-hardwood-reducer-78-in-684104",
       "lastmod": null,
-      "scraped_at": "2025-07-05T23:07:00.069696",
-      "scrape_status": "failed",
-      "error": "Curl scraper failed to extract data"
+      "scraped_at": null,
+      "scrape_status": "pending"
     },
     {
       "url": "https://www.tileshop.com/products/heritage-oak-engineered-hardwood-t-molding-78-in-684103",
       "lastmod": null,
-      "scraped_at": "2025-07-05T23:07:00.097785",
-      "scrape_status": "failed",
-      "error": "Curl scraper failed to extract data"
+      "scraped_at": null,
+      "scrape_status": "pending"
     },
     {
       "url": "https://www.tileshop.com/products/pasadena-oak-engineered-hardwood-flush-stair-nose-78-in-684101",
       "lastmod": null,
-      "scraped_at": "2025-07-05T23:07:00.125891",
-      "scrape_status": "failed",
-      "error": "Curl scraper failed to extract data"
+      "scraped_at": null,
+      "scrape_status": "pending"
     },
     {
       "url": "https://www.tileshop.com/products/pasadena-oak-engineered-hardwood-quarter-round-78-in-684102",
       "lastmod": null,
-      "scraped_at": "2025-07-05T23:07:00.153921",
-      "scrape_status": "failed",
-      "error": "Curl scraper failed to extract data"
+      "scraped_at": null,
+      "scrape_status": "pending"
     },
     {
       "url": "https://www.tileshop.com/products/pasadena-oak-engineered-hardwood-overlap-stair-nose-78-in-684100",
       "lastmod": null,
-      "scraped_at": "2025-07-05T23:07:00.181937",
-      "scrape_status": "failed",
-      "error": "Curl scraper failed to extract data"
+      "scraped_at": null,
+      "scrape_status": "pending"
     },
     {
       "url": "https://www.tileshop.com/products/pasadena-oak-engineered-hardwood-reducer-78-in-684099",
       "lastmod": null,
-      "scraped_at": "2025-07-05T23:07:00.209692",
-      "scrape_status": "failed",
-      "error": "Curl scraper failed to extract data"
+      "scraped_at": null,
+      "scrape_status": "pending"
     },
     {
       "url": "https://www.tileshop.com/products/canyon-oak-engineered-hardwood-quarter-round-78-in-684097",
       "lastmod": null,
-      "scraped_at": "2025-07-05T23:07:00.237646",
-      "scrape_status": "failed",
-      "error": "Curl scraper failed to extract data"
+      "scraped_at": null,
+      "scrape_status": "pending"
     },
     {
       "url": "https://www.tileshop.com/products/pasadena-oak-engineered-hardwood-t-molding-78-in-684098",
       "lastmod": null,
-      "scraped_at": "2025-07-05T23:07:00.266009",
-      "scrape_status": "failed",
-      "error": "Curl scraper failed to extract data"
+      "scraped_at": null,
+      "scrape_status": "pending"
     },
     {
       "url": "https://www.tileshop.com/products/canyon-oak-engineered-hardwood-flush-stair-nose-78-in-684096",
       "lastmod": null,
-      "scraped_at": "2025-07-05T23:07:00.294820",
-      "scrape_status": "failed",
-      "error": "Curl scraper failed to extract data"
+      "scraped_at": null,
+      "scrape_status": "pending"
     },
     {
       "url": "https://www.tileshop.com/products/canyon-oak-engineered-hardwood-overlap-stair-nose-78-in-684095",
       "lastmod": null,
-      "scraped_at": "2025-07-05T23:07:00.323663",
-      "scrape_status": "failed",
-      "error": "Curl scraper failed to extract data"
+      "scraped_at": null,
+      "scrape_status": "pending"
     },
     {
       "url": "https://www.tileshop.com/products/canyon-oak-engineered-hardwood-reducer-78-in-684094",
       "lastmod": null,
-      "scraped_at": "2025-07-05T23:07:00.352689",
-      "scrape_status": "failed",
-      "error": "Curl scraper failed to extract data"
+      "scraped_at": null,
+      "scrape_status": "pending"
     },
     {
       "url": "https://www.tileshop.com/products/canyon-oak-engineered-hardwood-t-molding-78-in-684093",
       "lastmod": null,
-      "scraped_at": "2025-07-05T23:07:00.380746",
-      "scrape_status": "failed",
-      "error": "Curl scraper failed to extract data"
+      "scraped_at": null,
+      "scrape_status": "pending"
     },
     {
       "url": "https://www.tileshop.com/products/basking-ridge-oak-engineered-hardwood-quarter-round-78-in-684092",
       "lastmod": null,
-      "scraped_at": "2025-07-05T23:07:00.408720",
-      "scrape_status": "failed",
-      "error": "Curl scraper failed to extract data"
+      "scraped_at": null,
+      "scrape_status": "pending"
     },
     {
       "url": "https://www.tileshop.com/products/basking-ridge-oak-engineered-hardwood-flush-stair-nose-78-in-684091",
       "lastmod": null,
-      "scraped_at": "2025-07-05T23:07:00.436841",
-      "scrape_status": "failed",
-      "error": "Curl scraper failed to extract data"
+      "scraped_at": null,
+      "scrape_status": "pending"
     },
     {
       "url": "https://www.tileshop.com/products/basking-ridge-oak-engineered-hardwood-overlap-stair-nose-78-in-684090",
       "lastmod": null,
-      "scraped_at": "2025-07-05T23:07:00.464961",
-      "scrape_status": "failed",
-      "error": "Curl scraper failed to extract data"
+      "scraped_at": null,
+      "scrape_status": "pending"
     },
     {
       "url": "https://www.tileshop.com/products/basking-ridge-oak-engineered-hardwood-reducer-78-in-684089",
       "lastmod": null,
-      "scraped_at": "2025-07-05T23:07:00.492878",
-      "scrape_status": "failed",
-      "error": "Curl scraper failed to extract data"
+      "scraped_at": null,
+      "scrape_status": "pending"
     },
     {
       "url": "https://www.tileshop.com/products/basking-ridge-oak-engineered-hardwood-t-molding-78-in-684088",
       "lastmod": null,
-      "scraped_at": "2025-07-05T23:07:00.520832",
-      "scrape_status": "failed",
-      "error": "Curl scraper failed to extract data"
+      "scraped_at": null,
+      "scrape_status": "pending"
     },
     {
       "url": "https://www.tileshop.com/products/bedford-oak-engineered-hardwood-quarter-round-78-in-684087",
       "lastmod": null,
-      "scraped_at": "2025-07-05T23:07:00.549188",
-      "scrape_status": "failed",
-      "error": "Curl scraper failed to extract data"
+      "scraped_at": null,
+      "scrape_status": "pending"
     },
     {
       "url": "https://www.tileshop.com/products/bedford-oak-engineered-hardwood-flush-stair-nose-78-in-684086",
       "lastmod": null,
-      "scraped_at": "2025-07-05T23:07:00.577332",
-      "scrape_status": "failed",
-      "error": "Curl scraper failed to extract data"
+      "scraped_at": null,
+      "scrape_status": "pending"
     },
     {
       "url": "https://www.tileshop.com/products/bedford-oak-engineered-hardwood-overlap-stair-nose-78-in-684085",
       "lastmod": null,
-      "scraped_at": "2025-07-05T23:07:00.605286",
-      "scrape_status": "failed",
-      "error": "Curl scraper failed to extract data"
+      "scraped_at": null,
+      "scrape_status": "pending"
     },
     {
       "url": "https://www.tileshop.com/products/bedford-oak-engineered-hardwood-reducer-78-in-684084",
       "lastmod": null,
-      "scraped_at": "2025-07-05T23:07:00.633405",
-      "scrape_status": "failed",
-      "error": "Curl scraper failed to extract data"
+      "scraped_at": null,
+      "scrape_status": "pending"
     },
     {
       "url": "https://www.tileshop.com/products/roccia-di-roma-silver-porcelain-wall-and-floor-tile-12-x-24-in-683879",
       "lastmod": null,
-      "scraped_at": "2025-07-05T23:07:00.661287",
-      "scrape_status": "failed",
-      "error": "Curl scraper failed to extract data"
+      "scraped_at": null,
+      "scrape_status": "pending"
     },
     {
       "url": "https://www.tileshop.com/products/quarry-grey-skirting-external-angle-wall-trim-tile-6-in-683870",
       "lastmod": null,
-      "scraped_at": "2025-07-05T23:07:00.689302",
-      "scrape_status": "failed",
-      "error": "Curl scraper failed to extract data"
+      "scraped_at": null,
+      "scrape_status": "pending"
     },
     {
       "url": "https://www.tileshop.com/products/quarry-grey-skirting-wall-trim-tile-6-in-683868",
       "lastmod": null,
-      "scraped_at": "2025-07-05T23:07:00.717154",
-      "scrape_status": "failed",
-      "error": "Curl scraper failed to extract data"
+      "scraped_at": null,
+      "scrape_status": "pending"
     },
     {
       "url": "https://www.tileshop.com/products/quarry-red-skirting-wall-trim-tile-6-in-683865",
       "lastmod": null,
-      "scraped_at": "2025-07-05T23:07:00.745192",
-      "scrape_status": "failed",
-      "error": "Curl scraper failed to extract data"
+      "scraped_at": null,
+      "scrape_status": "pending"
     },
     {
       "url": "https://www.tileshop.com/products/gray-porcelain-corner-shelf-683550",
       "lastmod": null,
-      "scraped_at": "2025-07-05T23:07:00.773570",
-      "scrape_status": "failed",
-      "error": "Curl scraper failed to extract data"
+      "scraped_at": null,
+      "scrape_status": "pending"
     },
     {
       "url": "https://www.tileshop.com/products/snow-porcelain-corner-shelf-683549",
       "lastmod": null,
-      "scraped_at": "2025-07-05T23:07:00.801763",
-      "scrape_status": "failed",
-      "error": "Curl scraper failed to extract data"
+      "scraped_at": null,
+      "scrape_status": "pending"
     },
     {
       "url": "https://www.tileshop.com/products/morris-&-co-pure-net-brick-porcelain-wall-and-floor-tile-13-x-13-in-683861",
       "lastmod": null,
-      "scraped_at": "2025-07-05T23:07:00.829435",
-      "scrape_status": "failed",
-      "error": "Curl scraper failed to extract data"
+      "scraped_at": null,
+      "scrape_status": "pending"
     },
     {
       "url": "https://www.tileshop.com/products/morris-&-co-hawkdale-willow-blue-ceramic-wall-tile-3-x-95-in-484943",
       "lastmod": null,
-      "scraped_at": "2025-07-05T23:07:00.856993",
-      "scrape_status": "failed",
-      "error": "Curl scraper failed to extract data"
+      "scraped_at": null,
+      "scrape_status": "pending"
     },
     {
       "url": "https://www.tileshop.com/products/morris-&-co-pure-net-inkwell-porcelain-wall-and-floor-tile-13-x-13-in-683862",
       "lastmod": null,
-      "scraped_at": "2025-07-05T23:07:00.885123",
-      "scrape_status": "failed",
-      "error": "Curl scraper failed to extract data"
+      "scraped_at": null,
+      "scrape_status": "pending"
     },
     {
       "url": "https://www.tileshop.com/products/corlee-heritage-oak-engineered-wood-flooring-684024E",
       "lastmod": null,
-      "scraped_at": "2025-07-05T23:07:00.913765",
-      "scrape_status": "failed",
-      "error": "Curl scraper failed to extract data"
+      "scraped_at": null,
+      "scrape_status": "pending"
     },
     {
       "url": "https://www.tileshop.com/products/corlee-pasadena-oak-engineered-wood-flooring-684023E",
       "lastmod": null,
-      "scraped_at": "2025-07-05T23:07:00.942360",
-      "scrape_status": "failed",
-      "error": "Curl scraper failed to extract data"
+      "scraped_at": null,
+      "scrape_status": "pending"
     },
     {
       "url": "https://www.tileshop.com/products/corlee-canyon-oak-engineered-wood-flooring-684022E",
       "lastmod": null,
-      "scraped_at": "2025-07-05T23:07:00.970904",
-      "scrape_status": "failed",
-      "error": "Curl scraper failed to extract data"
+      "scraped_at": null,
+      "scrape_status": "pending"
     },
     {
       "url": "https://www.tileshop.com/products/corlee-basking-ridge-oak-engineered-wood-flooring-684021E",
       "lastmod": null,
-      "scraped_at": "2025-07-05T23:07:00.999110",
-      "scrape_status": "failed",
-      "error": "Curl scraper failed to extract data"
+      "scraped_at": null,
+      "scrape_status": "pending"
     },
     {
       "url": "https://www.tileshop.com/products/corlee-bedford-oak-engineered-wood-flooring-684020E",
       "lastmod": null,
-      "scraped_at": "2025-07-05T23:07:01.026761",
-      "scrape_status": "failed",
-      "error": "Curl scraper failed to extract data"
+      "scraped_at": null,
+      "scrape_status": "pending"
     },
     {
       "url": "https://www.tileshop.com/products/corlee-valley-oak-engineered-wood-flooring-684019e",
       "lastmod": null,
-      "scraped_at": "2025-07-05T23:07:01.054236",
-      "scrape_status": "failed",
-      "error": "Curl scraper failed to extract data"
+      "scraped_at": null,
+      "scrape_status": "pending"
     },
     {
       "url": "https://www.tileshop.com/products/corlee-coastal-oak-engineered-wood-flooring-684018E",
       "lastmod": null,
-      "scraped_at": "2025-07-05T23:07:01.082225",
-      "scrape_status": "failed",
-      "error": "Curl scraper failed to extract data"
+      "scraped_at": null,
+      "scrape_status": "pending"
     },
     {
       "url": "https://www.tileshop.com/products/sand-dollar-by-jeffrey-alan-marks-in-ocean-porcelain-wall-and-floor-tile-6-x-6-in-683799",
       "lastmod": null,
-      "scraped_at": "2025-07-05T23:07:01.109728",
-      "scrape_status": "failed",
-      "error": "Curl scraper failed to extract data"
+      "scraped_at": null,
+      "scrape_status": "pending"
     },
     {
       "url": "https://www.tileshop.com/products/sand-dollar-by-jeffrey-alan-marks-in-ash-porcelain-wall-and-floor-tile-6-x-6-in-683798",
       "lastmod": null,
-      "scraped_at": "2025-07-05T23:07:01.137282",
-      "scrape_status": "failed",
-      "error": "Curl scraper failed to extract data"
+      "scraped_at": null,
+      "scrape_status": "pending"
     },
     {
       "url": "https://www.tileshop.com/products/signature-bianco-bevel-gloss-ceramic-subway-wall-tile-4-x-8-in-484952",
       "lastmod": null,
-      "scraped_at": "2025-07-05T23:07:01.164904",
-      "scrape_status": "failed",
-      "error": "Curl scraper failed to extract data"
+      "scraped_at": null,
+      "scrape_status": "pending"
     },
     {
       "url": "https://www.tileshop.com/products/best-of-everything-1/8-in-leveling-system-gray-base-2000-pieces-per-bag-351308",
       "lastmod": null,
-      "scraped_at": "2025-07-05T23:07:01.192634",
-      "scrape_status": "failed",
-      "error": "Curl scraper failed to extract data"
+      "scraped_at": null,
+      "scrape_status": "pending"
     },
     {
       "url": "https://www.tileshop.com/products/best-of-everything-1/8-leveling-system-gray-base-250-pieces-per-bag-351307",
       "lastmod": null,
-      "scraped_at": "2025-07-05T23:07:01.220198",
-      "scrape_status": "failed",
-      "error": "Curl scraper failed to extract data"
+      "scraped_at": null,
+      "scrape_status": "pending"
     },
     {
       "url": "https://www.tileshop.com/products/best-of-everything-1/16-in-leveling-system-white-base-2000-pieces-per-bag-351306",
       "lastmod": null,
-      "scraped_at": "2025-07-05T23:07:01.247796",
-      "scrape_status": "failed",
-      "error": "Curl scraper failed to extract data"
+      "scraped_at": null,
+      "scrape_status": "pending"
     },
     {
       "url": "https://www.tileshop.com/products/best-of-everything-1/16-in-leveling-system-white-base-250-pieces-per-bag-351305",
       "lastmod": null,
-      "scraped_at": "2025-07-05T23:07:01.275335",
-      "scrape_status": "failed",
-      "error": "Curl scraper failed to extract data"
+      "scraped_at": null,
+      "scrape_status": "pending"
     },
     {
       "url": "https://www.tileshop.com/products/best-of-everything-1/32-in-leveling-system-green-base-250-pieces-per-bag-351304",
       "lastmod": null,
-      "scraped_at": "2025-07-05T23:07:01.302836",
-      "scrape_status": "failed",
-      "error": "Curl scraper failed to extract data"
+      "scraped_at": null,
+      "scrape_status": "pending"
     },
     {
       "url": "https://www.tileshop.com/products/best-of-everything-lippage-blue-base-500-pieces-per-bag-351299",
       "lastmod": null,
-      "scraped_at": "2025-07-05T23:07:01.330409",
-      "scrape_status": "failed",
-      "error": "Curl scraper failed to extract data"
+      "scraped_at": null,
+      "scrape_status": "pending"
     },
     {
       "url": "https://www.tileshop.com/products/best-of-everything-lippage-blue-base-250-pieces-per-bag-351298",
       "lastmod": null,
-      "scraped_at": "2025-07-05T23:07:01.358374",
-      "scrape_status": "failed",
-      "error": "Curl scraper failed to extract data"
+      "scraped_at": null,
+      "scrape_status": "pending"
     },
     {
       "url": "https://www.tileshop.com/products/best-of-everything-lippage-gray-base-2000-pieces-per-box-351297",
       "lastmod": null,
-      "scraped_at": "2025-07-05T23:07:01.386019",
-      "scrape_status": "failed",
-      "error": "Curl scraper failed to extract data"
+      "scraped_at": null,
+      "scrape_status": "pending"
     },
     {
       "url": "https://www.tileshop.com/products/best-of-everything-lippage-gray-base-500-pieces-per-bag-351296",
       "lastmod": null,
-      "scraped_at": "2025-07-05T23:07:01.413689",
-      "scrape_status": "failed",
-      "error": "Curl scraper failed to extract data"
+      "scraped_at": null,
+      "scrape_status": "pending"
     },
     {
       "url": "https://www.tileshop.com/products/best-of-everything-lippage-grey-base-250-pieces-per-tub-351295",
       "lastmod": null,
-      "scraped_at": "2025-07-05T23:07:01.441192",
-      "scrape_status": "failed",
-      "error": "Curl scraper failed to extract data"
+      "scraped_at": null,
+      "scrape_status": "pending"
     },
     {
       "url": "https://www.tileshop.com/products/best-of-everything-lippage-white-base-2000-pieces-per-box-351294",
       "lastmod": null,
-      "scraped_at": "2025-07-05T23:07:01.468847",
-      "scrape_status": "failed",
-      "error": "Curl scraper failed to extract data"
+      "scraped_at": null,
+      "scrape_status": "pending"
     },
     {
       "url": "https://www.tileshop.com/products/best-of-everything-lippage-white-base-500-pieces-per-bag-351293",
       "lastmod": null,
-      "scraped_at": "2025-07-05T23:07:01.497454",
-      "scrape_status": "failed",
-      "error": "Curl scraper failed to extract data"
+      "scraped_at": null,
+      "scrape_status": "pending"
     },
     {
       "url": "https://www.tileshop.com/products/best-of-everything-lippage-white-base-250-pieces-per-tub-351292",
       "lastmod": null,
-      "scraped_at": "2025-07-05T23:07:01.525982",
-      "scrape_status": "failed",
-      "error": "Curl scraper failed to extract data"
+      "scraped_at": null,
+      "scrape_status": "pending"
     },
     {
       "url": "https://www.tileshop.com/products/best-of-everything-sponga-square-sponge-65-x-45-x-25-in-351326",
       "lastmod": null,
-      "scraped_at": "2025-07-05T23:07:01.554572",
-      "scrape_status": "failed",
-      "error": "Curl scraper failed to extract data"
+      "scraped_at": null,
+      "scrape_status": "pending"
     },
     {
       "url": "https://www.tileshop.com/products/best-of-everything-flexible-backer-pad-4-in-4-pieces-351325",
       "lastmod": null,
-      "scraped_at": "2025-07-05T23:07:01.582527",
-      "scrape_status": "failed",
-      "error": "Curl scraper failed to extract data"
+      "scraped_at": null,
+      "scrape_status": "pending"
     },
     {
       "url": "https://www.tileshop.com/products/best-of-everything-square-p2-notch-trowel-1/2-x-1/2-x-1/2-in-351324",
       "lastmod": null,
-      "scraped_at": "2025-07-05T23:07:01.610102",
-      "scrape_status": "failed",
-      "error": "Curl scraper failed to extract data"
+      "scraped_at": null,
+      "scrape_status": "pending"
     },
     {
       "url": "https://www.tileshop.com/products/best-of-everything-square-p2-notch-trowel-1/4-x-3/8-x-1/4-in-351323",
       "lastmod": null,
-      "scraped_at": "2025-07-05T23:07:01.637756",
-      "scrape_status": "failed",
-      "error": "Curl scraper failed to extract data"
+      "scraped_at": null,
+      "scrape_status": "pending"
     },
     {
       "url": "https://www.tileshop.com/products/best-of-everything-square-p2-notch-trowel-1/4-x-1/4-x-1/4-in-351322",
       "lastmod": null,
-      "scraped_at": "2025-07-05T23:07:01.665301",
-      "scrape_status": "failed",
-      "error": "Curl scraper failed to extract data"
+      "scraped_at": null,
+      "scrape_status": "pending"
     },
     {
       "url": "https://www.tileshop.com/products/best-of-everything-diamond-3-step-dry-polishing-pad-3-piece-351321",
       "lastmod": null,
-      "scraped_at": "2025-07-05T23:07:01.692943",
-      "scrape_status": "failed",
-      "error": "Curl scraper failed to extract data"
+      "scraped_at": null,
+      "scrape_status": "pending"
     },
     {
       "url": "https://www.tileshop.com/products/best-of-everything-hd-series-premium-diamond-blade-45-in-351319",
       "lastmod": null,
-      "scraped_at": "2025-07-05T23:07:01.720519",
-      "scrape_status": "failed",
-      "error": "Curl scraper failed to extract data"
+      "scraped_at": null,
+      "scrape_status": "pending"
     },
     {
       "url": "https://www.tileshop.com/products/best-of-everything-h-series-premium-diamond-blade-10-in-351320",
       "lastmod": null,
-      "scraped_at": "2025-07-05T23:07:01.748110",
-      "scrape_status": "failed",
-      "error": "Curl scraper failed to extract data"
+      "scraped_at": null,
+      "scrape_status": "pending"
     },
     {
       "url": "https://www.tileshop.com/products/best-of-everything-lace-series-supreme-diamond-blade-10-in-351318",
       "lastmod": null,
-      "scraped_at": "2025-07-05T23:07:01.775668",
-      "scrape_status": "failed",
-      "error": "Curl scraper failed to extract data"
+      "scraped_at": null,
+      "scrape_status": "pending"
     },
     {
       "url": "https://www.tileshop.com/products/best-of-everything-lace-series-supreme-diamond-blade-45-in-351317",
       "lastmod": null,
-      "scraped_at": "2025-07-05T23:07:01.803678",
-      "scrape_status": "failed",
-      "error": "Curl scraper failed to extract data"
+      "scraped_at": null,
+      "scrape_status": "pending"
     },
     {
       "url": "https://www.tileshop.com/products/best-of-everything-milling-bit-75-in-351315",
       "lastmod": null,
-      "scraped_at": "2025-07-05T23:07:01.831395",
-      "scrape_status": "failed",
-      "error": "Curl scraper failed to extract data"
+      "scraped_at": null,
+      "scrape_status": "pending"
     },
     {
       "url": "https://www.tileshop.com/products/best-of-everything-3-diamond-countersink-bits-1375-in-351316",
       "lastmod": null,
-      "scraped_at": "2025-07-05T23:07:01.858951",
-      "scrape_status": "failed",
-      "error": "Curl scraper failed to extract data"
+      "scraped_at": null,
+      "scrape_status": "pending"
     },
     {
       "url": "https://www.tileshop.com/products/best-of-everything-long-vaccum-brazed-bit-2-in-351314",
       "lastmod": null,
-      "scraped_at": "2025-07-05T23:07:01.886467",
-      "scrape_status": "failed",
-      "error": "Curl scraper failed to extract data"
+      "scraped_at": null,
+      "scrape_status": "pending"
     },
     {
       "url": "https://www.tileshop.com/products/best-of-everything-long-vacuum-brazed-bit-1375-in-351313best-of-everything-long-vacuum-brazed-bit-1375-in-351313",
       "lastmod": null,
-      "scraped_at": "2025-07-05T23:07:01.914143",
-      "scrape_status": "failed",
-      "error": "Curl scraper failed to extract data"
+      "scraped_at": null,
+      "scrape_status": "pending"
     },
     {
       "url": "https://www.tileshop.com/products/best-of-everything-short-vacuum-brazed-diamond-bit-25-in-351312",
       "lastmod": null,
-      "scraped_at": "2025-07-05T23:07:01.941813",
-      "scrape_status": "failed",
-      "error": "Curl scraper failed to extract data"
+      "scraped_at": null,
+      "scrape_status": "pending"
     },
     {
       "url": "https://www.tileshop.com/products/best-of-everything-leveling-system-washer-150-pieces-per-box-351311",
       "lastmod": null,
-      "scraped_at": "2025-07-05T23:07:01.969404",
-      "scrape_status": "failed",
-      "error": "Curl scraper failed to extract data"
+      "scraped_at": null,
+      "scrape_status": "pending"
     },
     {
       "url": "https://www.tileshop.com/products/best-of-everything-leveling-system-cap-400-pieces-per-box-351310",
       "lastmod": null,
-      "scraped_at": "2025-07-05T23:07:01.996925",
-      "scrape_status": "failed",
-      "error": "Curl scraper failed to extract data"
+      "scraped_at": null,
+      "scrape_status": "pending"
     },
     {
       "url": "https://www.tileshop.com/products/best-of-everything-leveling-system-cap-100-pieces-per-tub-351309",
       "lastmod": null,
-      "scraped_at": "2025-07-05T23:07:02.024560",
-      "scrape_status": "failed",
-      "error": "Curl scraper failed to extract data"
+      "scraped_at": null,
+      "scrape_status": "pending"
     },
     {
       "url": "https://www.tileshop.com/products/best-of-everything-lippage-washer-240-pieces-per-tub-351303",
       "lastmod": null,
-      "scraped_at": "2025-07-05T23:07:02.052046",
-      "scrape_status": "failed",
-      "error": "Curl scraper failed to extract data"
+      "scraped_at": null,
+      "scrape_status": "pending"
     },
     {
       "url": "https://www.tileshop.com/products/best-of-everything-lippage-red-wedge-500-pieces-per-bag-351301",
       "lastmod": null,
-      "scraped_at": "2025-07-05T23:07:02.079802",
-      "scrape_status": "failed",
-      "error": "Curl scraper failed to extract data"
+      "scraped_at": null,
+      "scrape_status": "pending"
     },
     {
       "url": "https://www.tileshop.com/products/best-of-everything-lippage-red-wedge-250-pieces-per-bag-351300",
       "lastmod": null,
-      "scraped_at": "2025-07-05T23:07:02.108393",
-      "scrape_status": "failed",
-      "error": "Curl scraper failed to extract data"
+      "scraped_at": null,
+      "scrape_status": "pending"
     },
     {
       "url": "https://www.tileshop.com/products/la-petite-by-alison-victoria-montmartre-porcelain-wall-and-floor-tile-6-x-6-in-684177",
       "lastmod": null,
-      "scraped_at": "2025-07-05T23:07:02.137041",
-      "scrape_status": "failed",
-      "error": "Curl scraper failed to extract data"
+      "scraped_at": null,
+      "scrape_status": "pending"
     },
     {
       "url": "https://www.tileshop.com/products/la-petite-by-alison-victoria-le-marais-porcelain-wall-and-floor-tile-6-x-6-in-684176",
       "lastmod": null,
-      "scraped_at": "2025-07-05T23:07:02.165581",
-      "scrape_status": "failed",
-      "error": "Curl scraper failed to extract data"
+      "scraped_at": null,
+      "scrape_status": "pending"
     },
     {
       "url": "https://www.tileshop.com/products/natura-montreux-oak-laminate-96-x-7886-in-684064",
       "lastmod": null,
-      "scraped_at": "2025-07-05T23:07:02.194291",
-      "scrape_status": "failed",
-      "error": "Curl scraper failed to extract data"
+      "scraped_at": null,
+      "scrape_status": "pending"
     },
     {
       "url": "https://www.tileshop.com/products/farro-blonde-montreux-oak-laminate-96-x-7886-in-684063",
       "lastmod": null,
-      "scraped_at": "2025-07-05T23:07:02.221715",
-      "scrape_status": "failed",
-      "error": "Curl scraper failed to extract data"
+      "scraped_at": null,
+      "scrape_status": "pending"
     },
     {
       "url": "https://www.tileshop.com/products/blonde-montreux-oak-laminate-96-x-7886-in-684062",
       "lastmod": null,
-      "scraped_at": "2025-07-05T23:07:02.249207",
-      "scrape_status": "failed",
-      "error": "Curl scraper failed to extract data"
+      "scraped_at": null,
+      "scrape_status": "pending"
     },
     {
       "url": "https://www.tileshop.com/products/oak-kansas-witchita-laminate-96-x-5445-in-684061",
       "lastmod": null,
-      "scraped_at": "2025-07-05T23:07:02.276688",
-      "scrape_status": "failed",
-      "error": "Curl scraper failed to extract data"
+      "scraped_at": null,
+      "scrape_status": "pending"
     },
     {
       "url": "https://www.tileshop.com/products/oak-kansas-overland-laminate-96-x-5445-in-684060",
       "lastmod": null,
-      "scraped_at": "2025-07-05T23:07:02.304471",
-      "scrape_status": "failed",
-      "error": "Curl scraper failed to extract data"
+      "scraped_at": null,
+      "scrape_status": "pending"
     },
     {
       "url": "https://www.tileshop.com/products/oak-brera-classic-laminate-96-x-5445-in-684059",
       "lastmod": null,
-      "scraped_at": "2025-07-05T23:07:02.332132",
-      "scrape_status": "failed",
-      "error": "Curl scraper failed to extract data"
+      "scraped_at": null,
+      "scrape_status": "pending"
     },
     {
       "url": "https://www.tileshop.com/products/oak-wimbledon-laminate-96-x-5445-in-684058",
       "lastmod": null,
-      "scraped_at": "2025-07-05T23:07:02.359780",
-      "scrape_status": "failed",
-      "error": "Curl scraper failed to extract data"
+      "scraped_at": null,
+      "scrape_status": "pending"
     },
     {
       "url": "https://www.tileshop.com/products/hickory-sunday-laminate-96-x-5445-in-684057",
       "lastmod": null,
-      "scraped_at": "2025-07-05T23:07:02.387479",
-      "scrape_status": "failed",
-      "error": "Curl scraper failed to extract data"
+      "scraped_at": null,
+      "scrape_status": "pending"
     },
     {
       "url": "https://www.tileshop.com/products/oak-cremona-cotta-laminate-76-x-5445-in-684055",
       "lastmod": null,
-      "scraped_at": "2025-07-05T23:07:02.415138",
-      "scrape_status": "failed",
-      "error": "Curl scraper failed to extract data"
+      "scraped_at": null,
+      "scrape_status": "pending"
     },
     {
       "url": "https://www.tileshop.com/products/oak-cremona-torro-laminate-76-x-5445-in-684056",
       "lastmod": null,
-      "scraped_at": "2025-07-05T23:07:02.442839",
-      "scrape_status": "failed",
-      "error": "Curl scraper failed to extract data"
+      "scraped_at": null,
+      "scrape_status": "pending"
     },
     {
       "url": "https://www.tileshop.com/products/oak-newhaven-waterbury-laminate-96-x-5445-in-684054",
       "lastmod": null,
-      "scraped_at": "2025-07-05T23:07:02.470495",
-      "scrape_status": "failed",
-      "error": "Curl scraper failed to extract data"
+      "scraped_at": null,
+      "scrape_status": "pending"
     },
     {
       "url": "https://www.tileshop.com/products/hickory-scuol-guarda-laminate-76-x-5445-in-684052",
       "lastmod": null,
-      "scraped_at": "2025-07-05T23:07:02.498264",
-      "scrape_status": "failed",
-      "error": "Curl scraper failed to extract data"
+      "scraped_at": null,
+      "scrape_status": "pending"
     },
     {
       "url": "https://www.tileshop.com/products/oak-freysted-atacama-laminate-96-x-5445-in-684053",
       "lastmod": null,
-      "scraped_at": "2025-07-05T23:07:02.526059",
-      "scrape_status": "failed",
-      "error": "Curl scraper failed to extract data"
+      "scraped_at": null,
+      "scrape_status": "pending"
     },
     {
       "url": "https://www.tileshop.com/products/leighton-dark-matte-porcelain-wall-and-floor-tile-12-x-24-in-683836",
       "lastmod": null,
-      "scraped_at": "2025-07-05T23:07:02.553622",
-      "scrape_status": "failed",
-      "error": "Curl scraper failed to extract data"
+      "scraped_at": null,
+      "scrape_status": "pending"
     },
     {
       "url": "https://www.tileshop.com/products/murano-white-glossy-ceramic-wall-tile-3-x-12-in-484928",
       "lastmod": null,
-      "scraped_at": "2025-07-05T23:07:02.581301",
-      "scrape_status": "failed",
-      "error": "Curl scraper failed to extract data"
+      "scraped_at": null,
+      "scrape_status": "pending"
     },
     {
       "url": "https://www.tileshop.com/products/murano-talco-glossy-ceramic-wall-tile-3-x-12-in-484927",
       "lastmod": null,
-      "scraped_at": "2025-07-05T23:07:02.609231",
-      "scrape_status": "failed",
-      "error": "Curl scraper failed to extract data"
+      "scraped_at": null,
+      "scrape_status": "pending"
     },
     {
       "url": "https://www.tileshop.com/products/murano-forest-glossy-ceramic-wall-tile-3-x-12-in-484926",
       "lastmod": null,
-      "scraped_at": "2025-07-05T23:07:02.637156",
-      "scrape_status": "failed",
-      "error": "Curl scraper failed to extract data"
+      "scraped_at": null,
+      "scrape_status": "pending"
     },
     {
       "url": "https://www.tileshop.com/products/murano-deep-blue-glossy-ceramic-wall-tile-3-x-12-in-484925",
       "lastmod": null,
-      "scraped_at": "2025-07-05T23:07:02.664820",
-      "scrape_status": "failed",
-      "error": "Curl scraper failed to extract data"
+      "scraped_at": null,
+      "scrape_status": "pending"
     },
     {
       "url": "https://www.tileshop.com/products/arbour-midlands-hickory-blonde-roast-luxury-vinyl-flush-stair-nose-84-in-683935",
       "lastmod": null,
-      "scraped_at": "2025-07-05T23:07:02.692672",
-      "scrape_status": "failed",
-      "error": "Curl scraper failed to extract data"
+      "scraped_at": null,
+      "scrape_status": "pending"
     },
     {
       "url": "https://www.tileshop.com/products/arbour-highlands-byron-bay-oak-luxury-vinyl-quarter-round-84-in-683966",
       "lastmod": null,
-      "scraped_at": "2025-07-05T23:07:02.721435",
-      "scrape_status": "failed",
-      "error": "Curl scraper failed to extract data"
+      "scraped_at": null,
+      "scrape_status": "pending"
     },
     {
       "url": "https://www.tileshop.com/products/arbour-highlands-byron-bay-oak-luxury-vinyl-flush-stair-nose-84-in-683965",
       "lastmod": null,
-      "scraped_at": "2025-07-05T23:07:02.750224",
-      "scrape_status": "failed",
-      "error": "Curl scraper failed to extract data"
+      "scraped_at": null,
+      "scrape_status": "pending"
     },
     {
       "url": "https://www.tileshop.com/products/arbour-highlands-byron-bay-oak-luxury-vinyl-overlap-stair-nose-84-in-683964",
       "lastmod": null,
-      "scraped_at": "2025-07-05T23:07:02.778971",
-      "scrape_status": "failed",
-      "error": "Curl scraper failed to extract data"
+      "scraped_at": null,
+      "scrape_status": "pending"
     },
     {
       "url": "https://www.tileshop.com/products/arbour-highlands-byron-bay-oak-luxury-vinyl-reducer-84-in-683963",
       "lastmod": null,
-      "scraped_at": "2025-07-05T23:07:02.807371",
-      "scrape_status": "failed",
-      "error": "Curl scraper failed to extract data"
+      "scraped_at": null,
+      "scrape_status": "pending"
     },
     {
       "url": "https://www.tileshop.com/products/arbour-highlands-byron-bay-oak-luxury-vinyl-t-molding-84-in-683962",
       "lastmod": null,
-      "scraped_at": "2025-07-05T23:07:02.835036",
-      "scrape_status": "failed",
-      "error": "Curl scraper failed to extract data"
+      "scraped_at": null,
+      "scrape_status": "pending"
     },
     {
       "url": "https://www.tileshop.com/products/arbour-highlands-montecito-oak-luxury-vinyl-quarter-round-84-in-683961",
       "lastmod": null,
-      "scraped_at": "2025-07-05T23:07:02.862676",
-      "scrape_status": "failed",
-      "error": "Curl scraper failed to extract data"
+      "scraped_at": null,
+      "scrape_status": "pending"
     },
     {
       "url": "https://www.tileshop.com/products/arbour-highlands-montecito-oak-luxury-vinyl-flush-stair-nose-84-in-683960",
       "lastmod": null,
-      "scraped_at": "2025-07-05T23:07:02.890610",
-      "scrape_status": "failed",
-      "error": "Curl scraper failed to extract data"
+      "scraped_at": null,
+      "scrape_status": "pending"
     },
     {
       "url": "https://www.tileshop.com/products/arbour-highlands-montecito-oak-luxury-vinyl-overlap-stair-nose-84-in-683959",
       "lastmod": null,
-      "scraped_at": "2025-07-05T23:07:02.918372",
-      "scrape_status": "failed",
-      "error": "Curl scraper failed to extract data"
+      "scraped_at": null,
+      "scrape_status": "pending"
     },
     {
       "url": "https://www.tileshop.com/products/arbour-highlands-montecito-oak-luxury-vinyl-reducer-84-in-683958",
       "lastmod": null,
-      "scraped_at": "2025-07-05T23:07:02.946194",
-      "scrape_status": "failed",
-      "error": "Curl scraper failed to extract data"
+      "scraped_at": null,
+      "scrape_status": "pending"
     },
     {
       "url": "https://www.tileshop.com/products/arbour-highlands-montecito-oak-luxury-vinyl-t-molding-84-in-683957",
       "lastmod": null,
-      "scraped_at": "2025-07-05T23:07:02.974014",
-      "scrape_status": "failed",
-      "error": "Curl scraper failed to extract data"
+      "scraped_at": null,
+      "scrape_status": "pending"
     },
     {
       "url": "https://www.tileshop.com/products/arbour-midlands-shoreline-oak-luxury-vinyl-quarter-round-84-in-683956",
       "lastmod": null,
-      "scraped_at": "2025-07-05T23:07:03.002195",
-      "scrape_status": "failed",
-      "error": "Curl scraper failed to extract data"
+      "scraped_at": null,
+      "scrape_status": "pending"
     },
     {
       "url": "https://www.tileshop.com/products/arbour-midlands-shoreline-oak-luxury-vinyl-flush-stair-nose-84-in-683955",
       "lastmod": null,
-      "scraped_at": "2025-07-05T23:07:03.030349",
-      "scrape_status": "failed",
-      "error": "Curl scraper failed to extract data"
+      "scraped_at": null,
+      "scrape_status": "pending"
     },
     {
       "url": "https://www.tileshop.com/products/arbour-midlands-shoreline-oak-luxury-vinyl-overlap-stair-nose-84-in-683954",
       "lastmod": null,
-      "scraped_at": "2025-07-05T23:07:03.058332",
-      "scrape_status": "failed",
-      "error": "Curl scraper failed to extract data"
+      "scraped_at": null,
+      "scrape_status": "pending"
     },
     {
       "url": "https://www.tileshop.com/products/arbour-midlands-shoreline-oak-luxury-vinyl-reducer-84-in-683953",
       "lastmod": null,
-      "scraped_at": "2025-07-05T23:07:03.086253",
-      "scrape_status": "failed",
-      "error": "Curl scraper failed to extract data"
+      "scraped_at": null,
+      "scrape_status": "pending"
     },
     {
       "url": "https://www.tileshop.com/products/arbour-midlands-shoreline-oak-luxury-vinyl-t-molding-84-in-683952",
       "lastmod": null,
-      "scraped_at": "2025-07-05T23:07:03.114216",
-      "scrape_status": "failed",
-      "error": "Curl scraper failed to extract data"
+      "scraped_at": null,
+      "scrape_status": "pending"
     },
     {
       "url": "https://www.tileshop.com/products/arbour-midlands-driftwood-oak-luxury-vinyl-quarter-round-84-in-683951",
       "lastmod": null,
-      "scraped_at": "2025-07-05T23:07:03.142036",
-      "scrape_status": "failed",
-      "error": "Curl scraper failed to extract data"
+      "scraped_at": null,
+      "scrape_status": "pending"
     },
     {
       "url": "https://www.tileshop.com/products/arbour-midlands-driftwood-oak-luxury-vinyl-flush-stair-nose-84-in-683950",
       "lastmod": null,
-      "scraped_at": "2025-07-05T23:07:03.169822",
-      "scrape_status": "failed",
-      "error": "Curl scraper failed to extract data"
+      "scraped_at": null,
+      "scrape_status": "pending"
     },
     {
       "url": "https://www.tileshop.com/products/arbour-midlands-driftwood-oak-luxury-vinyl-overlap-stair-nose-84-in-683949",
       "lastmod": null,
-      "scraped_at": "2025-07-05T23:07:03.197845",
-      "scrape_status": "failed",
-      "error": "Curl scraper failed to extract data"
+      "scraped_at": null,
+      "scrape_status": "pending"
     },
     {
       "url": "https://www.tileshop.com/products/arbour-midlands-driftwood-oak-luxury-vinyl-reducer-84-in-683948",
       "lastmod": null,
-      "scraped_at": "2025-07-05T23:07:03.225817",
-      "scrape_status": "failed",
-      "error": "Curl scraper failed to extract data"
+      "scraped_at": null,
+      "scrape_status": "pending"
     },
     {
       "url": "https://www.tileshop.com/products/arbour-midlands-driftwood-oak-luxury-vinyl-t-molding-84-in-683947",
       "lastmod": null,
-      "scraped_at": "2025-07-05T23:07:03.253812",
-      "scrape_status": "failed",
-      "error": "Curl scraper failed to extract data"
+      "scraped_at": null,
+      "scrape_status": "pending"
     },
     {
       "url": "https://www.tileshop.com/products/arbour-midlands-nutmeg-oak-luxury-vinyl-quarter-round-84-in-683946",
       "lastmod": null,
-      "scraped_at": "2025-07-05T23:07:03.281647",
-      "scrape_status": "failed",
-      "error": "Curl scraper failed to extract data"
+      "scraped_at": null,
+      "scrape_status": "pending"
     },
     {
       "url": "https://www.tileshop.com/products/arbour-midlands-nutmeg-oak-luxury-vinyl-flush-stair-nose-84-in-683945",
       "lastmod": null,
-      "scraped_at": "2025-07-05T23:07:03.310016",
-      "scrape_status": "failed",
-      "error": "Curl scraper failed to extract data"
+      "scraped_at": null,
+      "scrape_status": "pending"
     },
     {
       "url": "https://www.tileshop.com/products/arbour-midlands-nutmeg-oak-luxury-vinyl-overlap-stair-nose-84-in-683944",
       "lastmod": null,
-      "scraped_at": "2025-07-05T23:07:03.338878",
-      "scrape_status": "failed",
-      "error": "Curl scraper failed to extract data"
+      "scraped_at": null,
+      "scrape_status": "pending"
     },
     {
       "url": "https://www.tileshop.com/products/arbour-midlands-nutmeg-oak-luxury-vinyl-reducer-84-in-683943",
       "lastmod": null,
-      "scraped_at": "2025-07-05T23:07:03.368909",
-      "scrape_status": "failed",
-      "error": "Curl scraper failed to extract data"
+      "scraped_at": null,
+      "scrape_status": "pending"
     },
     {
       "url": "https://www.tileshop.com/products/arbour-midlands-nutmeg-oak-luxury-vinyl-t-molding-84-in-683942",
       "lastmod": null,
-      "scraped_at": "2025-07-05T23:07:03.407118",
-      "scrape_status": "failed",
-      "error": "Curl scraper failed to extract data"
+      "scraped_at": null,
+      "scrape_status": "pending"
     },
     {
       "url": "https://www.tileshop.com/products/arbour-midlands-sandy-oak-luxury-vinyl-flush-stair-nose-84-in-683940",
       "lastmod": null,
-      "scraped_at": "2025-07-05T23:07:03.439008",
-      "scrape_status": "failed",
-      "error": "Curl scraper failed to extract data"
+      "scraped_at": null,
+      "scrape_status": "pending"
     },
     {
       "url": "https://www.tileshop.com/products/arbour-midlands-sandy-oak-luxury-vinyl-overlap-stair-nose-84-in-683939",
       "lastmod": null,
-      "scraped_at": "2025-07-05T23:07:03.467894",
-      "scrape_status": "failed",
-      "error": "Curl scraper failed to extract data"
+      "scraped_at": null,
+      "scrape_status": "pending"
     },
     {
       "url": "https://www.tileshop.com/products/arbour-midlands-sandy-oak-luxury-vinyl-reducer-84-in-683938",
       "lastmod": null,
-      "scraped_at": "2025-07-05T23:07:03.496967",
-      "scrape_status": "failed",
-      "error": "Curl scraper failed to extract data"
+      "scraped_at": null,
+      "scrape_status": "pending"
     },
     {
       "url": "https://www.tileshop.com/products/arbour-midlands-sandy-oak-luxury-vinyl-t-molding-84-in-683937",
       "lastmod": null,
-      "scraped_at": "2025-07-05T23:07:03.525685",
-      "scrape_status": "failed",
-      "error": "Curl scraper failed to extract data"
+      "scraped_at": null,
+      "scrape_status": "pending"
     },
     {
       "url": "https://www.tileshop.com/products/arbour-midlands-hickory-blonde-roast-luxury-vinyl-reducer-84-in-683933",
       "lastmod": null,
-      "scraped_at": "2025-07-05T23:07:03.554657",
-      "scrape_status": "failed",
-      "error": "Curl scraper failed to extract data"
+      "scraped_at": null,
+      "scrape_status": "pending"
     },
     {
       "url": "https://www.tileshop.com/products/arbour-midlands-hickory-blonde-roast-luxury-vinyl-t-molding-84-in-683932",
       "lastmod": null,
-      "scraped_at": "2025-07-05T23:07:03.583163",
-      "scrape_status": "failed",
-      "error": "Curl scraper failed to extract data"
+      "scraped_at": null,
+      "scrape_status": "pending"
     },
     {
       "url": "https://www.tileshop.com/products/arbour-midlands-cool-almond-oak-luxury-vinyl-quarter-round-84-in-683931",
       "lastmod": null,
-      "scraped_at": "2025-07-05T23:07:03.611546",
-      "scrape_status": "failed",
-      "error": "Curl scraper failed to extract data"
+      "scraped_at": null,
+      "scrape_status": "pending"
     },
     {
       "url": "https://www.tileshop.com/products/arbour-midlands-cool-almond-oak-luxury-vinyl-flush-stair-nose-84-in-683930",
       "lastmod": null,
-      "scraped_at": "2025-07-05T23:07:03.639443",
-      "scrape_status": "failed",
-      "error": "Curl scraper failed to extract data"
+      "scraped_at": null,
+      "scrape_status": "pending"
     },
     {
       "url": "https://www.tileshop.com/products/arbour-midlands-cool-almond-oak-luxury-vinyl-overlap-stair-nose-84-in-683929",
       "lastmod": null,
-      "scraped_at": "2025-07-05T23:07:03.667580",
-      "scrape_status": "failed",
-      "error": "Curl scraper failed to extract data"
+      "scraped_at": null,
+      "scrape_status": "pending"
     },
     {
       "url": "https://www.tileshop.com/products/arbour-midlands-cool-almond-oak-luxury-vinyl-reducer-84-in-683928",
       "lastmod": null,
-      "scraped_at": "2025-07-05T23:07:03.695908",
-      "scrape_status": "failed",
-      "error": "Curl scraper failed to extract data"
+      "scraped_at": null,
+      "scrape_status": "pending"
     },
     {
       "url": "https://www.tileshop.com/products/arbour-midlands-cool-almond-oak-luxury-vinyl-t-molding-84-in-683927",
       "lastmod": null,
-      "scraped_at": "2025-07-05T23:07:03.724515",
-      "scrape_status": "failed",
-      "error": "Curl scraper failed to extract data"
+      "scraped_at": null,
+      "scrape_status": "pending"
     },
     {
       "url": "https://www.tileshop.com/products/arbour-midlands-ash-blonde-oak-luxury-vinyl-quarter-round-84-in-683926",
       "lastmod": null,
-      "scraped_at": "2025-07-05T23:07:03.753387",
-      "scrape_status": "failed",
-      "error": "Curl scraper failed to extract data"
+      "scraped_at": null,
+      "scrape_status": "pending"
     },
     {
       "url": "https://www.tileshop.com/products/arbour-midlands-ash-blonde-oak-luxury-vinyl-flush-stair-nose-84-in-683925",
       "lastmod": null,
-      "scraped_at": "2025-07-05T23:07:03.781357",
-      "scrape_status": "failed",
-      "error": "Curl scraper failed to extract data"
+      "scraped_at": null,
+      "scrape_status": "pending"
     },
     {
       "url": "https://www.tileshop.com/products/arbour-midlands-ash-blonde-oak-luxury-vinyl-overlap-stair-nose-84-in-683924",
       "lastmod": null,
-      "scraped_at": "2025-07-05T23:07:03.809782",
-      "scrape_status": "failed",
-      "error": "Curl scraper failed to extract data"
+      "scraped_at": null,
+      "scrape_status": "pending"
     },
     {
       "url": "https://www.tileshop.com/products/arbour-midlands-ash-blonde-oak-luxury-vinyl-reducer-84-in-683923",
       "lastmod": null,
-      "scraped_at": "2025-07-05T23:07:03.837993",
-      "scrape_status": "failed",
-      "error": "Curl scraper failed to extract data"
+      "scraped_at": null,
+      "scrape_status": "pending"
     },
     {
       "url": "https://www.tileshop.com/products/arbour-midlands-ash-blonde-oak-luxury-vinyl-t-molding-84-in-683922",
       "lastmod": null,
-      "scraped_at": "2025-07-05T23:07:03.866026",
-      "scrape_status": "failed",
-      "error": "Curl scraper failed to extract data"
+      "scraped_at": null,
+      "scrape_status": "pending"
     },
     {
       "url": "https://www.tileshop.com/products/arbour-midlands-hickory-tavern-luxury-vinyl-quarter-round-84-in-683921",
       "lastmod": null,
-      "scraped_at": "2025-07-05T23:07:03.894055",
-      "scrape_status": "failed",
-      "error": "Curl scraper failed to extract data"
+      "scraped_at": null,
+      "scrape_status": "pending"
     },
     {
       "url": "https://www.tileshop.com/products/arbour-midlands-hickory-tavern-luxury-vinyl-flush-stair-nose-84-in-683920",
       "lastmod": null,
-      "scraped_at": "2025-07-05T23:07:03.922576",
-      "scrape_status": "failed",
-      "error": "Curl scraper failed to extract data"
+      "scraped_at": null,
+      "scrape_status": "pending"
     },
     {
       "url": "https://www.tileshop.com/products/arbour-midlands-hickory-tavern-luxury-vinyl-overlap-stair-nose-84-in-683919",
       "lastmod": null,
-      "scraped_at": "2025-07-05T23:07:03.951773",
-      "scrape_status": "failed",
-      "error": "Curl scraper failed to extract data"
+      "scraped_at": null,
+      "scrape_status": "pending"
     },
     {
       "url": "https://www.tileshop.com/products/arbour-midlands-hickory-tavern-luxury-vinyl-reducer-84-in-683918",
       "lastmod": null,
-      "scraped_at": "2025-07-05T23:07:03.981338",
-      "scrape_status": "failed",
-      "error": "Curl scraper failed to extract data"
+      "scraped_at": null,
+      "scrape_status": "pending"
     },
     {
       "url": "https://www.tileshop.com/products/arbour-midlands-hickory-tavern-luxury-vinyl-t-molding-84-in-683917",
       "lastmod": null,
-      "scraped_at": "2025-07-05T23:07:04.010602",
-      "scrape_status": "failed",
-      "error": "Curl scraper failed to extract data"
+      "scraped_at": null,
+      "scrape_status": "pending"
     },
     {
       "url": "https://www.tileshop.com/products/arbour-lowlands-golden-blonde-luxury-vinyl-flush-stair-nose-84-in-683915",
       "lastmod": null,
-      "scraped_at": "2025-07-05T23:07:04.039674",
-      "scrape_status": "failed",
-      "error": "Curl scraper failed to extract data"
+      "scraped_at": null,
+      "scrape_status": "pending"
     },
     {
       "url": "https://www.tileshop.com/products/arbour-lowlands-golden-blonde-maple-luxury-vinyl-reducer-84-in-683913",
       "lastmod": null,
-      "scraped_at": "2025-07-05T23:07:04.068984",
-      "scrape_status": "failed",
-      "error": "Curl scraper failed to extract data"
+      "scraped_at": null,
+      "scrape_status": "pending"
     },
     {
       "url": "https://www.tileshop.com/products/arbour-lowlands-golden-blonde-maple-luxury-vinyl-t-molding-84-in-683912",
       "lastmod": null,
-      "scraped_at": "2025-07-05T23:07:04.106474",
-      "scrape_status": "failed",
-      "error": "Curl scraper failed to extract data"
+      "scraped_at": null,
+      "scrape_status": "pending"
     },
     {
       "url": "https://www.tileshop.com/products/arbour-lowlands-briarsmoke-pine-luxury-vinyl-quarter-round-84-in-683911",
       "lastmod": null,
-      "scraped_at": "2025-07-05T23:07:04.136405",
-      "scrape_status": "failed",
-      "error": "Curl scraper failed to extract data"
+      "scraped_at": null,
+      "scrape_status": "pending"
     },
     {
       "url": "https://www.tileshop.com/products/arbour-lowlands-briarsmoke-pine-luxury-vinyl-flush-stair-nose-84-in-683910",
       "lastmod": null,
-      "scraped_at": "2025-07-05T23:07:04.164281",
-      "scrape_status": "failed",
-      "error": "Curl scraper failed to extract data"
+      "scraped_at": null,
+      "scrape_status": "pending"
     },
     {
       "url": "https://www.tileshop.com/products/arbour-lowlands-briarsmoke-pine-luxury-vinyl-overlap-stair-nose-84-in-683909",
       "lastmod": null,
-      "scraped_at": "2025-07-05T23:07:04.192732",
-      "scrape_status": "failed",
-      "error": "Curl scraper failed to extract data"
+      "scraped_at": null,
+      "scrape_status": "pending"
     },
     {
       "url": "https://www.tileshop.com/products/arbour-lowlands-briarsmoke-pine-luxury-vinyl-reducer-84-in-683908",
       "lastmod": null,
-      "scraped_at": "2025-07-05T23:07:04.221534",
-      "scrape_status": "failed",
-      "error": "Curl scraper failed to extract data"
+      "scraped_at": null,
+      "scrape_status": "pending"
     },
     {
       "url": "https://www.tileshop.com/products/arbour-lowlands-blonde-oak-luxury-vinyl-flush-stair-nose-84-in-683905",
       "lastmod": null,
-      "scraped_at": "2025-07-05T23:07:04.248766",
-      "scrape_status": "failed",
-      "error": "Curl scraper failed to extract data"
+      "scraped_at": null,
+      "scrape_status": "pending"
     },
     {
       "url": "https://www.tileshop.com/products/arbour-lowlands-blonde-oak-luxury-vinyl-overlap-stair-nose-84-in-683904",
       "lastmod": null,
-      "scraped_at": "2025-07-05T23:07:04.275721",
-      "scrape_status": "failed",
-      "error": "Curl scraper failed to extract data"
+      "scraped_at": null,
+      "scrape_status": "pending"
     },
     {
       "url": "https://www.tileshop.com/products/arbour-lowlands-blonde-oak-luxury-vinyl-reducer-84-in-683903",
       "lastmod": null,
-      "scraped_at": "2025-07-05T23:07:04.302785",
-      "scrape_status": "failed",
-      "error": "Curl scraper failed to extract data"
+      "scraped_at": null,
+      "scrape_status": "pending"
     },
     {
       "url": "https://www.tileshop.com/products/arbour-lowlands-blonde-oak-luxury-vinyl-t-molding-84-in-683902",
       "lastmod": null,
-      "scraped_at": "2025-07-05T23:07:04.329918",
-      "scrape_status": "failed",
-      "error": "Curl scraper failed to extract data"
+      "scraped_at": null,
+      "scrape_status": "pending"
     },
     {
       "url": "https://www.tileshop.com/products/arbour-lowlands-summer-oak-luxury-vinyl-quarter-round-84-in-683901",
       "lastmod": null,
-      "scraped_at": "2025-07-05T23:07:04.356890",
-      "scrape_status": "failed",
-      "error": "Curl scraper failed to extract data"
+      "scraped_at": null,
+      "scrape_status": "pending"
     },
     {
       "url": "https://www.tileshop.com/products/arbour-lowlands-summer-oak-luxury-vinyl-flush-stair-nose-84-in-683900",
       "lastmod": null,
-      "scraped_at": "2025-07-05T23:07:04.383856",
-      "scrape_status": "failed",
-      "error": "Curl scraper failed to extract data"
+      "scraped_at": null,
+      "scrape_status": "pending"
     },
     {
       "url": "https://www.tileshop.com/products/arbour-lowlands-summer-oak-luxury-vinyl-overlap-stair-nose-84-in-683899",
       "lastmod": null,
-      "scraped_at": "2025-07-05T23:07:04.410878",
-      "scrape_status": "failed",
-      "error": "Curl scraper failed to extract data"
+      "scraped_at": null,
+      "scrape_status": "pending"
     },
     {
       "url": "https://www.tileshop.com/products/arbour-lowlands-summer-oak-luxury-vinyl-reducer-84-in-683898",
       "lastmod": null,
-      "scraped_at": "2025-07-05T23:07:04.438188",
-      "scrape_status": "failed",
-      "error": "Curl scraper failed to extract data"
+      "scraped_at": null,
+      "scrape_status": "pending"
     },
     {
       "url": "https://www.tileshop.com/products/arbour-lowlands-summer-oak-luxury-vinyl-t-molding-84-in-683897",
       "lastmod": null,
-      "scraped_at": "2025-07-05T23:07:04.465177",
-      "scrape_status": "failed",
-      "error": "Curl scraper failed to extract data"
+      "scraped_at": null,
+      "scrape_status": "pending"
     },
     {
       "url": "https://www.tileshop.com/products/arbour-lowlands-briarsmoke-pine-luxury-vinyl-t-molding-84-in-683907",
       "lastmod": null,
-      "scraped_at": "2025-07-05T23:07:04.492164",
-      "scrape_status": "failed",
-      "error": "Curl scraper failed to extract data"
+      "scraped_at": null,
+      "scrape_status": "pending"
     },
     {
       "url": "https://www.tileshop.com/products/arbour-lowlands-blonde-oak-luxury-vinyl-quarter-round-84-in-683906",
       "lastmod": null,
-      "scraped_at": "2025-07-05T23:07:04.519398",
-      "scrape_status": "failed",
-      "error": "Curl scraper failed to extract data"
+      "scraped_at": null,
+      "scrape_status": "pending"
     },
     {
       "url": "https://www.tileshop.com/products/arbour-midlands-sandy-oak-luxury-vinyl-quarter-round-84-in-683941",
       "lastmod": null,
-      "scraped_at": "2025-07-05T23:07:04.547076",
-      "scrape_status": "failed",
-      "error": "Curl scraper failed to extract data"
+      "scraped_at": null,
+      "scrape_status": "pending"
     },
     {
       "url": "https://www.tileshop.com/products/arbour-midlands-hickory-blonde-roast-luxury-vinyl-quarter-round-84-in-683936",
       "lastmod": null,
-      "scraped_at": "2025-07-05T23:07:04.574904",
-      "scrape_status": "failed",
-      "error": "Curl scraper failed to extract data"
+      "scraped_at": null,
+      "scrape_status": "pending"
     },
     {
       "url": "https://www.tileshop.com/products/arbour-midlands-hickory-blonde-roast-luxury-vinyl-overlap-stair-nose-84-in-683934",
       "lastmod": null,
-      "scraped_at": "2025-07-05T23:07:04.602663",
-      "scrape_status": "failed",
-      "error": "Curl scraper failed to extract data"
+      "scraped_at": null,
+      "scrape_status": "pending"
     },
     {
       "url": "https://www.tileshop.com/products/arbour-lowlands-golden-blonde-maple-luxury-vinyl-quarter-round-84-in-683916",
       "lastmod": null,
-      "scraped_at": "2025-07-05T23:07:04.630109",
-      "scrape_status": "failed",
-      "error": "Curl scraper failed to extract data"
+      "scraped_at": null,
+      "scrape_status": "pending"
     },
     {
       "url": "https://www.tileshop.com/products/arbour-lowlands-golden-blonde-maple-luxury-vinyl-overlap-stair-nose-84-in-683914",
       "lastmod": null,
-      "scraped_at": "2025-07-05T23:07:04.656873",
-      "scrape_status": "failed",
-      "error": "Curl scraper failed to extract data"
+      "scraped_at": null,
+      "scrape_status": "pending"
     },
     {
       "url": "https://www.tileshop.com/products/tivoli-silver-porcelain-mosaic-wall-and-floor-tile-2-x-2-in-683887",
       "lastmod": null,
-      "scraped_at": "2025-07-05T23:07:04.683909",
-      "scrape_status": "failed",
-      "error": "Curl scraper failed to extract data"
+      "scraped_at": null,
+      "scrape_status": "pending"
     },
     {
       "url": "https://www.tileshop.com/products/tivoli-charcoal-porcelain-mosaic-wall-and-floor-tile-2-x-2-in-683886",
       "lastmod": null,
-      "scraped_at": "2025-07-05T23:07:04.710942",
-      "scrape_status": "failed",
-      "error": "Curl scraper failed to extract data"
+      "scraped_at": null,
+      "scrape_status": "pending"
     },
     {
       "url": "https://www.tileshop.com/products/storm-white-square-mosaic-porcelain-wall-and-floor-tile-2-x-2-in-683885",
       "lastmod": null,
-      "scraped_at": "2025-07-05T23:07:04.737945",
-      "scrape_status": "failed",
-      "error": "Curl scraper failed to extract data"
+      "scraped_at": null,
+      "scrape_status": "pending"
     },
     {
       "url": "https://www.tileshop.com/products/storm-white-porcelain-wall-and-floor-tile-12-x-24-in-683884",
       "lastmod": null,
-      "scraped_at": "2025-07-05T23:07:04.765307",
-      "scrape_status": "failed",
-      "error": "Curl scraper failed to extract data"
+      "scraped_at": null,
+      "scrape_status": "pending"
     },
     {
       "url": "https://www.tileshop.com/products/sandwaves-marshmallow-porcelain-mosaic-wall-and-floor-tile-2-x-2-in-683883",
       "lastmod": null,
-      "scraped_at": "2025-07-05T23:07:04.792311",
-      "scrape_status": "failed",
-      "error": "Curl scraper failed to extract data"
+      "scraped_at": null,
+      "scrape_status": "pending"
     },
     {
       "url": "https://www.tileshop.com/products/sandwaves-dark-porcelain-mosaic-wall-and-floor-tile-2-x-2-in-683882",
       "lastmod": null,
-      "scraped_at": "2025-07-05T23:07:04.819715",
-      "scrape_status": "failed",
-      "error": "Curl scraper failed to extract data"
+      "scraped_at": null,
+      "scrape_status": "pending"
     },
     {
       "url": "https://www.tileshop.com/products/sandwaves-dark-porcelain-wall-and-floor-tile-12-x-24-in-683881",
       "lastmod": null,
-      "scraped_at": "2025-07-05T23:07:04.846626",
-      "scrape_status": "failed",
-      "error": "Curl scraper failed to extract data"
+      "scraped_at": null,
+      "scrape_status": "pending"
     },
     {
       "url": "https://www.tileshop.com/products/roccia-di-roma-silver-square-mosaic-porcelain-wall-and-floor-tile-2-x-2-in-683880",
       "lastmod": null,
-      "scraped_at": "2025-07-05T23:07:04.873440",
-      "scrape_status": "failed",
-      "error": "Curl scraper failed to extract data"
+      "scraped_at": null,
+      "scrape_status": "pending"
     },
     {
       "url": "https://www.tileshop.com/products/fusion-silver-interlocking-mosaic-porcelain-wall-and-floor-tile-2-x-6-in-683878",
       "lastmod": null,
-      "scraped_at": "2025-07-05T23:07:04.900690",
-      "scrape_status": "failed",
-      "error": "Curl scraper failed to extract data"
+      "scraped_at": null,
+      "scrape_status": "pending"
     },
     {
       "url": "https://www.tileshop.com/products/fusion-silver-porcelain-wall-and-floor-tile-12-x-24-in-683877",
       "lastmod": null,
-      "scraped_at": "2025-07-05T23:07:04.927898",
-      "scrape_status": "failed",
-      "error": "Curl scraper failed to extract data"
+      "scraped_at": null,
+      "scrape_status": "pending"
     },
     {
       "url": "https://www.tileshop.com/products/fusion-sand-interlocking-mosaic-porcelain-wall-and-floor-tile-2-x-6-in-683876",
       "lastmod": null,
-      "scraped_at": "2025-07-05T23:07:04.955036",
-      "scrape_status": "failed",
-      "error": "Curl scraper failed to extract data"
+      "scraped_at": null,
+      "scrape_status": "pending"
     },
     {
       "url": "https://www.tileshop.com/products/fusion-sand-porcelain-wall-and-floor-tile-12-x-24-in-683875",
       "lastmod": null,
-      "scraped_at": "2025-07-05T23:07:04.982067",
-      "scrape_status": "failed",
-      "error": "Curl scraper failed to extract data"
+      "scraped_at": null,
+      "scrape_status": "pending"
     },
     {
       "url": "https://www.tileshop.com/products/fusion-chalk-interlocking-mosaic-porcelain-wall-and-floor-tile-2-x-6-in-683874",
       "lastmod": null,
-      "scraped_at": "2025-07-05T23:07:05.009457",
-      "scrape_status": "failed",
-      "error": "Curl scraper failed to extract data"
+      "scraped_at": null,
+      "scrape_status": "pending"
     },
     {
       "url": "https://www.tileshop.com/products/fusion-chalk-porcelain-wall-and-floor-tile-12-x-24-in-683873",
       "lastmod": null,
-      "scraped_at": "2025-07-05T23:07:05.036474",
-      "scrape_status": "failed",
-      "error": "Curl scraper failed to extract data"
+      "scraped_at": null,
+      "scrape_status": "pending"
     },
     {
       "url": "https://www.tileshop.com/products/bento-gray-porcelain-wall-and-floor-tile-9-x-10-in-683833",
       "lastmod": null,
-      "scraped_at": "2025-07-05T23:07:05.063620",
-      "scrape_status": "failed",
-      "error": "Curl scraper failed to extract data"
+      "scraped_at": null,
+      "scrape_status": "pending"
     },
     {
       "url": "https://www.tileshop.com/products/andes-nat-ceramic-wall-and-floor-tile-12-x-24-in-683777",
       "lastmod": null,
-      "scraped_at": "2025-07-05T23:07:05.090781",
-      "scrape_status": "failed",
-      "error": "Curl scraper failed to extract data"
+      "scraped_at": null,
+      "scrape_status": "pending"
     },
     {
       "url": "https://www.tileshop.com/products/invisible-nat-ceramic-wall-and-floor-tile-12-x-24-in-683776",
       "lastmod": null,
-      "scraped_at": "2025-07-05T23:07:05.118192",
-      "scrape_status": "failed",
-      "error": "Curl scraper failed to extract data"
+      "scraped_at": null,
+      "scrape_status": "pending"
     },
     {
       "url": "https://www.tileshop.com/products/superior-excel-linen-unsanded-grout-5lb-54010",
       "lastmod": null,
-      "scraped_at": "2025-07-05T23:07:05.145850",
-      "scrape_status": "failed",
-      "error": "Curl scraper failed to extract data"
+      "scraped_at": null,
+      "scrape_status": "pending"
     },
     {
       "url": "https://www.tileshop.com/products/superior-excel-ivory-unsanded-grout-5lb-54004",
       "lastmod": null,
-      "scraped_at": "2025-07-05T23:07:05.173643",
-      "scrape_status": "failed",
-      "error": "Curl scraper failed to extract data"
+      "scraped_at": null,
+      "scrape_status": "pending"
     },
     {
       "url": "https://www.tileshop.com/products/superior-excel-desert-sand-unsanded-grout-5lb-54009",
       "lastmod": null,
-      "scraped_at": "2025-07-05T23:07:05.201907",
-      "scrape_status": "failed",
-      "error": "Curl scraper failed to extract data"
+      "scraped_at": null,
+      "scrape_status": "pending"
     },
     {
       "url": "https://www.tileshop.com/products/superior-excel-antique-white-unsanded-grout-5lb-54003",
       "lastmod": null,
-      "scraped_at": "2025-07-05T23:07:05.229324",
-      "scrape_status": "failed",
-      "error": "Curl scraper failed to extract data"
+      "scraped_at": null,
+      "scrape_status": "pending"
     },
     {
       "url": "https://www.tileshop.com/products/superior-excel-dove-grey-unsanded-grout-5lb-54007",
       "lastmod": null,
-      "scraped_at": "2025-07-05T23:07:05.256739",
-      "scrape_status": "failed",
-      "error": "Curl scraper failed to extract data"
+      "scraped_at": null,
+      "scrape_status": "pending"
     },
     {
       "url": "https://www.tileshop.com/products/superior-excel-natural-unsanded-grout-5lb-54011",
       "lastmod": null,
-      "scraped_at": "2025-07-05T23:07:05.284142",
-      "scrape_status": "failed",
-      "error": "Curl scraper failed to extract data"
+      "scraped_at": null,
+      "scrape_status": "pending"
     },
     {
       "url": "https://www.tileshop.com/products/superior-excel-terracotta-unsanded-grout-5lb-54016",
       "lastmod": null,
-      "scraped_at": "2025-07-05T23:07:05.311311",
-      "scrape_status": "failed",
-      "error": "Curl scraper failed to extract data"
+      "scraped_at": null,
+      "scrape_status": "pending"
     },
     {
       "url": "https://www.tileshop.com/products/superior-excel-hot-lila-unsanded-grout-5lb-54021",
       "lastmod": null,
-      "scraped_at": "2025-07-05T23:07:05.338558",
-      "scrape_status": "failed",
-      "error": "Curl scraper failed to extract data"
+      "scraped_at": null,
+      "scrape_status": "pending"
     },
     {
       "url": "https://www.tileshop.com/products/superior-excel-silver-luster-unsanded-grout-5lb-54020",
       "lastmod": null,
-      "scraped_at": "2025-07-05T23:07:05.365748",
-      "scrape_status": "failed",
-      "error": "Curl scraper failed to extract data"
+      "scraped_at": null,
+      "scrape_status": "pending"
     },
     {
       "url": "https://www.tileshop.com/products/superior-excel-standard-white-unsanded-grout-5lb-54001",
@@ -8895,134 +8515,115 @@
       "url": "https://www.tileshop.com/products/elite-renoir-polished-porcelain-wall-and-floor-tile-24-x-48-in-682042",
       "lastmod": null,
       "scraped_at": null,
-      "scrape_status": "pending",
-      "error": "Curl scraper failed to extract data"
+      "scrape_status": "pending"
     },
     {
       "url": "https://www.tileshop.com/products/goboard-backer-board-4-ft-x-8-ft-x-½-in-350067",
       "lastmod": null,
       "scraped_at": null,
-      "scrape_status": "pending",
-      "error": "Curl scraper failed to extract data"
+      "scrape_status": "pending"
     },
     {
       "url": "https://www.tileshop.com/products/goboard-point-drain-shower-pan-kit-350060",
       "lastmod": null,
       "scraped_at": null,
-      "scrape_status": "pending",
-      "error": "Curl scraper failed to extract data"
+      "scrape_status": "pending"
     },
     {
       "url": "https://www.tileshop.com/products/goboard-point-drain-kit-350235",
       "lastmod": null,
       "scraped_at": null,
-      "scrape_status": "pending",
-      "error": "Curl scraper failed to extract data"
+      "scrape_status": "pending"
     },
     {
       "url": "https://www.tileshop.com/products/wells-cream-polished-porcelain-wall-and-floor-tile-12-x-24-in-681914",
       "lastmod": null,
       "scraped_at": null,
-      "scrape_status": "pending",
-      "error": "Curl scraper failed to extract data"
+      "scrape_status": "pending"
     },
     {
       "url": "https://www.tileshop.com/products/abatec-luxury-vinyl-floor-tile-underlayment-682038",
       "lastmod": null,
       "scraped_at": null,
-      "scrape_status": "pending",
-      "error": "Curl scraper failed to extract data"
+      "scrape_status": "pending"
     },
     {
       "url": "https://www.tileshop.com/products/andover-blythe-luxury-vinyl-floor-tile-quarter-round-0-64-x-94-in-682034",
       "lastmod": null,
       "scraped_at": null,
-      "scrape_status": "pending",
-      "error": "Curl scraper failed to extract data"
+      "scrape_status": "pending"
     },
     {
       "url": "https://www.tileshop.com/products/smithcliffs-hillsdale-luxury-vinyl-floor-tile-quarter-round-0-64-x-94-in-682036",
       "lastmod": null,
       "scraped_at": null,
-      "scrape_status": "pending",
-      "error": "Curl scraper failed to extract data"
+      "scrape_status": "pending"
     },
     {
       "url": "https://www.tileshop.com/products/andover-bayhill-blonde-luxury-vinyl-floor-tile-quarter-round-0-64-x-94-in-682033",
       "lastmod": null,
       "scraped_at": null,
-      "scrape_status": "pending",
-      "error": "Curl scraper failed to extract data"
+      "scrape_status": "pending"
     },
     {
       "url": "https://www.tileshop.com/products/smithcliffs-brockton-luxury-vinyl-floor-tile-quarter-round-0064-x-94-in-682035",
       "lastmod": null,
       "scraped_at": null,
-      "scrape_status": "pending",
-      "error": "Curl scraper failed to extract data"
+      "scrape_status": "pending"
     },
     {
       "url": "https://www.tileshop.com/products/cyrus-plus-akadia-luxury-vinyl-floor-tile-quarter-round-0-64-x-94-in-682032",
       "lastmod": null,
       "scraped_at": null,
-      "scrape_status": "pending",
-      "error": "Curl scraper failed to extract data"
+      "scrape_status": "pending"
     },
     {
       "url": "https://www.tileshop.com/products/cyrus-plus-katella-ash-luxury-vinyl-floor-tile-quarter-round-0-64-x-94-in-682031",
       "lastmod": null,
       "scraped_at": null,
-      "scrape_status": "pending",
-      "error": "Curl scraper failed to extract data"
+      "scrape_status": "pending"
     },
     {
       "url": "https://www.tileshop.com/products/cyrus-plus-braly-luxury-vinyl-floor-tile-quarter-round-0-64-x-94-in-682030",
       "lastmod": null,
       "scraped_at": null,
-      "scrape_status": "pending",
-      "error": "Curl scraper failed to extract data"
+      "scrape_status": "pending"
     },
     {
       "url": "https://www.tileshop.com/products/cyrus-plus-whitfield-gray-luxury-vinyl-floor-tile-quarter-round-0-64-x-94-in-682028",
       "lastmod": null,
       "scraped_at": null,
-      "scrape_status": "pending",
-      "error": "Curl scraper failed to extract data"
+      "scrape_status": "pending"
     },
     {
       "url": "https://www.tileshop.com/products/smithcliffs-hillsdale-luxury-vinyl-floor-tile-stair-nose-2-75-x-94-in-682026",
       "lastmod": null,
       "scraped_at": null,
-      "scrape_status": "pending",
-      "error": "Curl scraper failed to extract data"
+      "scrape_status": "pending"
     },
     {
       "url": "https://www.tileshop.com/products/smithcliffs-malton-luxury-vinyl-floor-tile-stair-nose-2-75-x-94-in-682027",
       "lastmod": null,
       "scraped_at": null,
-      "scrape_status": "pending",
-      "error": "Curl scraper failed to extract data"
+      "scrape_status": "pending"
     },
     {
       "url": "https://www.tileshop.com/products/cyrus-plus-fauna-luxury-vinyl-floor-tile-quarter-round-0-64-x-94-in-682029",
       "lastmod": null,
       "scraped_at": null,
-      "scrape_status": "pending",
-      "error": "Curl scraper failed to extract data"
+      "scrape_status": "pending"
     },
     {
       "url": "https://www.tileshop.com/products/andover-bayhill-blonde-luxury-vinyl-floor-tile-stair-nose-2-75-x-94-in-682023",
       "lastmod": null,
       "scraped_at": null,
-      "scrape_status": "pending",
-      "error": "Curl scraper failed to extract data"
+      "scrape_status": "pending"
     },
     {
       "url": "https://www.tileshop.com/products/andover-blythel-luxury-vinyl-floor-tile-stair-nose-2-75-x-94-in-682024",
       "lastmod": null,
       "scraped_at": null,
-      "scrape_status": "pending",
-      "error": "Curl scraper failed to extract data"
+      "scrape_status": "pending"
     },
     {
       "url": "https://www.tileshop.com/products/smithcliffs-brockton-luxury-vinyl-floor-tile-stair-nose-2-75-x-94-in-682025",
