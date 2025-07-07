@@ -335,7 +335,7 @@ class EnhancedCategorizer:
             product_type=f"{category}_{subcategory}",
             application_areas=application_areas,
             related_products=related_products,
-            rag_keywords=subcat_data.get("rag_keywords", []),
+            rag_keywords=self._generate_dynamic_rag_keywords(category, subcategory, product_data),
             installation_complexity=complexity,
             typical_use_cases=use_cases
         )
@@ -368,6 +368,53 @@ class EnhancedCategorizer:
                 keywords.extend(subcat_data["rag_keywords"])
         
         return list(set(keywords))  # Remove duplicates
+    
+    def _generate_dynamic_rag_keywords(self, category: str, subcategory: str, product_data: Dict) -> List[str]:
+        """Generate RAG keywords based on actual product specifications"""
+        keywords = []
+        
+        # Start with base category keywords
+        base_keywords = self.category_patterns.get(category, {}).get("subcategories", {}).get(subcategory, {}).get("rag_keywords", [])
+        keywords.extend([kw for kw in base_keywords if kw in [f"{category} {subcategory.replace('_', ' ')}", f"{category.replace('_', ' ')}"]])
+        
+        # Extract specifications for dynamic keywords
+        specifications = product_data.get('specifications', {})
+        if isinstance(specifications, str):
+            import json
+            try:
+                specifications = json.loads(specifications)
+            except:
+                specifications = {}
+        
+        # Add specification-based keywords
+        if specifications:
+            # Edge type specific keywords
+            edge_type = specifications.get('edge_type', '').lower()
+            if 'rectified' in edge_type:
+                keywords.append('rectified tile')
+            
+            # Size-based keywords  
+            dimensions = specifications.get('dimensions', '')
+            if any(size in dimensions for size in ['12', '16', '18', '24']):
+                keywords.append('large format tile')
+            
+            # Application-based keywords
+            applications = specifications.get('applications', '').lower()
+            if 'outdoor' in applications or 'exterior' in applications:
+                keywords.append('outdoor tile')
+            
+            # Frost resistance for outdoor capability
+            frost_resistance = specifications.get('frostresistance', '').lower()
+            if 'resistant' in frost_resistance:
+                keywords.append('frost resistant tile')
+                
+            # Finish-based keywords
+            finish = specifications.get('finish', '').lower()
+            if finish:
+                keywords.append(f'{finish} finish tile')
+        
+        # Remove duplicates and return
+        return list(set(keywords))
     
     def get_products_for_query(self, query: str) -> List[str]:
         """Get relevant product categories for a RAG query"""

@@ -37,6 +37,7 @@ class EnhancedSpecificationExtractor:
                 r'Weight per Box[:\s]*([^<\n,]+)',
             ],
             "edge_type": [
+                r'"PDPInfo_EdgeType","Value":"([^"]+)"',  # Tileshop JSON format - PRIORITY
                 r'Edge Type[:\s]*([^<\n,]+)',
                 r'"edgeType"[:\s]*"([^"]+)"',
                 r'Edge[:\s]*([^<\n,]+)',

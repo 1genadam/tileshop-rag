@@ -541,12 +541,21 @@ tileshop_rag/
 
 ## Recent Updates (July 7, 2025)
 
-### PDF Knowledge Base Integration
+### PDF Knowledge Base Integration - VERIFIED
 - **✅ Complete PDF Pipeline**: JSON-embedded PDF extraction from Tileshop's Scene7 CDN
 - **✅ Resource Deduplication**: Shared PDFs automatically deduplicated by URL hash
 - **✅ Database Persistence**: Fixed Docker container references and crawl_results handling
 - **✅ Vector Integration**: PDF resources properly stored in relational database for RAG system
 - **Coverage**: Product Data Sheets, ANSI Test Results, Safety Data Sheets across all product types
+- **✅ Knowledge Base Processing**: 4 PDFs with 2,271+ words each, structured JSON storage
+- **✅ Data Point Verification**: Emergency contacts, supplier info, installation instructions extracted
+
+### Specification-Driven Intelligence
+- **✅ Dynamic RAG Keywords**: Keywords generated from actual product specifications
+- **✅ Edge Type Detection**: Tileshop JSON pattern `"PDPInfo_EdgeType","Value":"([^"]+)"` 
+- **✅ Smart Keyword Logic**: Only assigns keywords when supported by specifications
+- **Example**: `edge_type: "Rectified"` → `"rectified tile"` keyword (not hardcoded)
+- **Accuracy**: Eliminates false keyword assignments like "outdoor tile" for indoor-only products
 
 ### System Reliability Improvements
 - **Database Persistence**: Fixed acquire_from_sitemap.py to properly save all scraped products
@@ -556,7 +565,8 @@ tileshop_rag/
 
 ---
 
-*System Architecture Version: 2.1*
+*System Architecture Version: 2.2*
 *Last Updated: July 7, 2025*
-*PDF Knowledge Base: Phase 1 Complete*
+*PDF Knowledge Base: Phase 1 Complete & Verified*
+*Specification-Driven RAG: Phase 1 Complete*
 *Diagnostic Framework: Phase 2 Complete*

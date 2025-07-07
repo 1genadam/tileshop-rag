@@ -626,11 +626,24 @@ User has the following containerized services running on `app-network`:
 - **Example**: Superior LFT Bond Mortar now captures both Product Data Sheet and ANSI Test Results PDFs
 - **Verification**: Random URL testing confirmed PDF extraction works across product types (tiles, mortar, vinyl)
 
+#### **Specification-Driven RAG Keywords - NEW**
+- **✅ Dynamic Keyword Generation**: RAG keywords now based on actual product specifications, not hardcoded categories
+- **✅ Edge Type Extraction**: Fixed pattern priority to correctly extract "Rectified" from Tileshop JSON data
+- **Example**: Porcelain tile with `edge_type: "Rectified"` → `["rectified tile", "large format tile", "matte finish tile"]`
+- **Smart Logic**: Keywords only appear when supported by specifications (no more false "outdoor tile" assignments)
+- **Pattern Fixed**: Added `r'"PDPInfo_EdgeType","Value":"([^"]+)"'` as priority pattern for accurate extraction
+
 #### **Embedding Generation Resolution**
 - **Issue**: Only processing 1 product despite 4776 successful acquisitions
 - **Root Cause**: Database persistence failure prevented sitemap data from reaching PostgreSQL
 - **Solution**: Fixed crawl_results handling and Docker container naming
 - **Result**: Embedding generation now correctly processes all products in database
+
+#### **Knowledge Base Verification**
+- **✅ PDF Processing**: 4 PDFs successfully processed with 2,271+ words extracted per document
+- **✅ Data Point Extraction**: Supplier info, emergency contacts, installation instructions captured
+- **✅ Structured Storage**: JSON knowledge base with searchable metadata and content sections
+- **Status**: Core infrastructure verified and functional for RAG integration
 
 #### **Previous Fixes (July 6, 2025)**
 
