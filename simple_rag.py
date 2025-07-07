@@ -10,6 +10,7 @@ import csv
 import io
 import os
 import re
+import glob
 from typing import List, Dict, Any
 
 # Load environment variables
@@ -40,6 +41,9 @@ class SimpleTileShopRAG:
         # Vector database container for data access
         self.supabase_container = 'vector_db'
         self.db_name = 'postgres'
+        
+        # PDF Knowledge Base configuration
+        self.knowledge_base_path = '/tmp/tileshop_pdfs/knowledge_base'
         
         # Initialize Claude API client
         self.claude_client = None
@@ -701,6 +705,132 @@ Always present complete solutions including necessary installation materials, pr
             logger.error(f"Error in relational database search: {e}")
             return []
     
+    def search_knowledge_base(self, query: str, limit: int = 5) -> List[Dict[str, Any]]:
+        """Search PDF knowledge base for relevant information"""
+        try:
+            if not os.path.exists(self.knowledge_base_path):
+                logger.warning(f"Knowledge base path not found: {self.knowledge_base_path}")
+                return []
+            
+            knowledge_results = []
+            query_lower = query.lower()
+            query_terms = re.findall(r'\b\w+\b', query_lower)
+            
+            # Search through all JSON files in knowledge base
+            for category_dir in os.listdir(self.knowledge_base_path):
+                category_path = os.path.join(self.knowledge_base_path, category_dir)
+                if not os.path.isdir(category_path):
+                    continue
+                    
+                for json_file in glob.glob(os.path.join(category_path, "*.json")):
+                    try:
+                        with open(json_file, 'r', encoding='utf-8') as f:
+                            document = json.load(f)
+                        
+                        # Calculate relevance score based on content matching
+                        relevance_score = self._calculate_knowledge_relevance(document, query_terms)
+                        
+                        if relevance_score > 0:
+                            knowledge_results.append({
+                                'type': 'knowledge_base',
+                                'category': category_dir,
+                                'title': document.get('title', 'Unknown Document'),
+                                'document_type': document.get('type', 'PDF'),
+                                'url': document.get('url', ''),
+                                'content': self._extract_relevant_content(document, query_terms),
+                                'relevance_score': relevance_score,
+                                'source': 'pdf_knowledge_base'
+                            })
+                    
+                    except Exception as e:
+                        logger.warning(f"Error reading knowledge base file {json_file}: {e}")
+                        continue
+            
+            # Sort by relevance and return top results
+            knowledge_results.sort(key=lambda x: x['relevance_score'], reverse=True)
+            return knowledge_results[:limit]
+            
+        except Exception as e:
+            logger.error(f"Error searching knowledge base: {e}")
+            return []
+    
+    def _calculate_knowledge_relevance(self, document: Dict, query_terms: List[str]) -> float:
+        """Calculate relevance score for knowledge base document"""
+        score = 0.0
+        
+        # Check title match (high weight)
+        title = document.get('title', '').lower()
+        for term in query_terms:
+            if term in title:
+                score += 10.0
+        
+        # Check content sections
+        content = document.get('content', {})
+        if isinstance(content, dict) and 'sections' in content:
+            for section in content['sections']:
+                section_content = section.get('content', '').lower()
+                section_header = section.get('header', '').lower()
+                
+                # Header matches get higher score
+                for term in query_terms:
+                    if term in section_header:
+                        score += 5.0
+                    if term in section_content:
+                        score += 2.0
+        
+        return score
+    
+    def _extract_relevant_content(self, document: Dict, query_terms: List[str]) -> str:
+        """Extract relevant content snippets from document"""
+        relevant_parts = []
+        
+        # Add title
+        title = document.get('title', '')
+        if title:
+            relevant_parts.append(f"Title: {title}")
+        
+        # Extract relevant sections
+        content = document.get('content', {})
+        if isinstance(content, dict) and 'sections' in content:
+            for section in content['sections']:
+                section_content = section.get('content', '')
+                section_header = section.get('header', '')
+                
+                # Include sections that match query terms
+                content_lower = section_content.lower()
+                header_lower = section_header.lower()
+                
+                if any(term in content_lower or term in header_lower for term in query_terms):
+                    if section_header:
+                        relevant_parts.append(f"{section_header}: {section_content[:200]}...")
+                    else:
+                        relevant_parts.append(section_content[:200] + "...")
+        
+        return '\n'.join(relevant_parts[:3])  # Limit to top 3 relevant sections
+    
+    def search_combined(self, query: str, limit: int = 5) -> Dict[str, Any]:
+        """Combined search across products and knowledge base"""
+        try:
+            # Search products
+            product_results = self.search_products(query, limit=limit)
+            
+            # Search knowledge base  
+            knowledge_results = self.search_knowledge_base(query, limit=3)
+            
+            return {
+                'products': product_results,
+                'knowledge_base': knowledge_results,
+                'total_results': len(product_results) + len(knowledge_results)
+            }
+            
+        except Exception as e:
+            logger.error(f"Error in combined search: {e}")
+            return {
+                'products': [],
+                'knowledge_base': [],
+                'total_results': 0
+            }
+    
     def chat(self, query: str) -> str:
         """Generate intelligent chat response - Smart routing based on query type"""
         try:
@@ -911,7 +1041,15 @@ Once I know the size, I can show you everything you'll need for professional ins
         """Handle regular search queries with enhanced image support and supporting materials"""
         # Extract meaningful search terms from query
         search_terms = self._extract_search_terms(query)
-        results = self.search_products(search_terms)
+        
+        # Use combined search for products and knowledge base
+        combined_results = self.search_combined(search_terms)
+        results = combined_results['products']
+        knowledge_results = combined_results['knowledge_base']
+        
+        # If no product results but we have knowledge base results, include them
+        if not results and knowledge_results:
+            return self._format_knowledge_response(query, knowledge_results)
         
         if not results:
             return "I'd love to help you find the perfect tiles! I couldn't find anything matching those exact terms, but let me help you explore some other options. Try searching for tile types, colors, finishes, or sizes, and I'll find some great choices for you!"
@@ -986,6 +1124,21 @@ Once I know the size, I can show you everything you'll need for professional ins
             supporting_materials = self._generate_supporting_materials_section(query, results)
             if supporting_materials:
                 response_parts.append(supporting_materials)
+        
+        # Add knowledge base information if available
+        if knowledge_results:
+            response_parts.append("\n" + "="*50)
+            response_parts.append("📚 **Additional Information from our Knowledge Base:**\n")
+            
+            for i, kb_result in enumerate(knowledge_results[:2], 1):  # Limit to top 2 knowledge results
+                category = kb_result.get('category', 'general').replace('_', ' ').title()
+                title = kb_result.get('title', 'Document')
+                content = kb_result.get('content', '')
+                
+                response_parts.append(
+                    f"**{title}** ({category})\n"
+                    f"{content[:200]}...\n"
+                )
         
         return "\n".join(response_parts)
     
@@ -1741,3 +1894,32 @@ What are your kitchen dimensions?"""
                 'error': str(e),
                 'message': f'Connection failed: {str(e)}'
             }
+    
+    def _format_knowledge_response(self, query: str, knowledge_results: List[Dict[str, Any]]) -> str:
+        """Format knowledge base search results into a helpful response"""
+        if not knowledge_results:
+            return "I couldn't find specific information about that in our knowledge base."
+        
+        response_parts = [
+            f"I found helpful information about your query in our knowledge base:\n"
+        ]
+        
+        for i, result in enumerate(knowledge_results, 1):
+            category = result.get('category', 'general').replace('_', ' ').title()
+            title = result.get('title', 'Unknown Document')
+            content = result.get('content', '')
+            url = result.get('url', '')
+            
+            response_parts.append(
+                f"{i}. **{title}** ({category})\n"
+                f"   {content[:300]}...\n"
+            )
+            
+            if url:
+                response_parts.append(f"   📄 **Document**: {url}\n")
+        
+        response_parts.append(
+            "\n💡 **Need specific products?** Try searching for tile names, SKUs, or specific product types!"
+        )
+        
+        return "\n".join(response_parts)
