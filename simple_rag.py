@@ -451,6 +451,11 @@ Always present complete solutions including necessary installation materials, pr
     def _search_products_text_fallback(self, query: str, limit: int = 3) -> List[Dict[str, Any]]:
         """Enhanced text search using both product_embeddings and product_data for complete results with images"""
         try:
+            # Check if this is a direct SKU search (6 digits)
+            query_stripped = query.strip()
+            if query_stripped.isdigit() and len(query_stripped) == 6:
+                return self._search_by_sku(query_stripped, limit)
+            
             # Split query into individual terms for better matching
             query_terms = query.lower().split()
             
@@ -548,6 +553,57 @@ Always present complete solutions including necessary installation materials, pr
             
         except Exception as e:
             logger.error(f"Error in text fallback search: {e}")
+            return []
+    
+    def _search_by_sku(self, sku: str, limit: int = 3) -> List[Dict[str, Any]]:
+        """Search for products by exact SKU match"""
+        try:
+            search_sql = f"""
+                COPY (
+                    SELECT 
+                        pe.sku,
+                        pe.title,
+                        pe.content,
+                        COALESCE(pd.primary_image, '') as primary_image,
+                        COALESCE(pd.price_per_sqft, 0) as price_per_sqft,
+                        COALESCE(pd.price_per_box, 0) as price_per_box,
+                        COALESCE(pd.price_per_piece, 0) as price_per_piece,
+                        'sku_search' as search_type
+                    FROM product_embeddings pe
+                    LEFT JOIN product_data pd ON pe.sku = pd.sku
+                    WHERE pe.sku = '{sku}'
+                    LIMIT {limit}
+                ) TO STDOUT CSV HEADER;
+            """
+            
+            result = subprocess.run([
+                'docker', 'exec', self.supabase_container,
+                'psql', '-U', 'postgres', '-d', self.db_name,
+                '-c', search_sql
+            ], capture_output=True, text=True, check=True)
+            
+            formatted_results = []
+            if result.stdout.strip():
+                csv_data = io.StringIO(result.stdout)
+                reader = csv.DictReader(csv_data)
+                
+                for row in reader:
+                    # Convert empty strings to None and parse types
+                    product = {}
+                    for key, value in row.items():
+                        if value == '':
+                            product[key] = None
+                        else:
+                            product[key] = value
+                    
+                    # Set high relevance score for exact SKU matches
+                    product['relevance_score'] = 10.0
+                    formatted_results.append(product)
+            
+            return formatted_results
+            
+        except Exception as e:
+            logger.error(f"Error in SKU search: {e}")
             return []
     
     def _search_relational_db_with_images(self, query_terms: List[str], title_priority_conditions: List[str], limit: int = 3) -> List[Dict[str, Any]]:
