@@ -129,4 +129,106 @@ python reboot_dashboard.py  # Restart dashboard
 
 ---
 
-*This guide addresses acquisition control statistics inconsistencies after fresh sitemap downloads.*
+## Issue: Product Fields Not Parsing (Edge Type, Box Quantity, Product Category)
+
+### Problem Description
+Product fields like Edge Type, Box Quantity, Material Type, and Product Category show as null in the dashboard despite being available on the product pages.
+
+**Example:**
+- Page shows: "Edge Type: Rectified", "Box Quantity: 6"  
+- Dashboard shows: edge_type: null, box_quantity: null, product_category: null
+
+### Root Cause
+Multiple parsing system components can cause missing fields:
+
+1. **Incorrect JSON Patterns**: Tileshop uses `{"Key":"PDPInfo_BoxQuantity","Value":"6"}` structure
+2. **Overly Strict Validation**: Valid data filtered as "corrupted" (e.g., "Rectified" rejected)
+3. **Missing Database Schema**: Fields extracted but not included in INSERT statements
+4. **Skipped URL Processing**: Previously processed URLs marked as "completed" are skipped
+
+### Solution Steps
+
+#### Step 1: Verify Extraction Patterns
+Check patterns in `enhanced_specification_extractor.py`:
+```python
+# Correct JSON patterns for Tileshop
+"box_quantity": [
+    r'"Key"\s*:\s*"PDPInfo_BoxQuantity"[^}]*"Value"\s*:\s*"([^"]+)"',  # Priority
+    r'"PDPInfo_BoxQuantity"[^}]*"Value"\s*:\s*"([^"]+)"',
+]
+
+"edge_type": [
+    r'"Key"\s*:\s*"PDPInfo_EdgeType"[^}]*"Value"\s*:\s*"([^"]+)"',  # Priority  
+    r'"PDPInfo_EdgeType"[^}]*"Value"\s*:\s*"([^"]+)"',
+]
+```
+
+#### Step 2: Fix Validation Logic
+Add valid value bypasses in `_clean_specifications()`:
+```python
+# Allow valid edge type values regardless of other validation
+if field.lower() in ['edge_type', 'edgetype'] and value.lower() in ['rectified', 'pressed', 'natural', 'polished']:
+    cleaned[field] = value
+    continue
+
+# Allow valid product category values
+if field.lower() in ['product_category', 'category'] and value.lower() in ['tile', 'tiles', 'grout', 'trim']:
+    cleaned[field] = value  
+    continue
+```
+
+#### Step 3: Verify Database Schema
+Ensure all fields are in the INSERT statement (`tileshop_learner.py`):
+```sql
+INSERT INTO product_data (
+    -- ... other fields ...
+    box_quantity, edge_type, material_type, product_category,
+    scraped_at
+) VALUES (
+    -- ... corresponding values ...
+)
+ON CONFLICT (url) DO UPDATE SET
+    box_quantity = EXCLUDED.box_quantity,
+    edge_type = EXCLUDED.edge_type,
+    material_type = EXCLUDED.material_type,
+    product_category = EXCLUDED.product_category,
+    -- ... other updates ...
+```
+
+#### Step 4: Force Re-processing
+To test fixes on existing products, reset their status:
+```python
+# Reset specific URL to pending for re-processing
+python -c "
+import json
+with open('tileshop_sitemap.json', 'r') as f:
+    data = json.load(f)
+for url_entry in data['urls']:
+    if 'YOUR_SKU' in url_entry['url']:
+        url_entry['scrape_status'] = 'pending'
+        url_entry['scraped_at'] = None
+        break
+with open('tileshop_sitemap.json', 'w') as f:
+    json.dump(data, f, indent=2)
+"
+
+# Then re-process
+python acquire_from_sitemap.py 1
+```
+
+### Verification
+Check database after re-processing:
+```sql
+SELECT sku, edge_type, product_category, box_quantity, material_type 
+FROM product_data WHERE sku = 'YOUR_SKU';
+```
+
+### Common Patterns Fixed
+- **PDPInfo JSON Structure**: `{"Key":"PDPInfo_FieldName","Value":"actual_value"}`
+- **Edge Type Values**: "Rectified", "Pressed", "Natural", "Polished"  
+- **Product Categories**: Extracted from titles (e.g., "Tile" from "Porcelain Wall and Floor Tile")
+- **Box Quantities**: Numeric values from specifications section
+
+---
+
+*This guide addresses acquisition control statistics inconsistencies and product field parsing issues.*

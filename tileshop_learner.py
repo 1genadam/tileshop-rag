@@ -984,19 +984,22 @@ def extract_product_data(crawl_results, base_url, category=None):
                                 specs_html = main_html
                             
                             # Extract all available specifications
-                            enhanced_specs = spec_extractor.extract_specifications(specs_html, data.get('category', 'tile'))
+                            enhanced_specs = spec_extractor.extract_specifications(specs_html, data.get('category', 'tile'), data.get('title', ''))
                             
                             # Map extracted specifications to database schema
                             field_mappings = {
                                 'boxquantity': 'box_quantity',
+                                'box_quantity': 'box_quantity',  # Direct mapping
                                 'boxweight': 'box_weight', 
                                 'edgetype': 'edge_type',
+                                'edge_type': 'edge_type',  # Direct mapping
                                 'shadevariation': 'shade_variation',
                                 'faces': 'number_of_faces',
                                 'directionallayout': 'directional_layout',
                                 'countryoforigin': 'country_of_origin',
                                 'materialtype': 'material_type',
                                 'dimensions': 'thickness',  # Sometimes thickness comes as "dimensions"
+                                'product_category': 'product_category',  # Direct mapping
                             }
                             
                             # Add extracted specifications to data with proper field mapping
@@ -1799,7 +1802,7 @@ def save_to_database(product_data, crawl_results):
         application_areas, related_products, rag_keywords, installation_complexity,
         typical_use_cases, thickness, box_quantity, box_weight, edge_type,
         shade_variation, number_of_faces, directional_layout, country_of_origin,
-        material_type, scraped_at
+        material_type, product_category, scraped_at
     ) VALUES (
         {escape_sql(product_data['url'])},
         {escape_sql(product_data['sku'])},
@@ -1838,6 +1841,7 @@ def save_to_database(product_data, crawl_results):
         {product_data.get('directional_layout') if product_data.get('directional_layout') is not None else 'NULL'},
         {escape_sql(product_data.get('country_of_origin'))},
         {escape_sql(product_data.get('material_type'))},
+        {escape_sql(product_data.get('product_category'))},
         NOW()
     )
     ON CONFLICT (url) DO UPDATE SET
@@ -1877,6 +1881,7 @@ def save_to_database(product_data, crawl_results):
         directional_layout = EXCLUDED.directional_layout,
         country_of_origin = EXCLUDED.country_of_origin,
         material_type = EXCLUDED.material_type,
+        product_category = EXCLUDED.product_category,
         updated_at = CURRENT_TIMESTAMP;
     """
     

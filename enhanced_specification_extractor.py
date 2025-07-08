@@ -26,6 +26,8 @@ class EnhancedSpecificationExtractor:
                 r'Thickness:\s*([^<\n,]+)',
             ],
             "box_quantity": [
+                r'"Key"\s*:\s*"PDPInfo_BoxQuantity"[^}]*"Value"\s*:\s*"([^"]+)"',  # Tileshop JSON format - PRIORITY
+                r'"PDPInfo_BoxQuantity"[^}]*"Value"\s*:\s*"([^"]+)"',  # Alternative format
                 r'Box Quantity[:\s]*([0-9]+)',
                 r'"boxQuantity"[:\s]*([0-9]+)',
                 r'Pieces per Box[:\s]*([0-9]+)',
@@ -281,7 +283,7 @@ class EnhancedSpecificationExtractor:
             '-care/installation/tools', 'Asset_Grid_All_V2', '_Detail:', '/>', '<',
             'Installation Guidelines', 'Samples Sent to', 'Piece Count',
             'Commercial Warranty', 'Frost Resistance', 'Wear Layer', 
-            'External Links', 'Image', 'ed', 'Application',
+            'External Links', 'Image', 'Application',
             'Refresh Project', 'DesignInstallation',
             
             # Specific erroneous patterns you identified
@@ -407,6 +409,16 @@ class EnhancedSpecificationExtractor:
                 
                 # Skip empty values
                 if not value or value.lower() in ['n/a', 'na', 'none', '', '-']:
+                    continue
+                
+                # Allow valid edge type values regardless of other validation
+                if field.lower() in ['edge_type', 'edgetype'] and value.lower() in ['rectified', 'pressed', 'natural', 'polished']:
+                    cleaned[field] = value
+                    continue
+                
+                # Allow valid product category values regardless of other validation
+                if field.lower() in ['product_category', 'category'] and value.lower() in ['tile', 'tiles', 'grout', 'trim', 'adhesive', 'sealer', 'tool', 'accessory', 'product']:
+                    cleaned[field] = value
                     continue
                 
                 # Apply pattern logic BEFORE corruption filtering for pattern fields
