@@ -165,6 +165,44 @@ git push origin master
 # - Update remote URL with token (see Option 2 above)
 ```
 
+## 🔒 GitHub Secret Scanning Protection
+
+### What is Secret Scanning?
+GitHub automatically scans commits for exposed API keys, tokens, and other secrets. If detected, your push will be blocked.
+
+### If Your Push is Blocked:
+```bash
+# Error example:
+# remote: - Push cannot contain secrets
+# remote: Anthropic API Key detected in commit abc123
+
+# Solution 1: Remove the secret from your code
+# Edit the file to use environment variables instead
+# Then commit the fix:
+git add .
+git commit -m "Security: Replace hardcoded API key with environment variable"
+
+# Solution 2: If secret is in git history, clean it up
+# Reset to before the problematic commit:
+git reset --soft HEAD~1  # Or HEAD~2, HEAD~3, etc.
+# Then recommit without the secret:
+git commit -m "Your clean commit message"
+```
+
+### Preventing Secret Exposure:
+```bash
+# Always use environment variables for secrets
+# ✅ Good:
+api_key = os.getenv('ANTHROPIC_API_KEY')
+
+# ❌ Bad:
+api_key = 'sk-ant-api03-your-key-here'
+
+# Ensure .env files are in .gitignore
+echo ".env" >> .gitignore
+echo ".env.local" >> .gitignore
+```
+
 ## 📋 Example Complete Workflow
 ```bash
 # 1. Check what changed
@@ -204,12 +242,29 @@ git remote add origin https://YOUR_TOKEN@github.com/1genadam/tileshop-rag.git
 ```
 
 ## 🔐 Security Best Practices
+
+### Code Security:
 ```bash
 # Security Best Practices:
 - ❌ Never commit API keys to version control
 - ✅ Use environment variables for all sensitive data
 - ✅ Keep .env files local and use .env.example for templates
 - ✅ Rotate keys regularly and revoke compromised keys
+```
+
+### Remote URL Security:
+```bash
+# ❌ Bad: Token in remote URL (visible in git config)
+git remote set-url origin https://ghp_token123@github.com/user/repo.git
+
+# ✅ Good: Clean remote URL (credentials handled separately)
+git remote set-url origin https://github.com/user/repo.git
+# Use git credential helper or SSH for authentication
+
+# Check your remote URL for exposed tokens:
+git remote -v
+# If you see a token in the URL, clean it up:
+git remote set-url origin https://github.com/1genadam/tileshop-rag.git
 ```
 
 ### Files Protected by .gitignore
