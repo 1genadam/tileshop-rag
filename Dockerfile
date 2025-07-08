@@ -75,4 +75,4 @@ HEALTHCHECK --interval=30s --timeout=10s --start-period=5s --retries=3 \
     CMD curl -f http://localhost:8080/api/system/health || exit 1
 
 # Start the application with Gunicorn
-CMD ["gunicorn", "--config", "gunicorn.conf.py", "reboot_dashboard:app"]
+CMD ["gunicorn", "--config", "gunicorn.conf.py", "dashboard_app:app"]
