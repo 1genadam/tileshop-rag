@@ -102,6 +102,9 @@ EOF
     rm -f force_reload.js
     echo ""
     echo "🔍 Monitor logs: tail -f dashboard.log"
+    echo ""
+    echo "✅ Reboot complete! Dashboard is running in background."
+    exit 0
 else
     echo "❌ Failed to start dashboard"
     echo "📋 Error logs:"

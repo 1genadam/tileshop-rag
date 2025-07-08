@@ -242,6 +242,54 @@ class EnhancedCategorizer:
         
         return ' '.join(text_parts)
     
+    def extract_material_type(self, product_data: Dict[str, Any]) -> str:
+        """Extract material type from title, description, or specifications"""
+        text_content = self._extract_text_content(product_data)
+        
+        # Material type patterns with priority order
+        material_patterns = [
+            ('porcelain', ['porcelain']),
+            ('ceramic', ['ceramic']),
+            ('marble', ['marble', 'carrara', 'calacatta']),
+            ('granite', ['granite']),
+            ('travertine', ['travertine']),
+            ('limestone', ['limestone']),
+            ('slate', ['slate']),
+            ('glass', ['glass']),
+            ('metal', ['metal', 'stainless steel', 'aluminum']),
+            ('natural stone', ['natural stone', 'stone']),
+            ('vinyl', ['vinyl', 'lvt', 'luxury vinyl']),
+            ('wood', ['wood', 'hardwood'])
+        ]
+        
+        # Check title first (highest priority)
+        title = product_data.get('title', '').lower()
+        for material, keywords in material_patterns:
+            for keyword in keywords:
+                if keyword in title:
+                    print(f"  ✅ Material type detected from title: {material}")
+                    return material
+        
+        # Check specifications
+        specs = product_data.get('specifications', {})
+        if isinstance(specs, dict):
+            material_field = specs.get('material', '').lower()
+            if material_field and material_field != 'material':
+                for material, keywords in material_patterns:
+                    for keyword in keywords:
+                        if keyword in material_field:
+                            print(f"  ✅ Material type detected from specs: {material}")
+                            return material
+        
+        # Check description and other fields
+        for material, keywords in material_patterns:
+            for keyword in keywords:
+                if keyword in text_content:
+                    print(f"  ✅ Material type detected from content: {material}")
+                    return material
+        
+        return None
+    
     def _score_categories(self, text_content: str) -> Dict[str, float]:
         """Score each category based on keyword matches and weights"""
         scores = {}

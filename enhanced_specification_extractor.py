@@ -364,7 +364,7 @@ class EnhancedSpecificationExtractor:
         return True
     
     def _clean_specifications(self, specifications: Dict[str, Any]) -> Dict[str, Any]:
-        """Clean and standardize specification values"""
+        """Clean and standardize specification values with corruption filtering"""
         cleaned = {}
         
         for field, value in specifications.items():
@@ -378,6 +378,19 @@ class EnhancedSpecificationExtractor:
                 
                 # Skip empty values
                 if not value or value.lower() in ['n/a', 'na', 'none', '', '-']:
+                    continue
+                
+                # Apply pattern logic BEFORE corruption filtering for pattern fields
+                if field.lower() in ['pattern', 'has_pattern']:
+                    # Convert pattern descriptions to Yes/No
+                    pattern_indicators = ['pattern', 'pairing', 'combine', 'mix', 'match', 'coordinate']
+                    has_pattern = any(indicator in value.lower() for indicator in pattern_indicators)
+                    value = 'Yes' if has_pattern else 'No'
+                    print(f"  🔄 Pattern logic applied: {field} = {value}")
+                
+                # Apply corruption filtering - USE EXISTING VALIDATION
+                elif not self._is_valid_specification_field(field, value):
+                    print(f"  🚫 Filtered corrupted data: {field} = {value}")
                     continue
                 
                 cleaned[field] = value

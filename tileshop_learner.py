@@ -1047,6 +1047,13 @@ def extract_product_data(crawl_results, base_url, category=None):
                             print("\n--- Applying Enhanced Categorization for RAG (Post-Field-Extraction) ---")
                             category_info = enhanced_categorizer.categorize_product(data)
                             
+                            # Extract material type if missing
+                            if not data.get('material_type') or data.get('material_type') in ['Material', 'None', None]:
+                                material_type = enhanced_categorizer.extract_material_type(data)
+                                if material_type:
+                                    data['material_type'] = material_type
+                                    print(f"  ✅ Material type added: {material_type}")
+                            
                             # Add enhanced category fields to product data
                             data['category'] = category_info.primary_category
                             data['subcategory'] = category_info.subcategory
