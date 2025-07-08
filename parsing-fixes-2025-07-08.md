@@ -78,6 +78,45 @@ To ensure existing products get updated with fixed parsing:
 3. `readme/ACQUISITION_TROUBLESHOOTING.md` - Documentation updates
 4. `parsing-fixes-2025-07-08.md` - This progress report
 
+## Additional Fixes - Pricing Logic and Field Deduplication
+
+### Pricing Logic Enhancement
+**Issue**: Incorrect price_per_piece logic when both box and sqft pricing exist
+- Standard tiles with both `$77.11/box` and `$12.99/Sq. Ft.` were incorrectly showing `price_per_piece: $77.11`
+- Per-piece products like trim pieces were showing both `price_per_box` and `price_per_piece` values
+
+**Solution**: Enhanced final pricing consolidation logic in `tileshop_learner.py`:
+```python
+# Standard tile products: Both box + sqft → price_per_piece = null
+if price_per_box is not None and price_per_sqft is not None:
+    data['price_per_piece'] = None
+
+# Per-piece products: price_per_piece exists + no sqft → price_per_box = null  
+elif price_per_piece is not None and price_per_sqft is None and price_per_box is not None:
+    data['price_per_box'] = None
+```
+
+**Results**:
+- SKU 684287 (Standard Tile): `price_per_box: $77.11, price_per_sqft: $12.98, price_per_piece: null` ✓
+- SKU 684272 (Per-Piece Trim): `price_per_box: null, price_per_sqft: null, price_per_piece: $69.99` ✓
+
+### Field Deduplication Fix
+**Issue**: Edge type appeared twice as both `edge_type` and `edgetype` with same value "Rectified"
+
+**Solution**: Added deduplication logic in `enhanced_specification_extractor.py`:
+```python
+# Remove duplicate edge type fields - keep only 'edge_type', remove 'edgetype'
+if 'edgetype' in cleaned and 'edge_type' in cleaned:
+    del cleaned['edgetype']
+```
+
+**Result**: Only `edge_type: "Rectified"` appears in specifications
+
+### Testing Validation
+- **Standard Tile (684287)**: ✅ Correct box+sqft pricing, null price_per_piece
+- **Per-Piece Product (684272)**: ✅ Only price_per_piece populated, others null
+- **Edge Type**: ✅ No more duplicates, single clean field
+
 ---
 
 *Fixes validated and documented on July 8, 2025*

@@ -231,4 +231,61 @@ FROM product_data WHERE sku = 'YOUR_SKU';
 
 ---
 
+## Issue: Incorrect Pricing Logic (price_per_piece, price_per_box, price_per_sqft)
+
+### Problem Description
+Products showing incorrect pricing combinations:
+- Standard tiles: Both `price_per_box` and `price_per_piece` populated when only box+sqft should exist
+- Per-piece products: Both `price_per_box` and `price_per_piece` populated when only piece pricing should exist
+- Duplicate fields: `edge_type` and `edgetype` both appearing with same value
+
+### Examples
+**Standard Tile (should have box+sqft only):**
+- Page shows: "$77.11/box" and "$12.99/Sq. Ft."
+- Database incorrectly showed: `price_per_box: 77.11, price_per_sqft: 12.98, price_per_piece: 77.11`
+- Should show: `price_per_box: 77.11, price_per_sqft: 12.98, price_per_piece: null`
+
+**Per-Piece Product (should have piece only):**
+- Page shows: "$69.99/each"  
+- Database incorrectly showed: `price_per_box: 69.99, price_per_piece: 69.99`
+- Should show: `price_per_box: null, price_per_sqft: null, price_per_piece: 69.99`
+
+### Root Cause
+Final pricing consolidation logic was incomplete - didn't handle all pricing scenarios.
+
+### Solution
+Enhanced `_consolidate_final_pricing()` function in `tileshop_learner.py`:
+
+```python
+def _consolidate_final_pricing(data):
+    # Standard tile products: Both box + sqft exist → price_per_piece = null
+    if price_per_box is not None and price_per_sqft is not None:
+        data['price_per_piece'] = None
+    
+    # Per-piece products: price_per_piece exists + no sqft → price_per_box = null  
+    elif price_per_piece is not None and price_per_sqft is None and price_per_box is not None:
+        data['price_per_box'] = None
+```
+
+### Testing
+```sql
+-- Test standard tile (SKU 684287)
+SELECT sku, price_per_box, price_per_sqft, price_per_piece FROM product_data WHERE sku = '684287';
+-- Should show: 77.11, 12.98, null
+
+-- Test per-piece product (SKU 684272)  
+SELECT sku, price_per_box, price_per_sqft, price_per_piece FROM product_data WHERE sku = '684272';
+-- Should show: null, null, 69.99
+```
+
+### Field Deduplication
+Added logic in `enhanced_specification_extractor.py` to remove duplicate fields:
+```python
+# Remove duplicate edge type fields - keep only 'edge_type', remove 'edgetype'
+if 'edgetype' in cleaned and 'edge_type' in cleaned:
+    del cleaned['edgetype']
+```
+
+---
+
 *This guide addresses acquisition control statistics inconsistencies and product field parsing issues.*

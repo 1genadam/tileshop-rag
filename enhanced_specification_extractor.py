@@ -438,6 +438,11 @@ class EnhancedSpecificationExtractor:
             else:
                 cleaned[field] = value
         
+        # Remove duplicate edge type fields - keep only 'edge_type', remove 'edgetype'
+        if 'edgetype' in cleaned and 'edge_type' in cleaned:
+            print(f"  🔄 Removing duplicate: edgetype = {cleaned['edgetype']} (keeping edge_type)")
+            del cleaned['edgetype']
+        
         return cleaned
     
     def get_schema_recommendations(self, specifications: Dict[str, Any]) -> List[Tuple[str, str, str]]:

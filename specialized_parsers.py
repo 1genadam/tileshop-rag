@@ -256,10 +256,17 @@ class TilePageParser(BaseProductParser):
                     break
             
             # If we found per-unit pattern but no explicit per-piece price, use price_per_box as price_per_piece
+            # BUT only if this is truly a per-piece product (not a standard tile with box+sqft pricing)
             if not product_data.get('price_per_piece') and product_data.get('price_per_box') and has_per_unit:
-                product_data['price_per_piece'] = product_data['price_per_box']
-                product_data['price_per_box'] = None  # Clear box price since this is per-piece pricing
-                print(f"TilePageParser: Per-piece product detected: price_per_piece=${product_data['price_per_piece']}, cleared price_per_box")
+                # Check if this is a standard tile product (has both box and sqft pricing)
+                if product_data.get('price_per_sqft'):
+                    # This is a standard tile product sold by box - leave price_per_piece as None
+                    print(f"TilePageParser: Standard tile product detected with box+sqft pricing - price_per_piece remains None")
+                else:
+                    # This is truly a per-piece product
+                    product_data['price_per_piece'] = product_data['price_per_box']
+                    product_data['price_per_box'] = None  # Clear box price since this is per-piece pricing
+                    print(f"TilePageParser: Per-piece product detected: price_per_piece=${product_data['price_per_piece']}, cleared price_per_box")
 
 class GroutPageParser(BaseProductParser):
     """Specialized parser for grout product pages"""

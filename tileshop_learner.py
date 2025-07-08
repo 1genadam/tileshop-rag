@@ -1080,6 +1080,9 @@ def extract_product_data(crawl_results, base_url, category=None):
                             if not data.get('category'):
                                 data['category'] = 'uncategorized'
                 
+                # Final pricing consolidation - ensure price_per_piece is None when both box and sqft prices exist
+                _consolidate_final_pricing(data)
+                
                 return data
             else:
                 print("⚠️ Specialized parsing incomplete. Falling back to legacy extraction methods.")
@@ -1297,9 +1300,15 @@ def extract_product_data(crawl_results, base_url, category=None):
         
         # If we found per-unit pattern but no explicit per-piece price, use price_per_box as price_per_piece
         if not data.get('price_per_piece') and data.get('price_per_box') and has_per_unit:
-            data['price_per_piece'] = data['price_per_box']
-            data['price_per_box'] = None  # Clear box price since this is per-piece pricing
-            print(f"Per-piece product detected: price_per_piece=${data['price_per_piece']}, cleared price_per_box")
+            # Check if this is a standard tile product (has both box and sqft pricing)
+            if data.get('price_per_sqft'):
+                # This is a standard tile product sold by box - leave price_per_piece as None
+                print(f"Standard tile product detected with box+sqft pricing - price_per_piece remains None")
+            else:
+                # This is truly a per-piece product
+                data['price_per_piece'] = data['price_per_box']
+                data['price_per_box'] = None  # Clear box price since this is per-piece pricing
+                print(f"Per-piece product detected: price_per_piece=${data['price_per_piece']}, cleared price_per_box")
     
     # Extract coverage - IMPROVED
     coverage_patterns = [
@@ -1687,7 +1696,32 @@ def extract_product_data(crawl_results, base_url, category=None):
     # Enhanced Data Inference - Fill in missing critical fields
     _enhance_missing_data(data)
     
+    # Final pricing consolidation - ensure price_per_piece is None when both box and sqft prices exist
+    _consolidate_final_pricing(data)
+    
     return data
+
+def _consolidate_final_pricing(data):
+    """Final pricing consolidation - ensures price_per_piece is None when both box and sqft prices exist"""
+    price_per_box = data.get('price_per_box')
+    price_per_sqft = data.get('price_per_sqft')
+    price_per_piece = data.get('price_per_piece')
+    
+    # If both price_per_box and price_per_sqft exist, set price_per_piece to None (standard tile product)
+    if price_per_box is not None and price_per_sqft is not None:
+        if price_per_piece is not None:
+            print(f"💰 Final pricing consolidation: Both box (${price_per_box}) and sqft (${price_per_sqft}) prices exist - setting price_per_piece to None (was ${price_per_piece})")
+            data['price_per_piece'] = None
+        else:
+            print(f"💰 Final pricing consolidation: Both box (${price_per_box}) and sqft (${price_per_sqft}) prices exist - price_per_piece already None")
+    
+    # If price_per_piece exists and price_per_sqft is None, set price_per_box to None (true per-piece product)
+    elif price_per_piece is not None and price_per_sqft is None and price_per_box is not None:
+        print(f"💰 Final pricing consolidation: Per-piece product detected (${price_per_piece}) - setting price_per_box to None (was ${price_per_box})")
+        data['price_per_box'] = None
+    
+    else:
+        print(f"💰 Final pricing consolidation: price_per_box={price_per_box}, price_per_sqft={price_per_sqft}, price_per_piece={price_per_piece} - no changes needed")
 
 def _enhance_missing_data(data):
     """Enhanced inference to fill in missing critical fields"""
