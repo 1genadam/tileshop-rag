@@ -4,6 +4,36 @@
   "status": "ready",
   "urls": [
     {
+      "url": "https://www.tileshop.com/products/superior-excel-standard-white-sanded-grout-25lb-52271",
+      "lastmod": null,
+      "scraped_at": "2025-07-07T23:32:55.924186",
+      "scrape_status": "completed"
+    },
+    {
+      "url": "https://www.tileshop.com/products/primo-euro-style-riveted-trowel-350142",
+      "lastmod": null,
+      "scraped_at": "2025-07-07T23:31:30.236458",
+      "scrape_status": "completed"
+    },
+    {
+      "url": "https://www.tileshop.com/products/superior-whisper-grey-100-silicone-caulk-105oz-51801",
+      "lastmod": null,
+      "scraped_at": "2025-07-07T23:30:59.870645",
+      "scrape_status": "completed"
+    },
+    {
+      "url": "https://www.tileshop.com/products/wedi-board-3-ft-x-5-ft-x-0-5-in-348940",
+      "lastmod": null,
+      "scraped_at": "2025-07-07T23:21:37.497641",
+      "scrape_status": "completed"
+    },
+    {
+      "url": "https://www.tileshop.com/products/ardex-x5-tile-and-stone-gray-thinset-mortar-40-lbs-12531",
+      "lastmod": null,
+      "scraped_at": "2025-07-07T23:20:56.712861",
+      "scrape_status": "completed"
+    },
+    {
       "url": "https://www.tileshop.com/products/queen-beige-polished-bullnose-2-x-12-in-659856",
       "lastmod": null,
       "scraped_at": "2025-07-07T23:16:18.451555",
@@ -2461,212 +2491,220 @@
     {
       "url": "https://www.tileshop.com/products/arbour-lowlands-blonde-oak-luxury-vinyl-overlap-stair-nose-84-in-683904",
       "lastmod": null,
-      "scraped_at": null,
-      "scrape_status": "pending"
+      "scraped_at": "2025-07-07T23:17:04.309959",
+      "scrape_status": "completed"
     },
     {
       "url": "https://www.tileshop.com/products/arbour-lowlands-blonde-oak-luxury-vinyl-reducer-84-in-683903",
       "lastmod": null,
-      "scraped_at": null,
-      "scrape_status": "pending"
+      "scraped_at": "2025-07-07T23:17:13.449202",
+      "scrape_status": "completed"
     },
     {
       "url": "https://www.tileshop.com/products/arbour-lowlands-blonde-oak-luxury-vinyl-t-molding-84-in-683902",
       "lastmod": null,
-      "scraped_at": null,
-      "scrape_status": "pending"
+      "scraped_at": "2025-07-07T23:17:22.886153",
+      "scrape_status": "completed"
     },
     {
       "url": "https://www.tileshop.com/products/arbour-lowlands-summer-oak-luxury-vinyl-quarter-round-84-in-683901",
       "lastmod": null,
-      "scraped_at": null,
-      "scrape_status": "pending"
+      "scraped_at": "2025-07-07T23:17:30.321237",
+      "scrape_status": "failed",
+      "error": "Unexpected error: [Errno 32] Broken pipe"
     },
     {
       "url": "https://www.tileshop.com/products/arbour-lowlands-summer-oak-luxury-vinyl-flush-stair-nose-84-in-683900",
       "lastmod": null,
-      "scraped_at": null,
-      "scrape_status": "pending"
+      "scraped_at": "2025-07-07T23:17:34.432479",
+      "scrape_status": "completed"
     },
     {
       "url": "https://www.tileshop.com/products/arbour-lowlands-summer-oak-luxury-vinyl-overlap-stair-nose-84-in-683899",
       "lastmod": null,
-      "scraped_at": null,
-      "scrape_status": "pending"
+      "scraped_at": "2025-07-07T23:17:44.294475",
+      "scrape_status": "completed"
     },
     {
       "url": "https://www.tileshop.com/products/arbour-lowlands-summer-oak-luxury-vinyl-reducer-84-in-683898",
       "lastmod": null,
-      "scraped_at": null,
-      "scrape_status": "pending"
+      "scraped_at": "2025-07-07T23:17:53.259974",
+      "scrape_status": "completed"
     },
     {
       "url": "https://www.tileshop.com/products/arbour-lowlands-summer-oak-luxury-vinyl-t-molding-84-in-683897",
       "lastmod": null,
-      "scraped_at": null,
-      "scrape_status": "pending"
+      "scraped_at": "2025-07-07T23:18:02.268229",
+      "scrape_status": "completed"
     },
     {
       "url": "https://www.tileshop.com/products/arbour-lowlands-briarsmoke-pine-luxury-vinyl-t-molding-84-in-683907",
       "lastmod": null,
-      "scraped_at": null,
-      "scrape_status": "pending"
+      "scraped_at": "2025-07-07T23:18:10.306358",
+      "scrape_status": "failed",
+      "error": "Unexpected error: [Errno 32] Broken pipe"
     },
     {
       "url": "https://www.tileshop.com/products/arbour-lowlands-blonde-oak-luxury-vinyl-quarter-round-84-in-683906",
       "lastmod": null,
-      "scraped_at": null,
-      "scrape_status": "pending"
+      "scraped_at": "2025-07-07T23:18:16.699983",
+      "scrape_status": "completed"
     },
     {
       "url": "https://www.tileshop.com/products/arbour-midlands-sandy-oak-luxury-vinyl-quarter-round-84-in-683941",
       "lastmod": null,
-      "scraped_at": null,
-      "scrape_status": "pending"
+      "scraped_at": "2025-07-07T23:18:24.444907",
+      "scrape_status": "completed"
     },
     {
       "url": "https://www.tileshop.com/products/arbour-midlands-hickory-blonde-roast-luxury-vinyl-quarter-round-84-in-683936",
       "lastmod": null,
-      "scraped_at": null,
-      "scrape_status": "pending"
+      "scraped_at": "2025-07-07T23:18:32.843526",
+      "scrape_status": "completed"
     },
     {
       "url": "https://www.tileshop.com/products/arbour-midlands-hickory-blonde-roast-luxury-vinyl-overlap-stair-nose-84-in-683934",
       "lastmod": null,
-      "scraped_at": null,
-      "scrape_status": "pending"
+      "scraped_at": "2025-07-07T23:18:36.279353",
+      "scrape_status": "failed",
+      "error": "Unexpected error: [Errno 32] Broken pipe"
     },
     {
       "url": "https://www.tileshop.com/products/arbour-lowlands-golden-blonde-maple-luxury-vinyl-quarter-round-84-in-683916",
       "lastmod": null,
-      "scraped_at": null,
-      "scrape_status": "pending"
+      "scraped_at": "2025-07-07T23:18:42.287079",
+      "scrape_status": "completed"
     },
     {
       "url": "https://www.tileshop.com/products/arbour-lowlands-golden-blonde-maple-luxury-vinyl-overlap-stair-nose-84-in-683914",
       "lastmod": null,
-      "scraped_at": null,
-      "scrape_status": "pending"
+      "scraped_at": "2025-07-07T23:18:52.047930",
+      "scrape_status": "completed"
     },
     {
       "url": "https://www.tileshop.com/products/tivoli-silver-porcelain-mosaic-wall-and-floor-tile-2-x-2-in-683887",
       "lastmod": null,
-      "scraped_at": null,
-      "scrape_status": "pending"
+      "scraped_at": "2025-07-07T23:19:02.544064",
+      "scrape_status": "completed"
     },
     {
       "url": "https://www.tileshop.com/products/tivoli-charcoal-porcelain-mosaic-wall-and-floor-tile-2-x-2-in-683886",
       "lastmod": null,
-      "scraped_at": null,
-      "scrape_status": "pending"
+      "scraped_at": "2025-07-07T23:19:11.118015",
+      "scrape_status": "completed"
     },
     {
       "url": "https://www.tileshop.com/products/storm-white-square-mosaic-porcelain-wall-and-floor-tile-2-x-2-in-683885",
       "lastmod": null,
-      "scraped_at": null,
-      "scrape_status": "pending"
+      "scraped_at": "2025-07-07T23:19:19.750095",
+      "scrape_status": "completed"
     },
     {
       "url": "https://www.tileshop.com/products/storm-white-porcelain-wall-and-floor-tile-12-x-24-in-683884",
       "lastmod": null,
-      "scraped_at": null,
-      "scrape_status": "pending"
+      "scraped_at": "2025-07-07T23:19:29.058635",
+      "scrape_status": "failed",
+      "error": "Unexpected error: [Errno 32] Broken pipe"
     },
     {
       "url": "https://www.tileshop.com/products/sandwaves-marshmallow-porcelain-mosaic-wall-and-floor-tile-2-x-2-in-683883",
       "lastmod": null,
-      "scraped_at": null,
-      "scrape_status": "pending"
+      "scraped_at": "2025-07-07T23:19:34.196417",
+      "scrape_status": "completed"
     },
     {
       "url": "https://www.tileshop.com/products/sandwaves-dark-porcelain-mosaic-wall-and-floor-tile-2-x-2-in-683882",
       "lastmod": null,
-      "scraped_at": null,
-      "scrape_status": "pending"
+      "scraped_at": "2025-07-07T23:19:42.339106",
+      "scrape_status": "completed"
     },
     {
       "url": "https://www.tileshop.com/products/sandwaves-dark-porcelain-wall-and-floor-tile-12-x-24-in-683881",
       "lastmod": null,
-      "scraped_at": null,
-      "scrape_status": "pending"
+      "scraped_at": "2025-07-07T23:19:50.606081",
+      "scrape_status": "failed",
+      "error": "Unexpected error: [Errno 32] Broken pipe"
     },
     {
       "url": "https://www.tileshop.com/products/roccia-di-roma-silver-square-mosaic-porcelain-wall-and-floor-tile-2-x-2-in-683880",
       "lastmod": null,
-      "scraped_at": null,
-      "scrape_status": "pending"
+      "scraped_at": "2025-07-07T23:19:55.632872",
+      "scrape_status": "completed"
     },
     {
       "url": "https://www.tileshop.com/products/fusion-silver-interlocking-mosaic-porcelain-wall-and-floor-tile-2-x-6-in-683878",
       "lastmod": null,
-      "scraped_at": null,
-      "scrape_status": "pending"
+      "scraped_at": "2025-07-07T23:20:04.870931",
+      "scrape_status": "completed"
     },
     {
       "url": "https://www.tileshop.com/products/fusion-silver-porcelain-wall-and-floor-tile-12-x-24-in-683877",
       "lastmod": null,
-      "scraped_at": null,
-      "scrape_status": "pending"
+      "scraped_at": "2025-07-07T23:20:12.804042",
+      "scrape_status": "failed",
+      "error": "Unexpected error: [Errno 32] Broken pipe"
     },
     {
       "url": "https://www.tileshop.com/products/fusion-sand-interlocking-mosaic-porcelain-wall-and-floor-tile-2-x-6-in-683876",
       "lastmod": null,
-      "scraped_at": null,
-      "scrape_status": "pending"
+      "scraped_at": "2025-07-07T23:20:19.136495",
+      "scrape_status": "completed"
     },
     {
       "url": "https://www.tileshop.com/products/fusion-sand-porcelain-wall-and-floor-tile-12-x-24-in-683875",
       "lastmod": null,
-      "scraped_at": null,
-      "scrape_status": "pending"
+      "scraped_at": "2025-07-07T23:20:28.879527",
+      "scrape_status": "completed"
     },
     {
       "url": "https://www.tileshop.com/products/fusion-chalk-interlocking-mosaic-porcelain-wall-and-floor-tile-2-x-6-in-683874",
       "lastmod": null,
-      "scraped_at": null,
-      "scrape_status": "pending"
+      "scraped_at": "2025-07-07T23:20:38.491007",
+      "scrape_status": "completed"
     },
     {
       "url": "https://www.tileshop.com/products/fusion-chalk-porcelain-wall-and-floor-tile-12-x-24-in-683873",
       "lastmod": null,
-      "scraped_at": null,
-      "scrape_status": "pending"
+      "scraped_at": "2025-07-07T23:20:48.385635",
+      "scrape_status": "completed"
     },
     {
       "url": "https://www.tileshop.com/products/bento-gray-porcelain-wall-and-floor-tile-9-x-10-in-683833",
       "lastmod": null,
-      "scraped_at": null,
-      "scrape_status": "pending"
+      "scraped_at": "2025-07-07T23:20:58.789074",
+      "scrape_status": "completed"
     },
     {
       "url": "https://www.tileshop.com/products/andes-nat-ceramic-wall-and-floor-tile-12-x-24-in-683777",
       "lastmod": null,
-      "scraped_at": null,
-      "scrape_status": "pending"
+      "scraped_at": "2025-07-07T23:21:07.560642",
+      "scrape_status": "failed",
+      "error": "Unexpected error: [Errno 32] Broken pipe"
     },
     {
       "url": "https://www.tileshop.com/products/invisible-nat-ceramic-wall-and-floor-tile-12-x-24-in-683776",
       "lastmod": null,
-      "scraped_at": null,
-      "scrape_status": "pending"
+      "scraped_at": "2025-07-07T23:21:13.181449",
+      "scrape_status": "completed"
     },
     {
       "url": "https://www.tileshop.com/products/superior-excel-linen-unsanded-grout-5lb-54010",
       "lastmod": null,
-      "scraped_at": null,
-      "scrape_status": "pending"
+      "scraped_at": "2025-07-07T23:21:22.059008",
+      "scrape_status": "completed"
     },
     {
       "url": "https://www.tileshop.com/products/superior-excel-ivory-unsanded-grout-5lb-54004",
       "lastmod": null,
-      "scraped_at": null,
-      "scrape_status": "pending"
+      "scraped_at": "2025-07-07T23:21:29.601164",
+      "scrape_status": "completed"
     },
     {
       "url": "https://www.tileshop.com/products/superior-excel-desert-sand-unsanded-grout-5lb-54009",
       "lastmod": null,
-      "scraped_at": null,
-      "scrape_status": "pending"
+      "scraped_at": "2025-07-07T23:21:32.631475",
+      "scrape_status": "failed",
+      "error": "Unexpected error: [Errno 32] Broken pipe"
     },
     {
       "url": "https://www.tileshop.com/products/superior-excel-antique-white-unsanded-grout-5lb-54003",
@@ -2677,14 +2715,14 @@
     {
       "url": "https://www.tileshop.com/products/superior-excel-dove-grey-unsanded-grout-5lb-54007",
       "lastmod": null,
-      "scraped_at": null,
-      "scrape_status": "pending"
+      "scraped_at": "2025-07-07T23:21:47.719231",
+      "scrape_status": "completed"
     },
     {
       "url": "https://www.tileshop.com/products/superior-excel-natural-unsanded-grout-5lb-54011",
       "lastmod": null,
-      "scraped_at": null,
-      "scrape_status": "pending"
+      "scraped_at": "2025-07-07T23:21:56.289108",
+      "scrape_status": "completed"
     },
     {
       "url": "https://www.tileshop.com/products/superior-excel-terracotta-unsanded-grout-5lb-54016",
@@ -10397,12 +10435,6 @@
       "scrape_status": "pending"
     },
     {
-      "url": "https://www.tileshop.com/products/primo-euro-style-riveted-trowel-350142",
-      "lastmod": null,
-      "scraped_at": null,
-      "scrape_status": "pending"
-    },
-    {
       "url": "https://www.tileshop.com/products/primo-v-riveted-trowel-3-16-x-1-4-in-350144",
       "lastmod": null,
       "scraped_at": null,
@@ -14069,12 +14101,6 @@
       "scrape_status": "pending"
     },
     {
-      "url": "https://www.tileshop.com/products/ardex-x5-tile-and-stone-gray-thinset-mortar-40-lbs-12531",
-      "lastmod": null,
-      "scraped_at": null,
-      "scrape_status": "pending"
-    },
-    {
       "url": "https://www.tileshop.com/products/ardex-x3-tile-and-stone-white-thinset-mortar-40-lbs-12528",
       "lastmod": null,
       "scraped_at": null,
@@ -17597,12 +17623,6 @@
       "scrape_status": "pending"
     },
     {
-      "url": "https://www.tileshop.com/products/superior-whisper-grey-100-silicone-caulk-105oz-51801",
-      "lastmod": null,
-      "scraped_at": null,
-      "scrape_status": "pending"
-    },
-    {
       "url": "https://www.tileshop.com/products/superior-mobe-pearl-100-silicone-caulk-105oz-51802",
       "lastmod": null,
       "scraped_at": null,
@@ -18642,12 +18662,6 @@
     },
     {
       "url": "https://www.tileshop.com/products/superior-sanded-pro-grout-linen-25-lb-052251",
-      "lastmod": null,
-      "scraped_at": null,
-      "scrape_status": "pending"
-    },
-    {
-      "url": "https://www.tileshop.com/products/superior-excel-standard-white-sanded-grout-25lb-52271",
       "lastmod": null,
       "scraped_at": null,
       "scrape_status": "pending"
@@ -28566,12 +28580,6 @@
     },
     {
       "url": "https://www.tileshop.com/products/wedi-fundo-primo-shower-kit-3-x-5-ft-348946",
-      "lastmod": null,
-      "scraped_at": null,
-      "scrape_status": "pending"
-    },
-    {
-      "url": "https://www.tileshop.com/products/wedi-board-3-ft-x-5-ft-x-0-5-in-348940",
       "lastmod": null,
       "scraped_at": null,
       "scrape_status": "pending"

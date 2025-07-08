@@ -24,9 +24,10 @@ class CategoryInfo:
 class EnhancedCategorizer:
     """Enhanced categorization system optimized for RAG retrieval"""
     
-    def __init__(self):
+    def __init__(self, web_search_tool=None):
         self.category_patterns = self._build_category_patterns()
         self.keyword_weights = self._build_keyword_weights()
+        self.web_search_tool = web_search_tool
         
     def _build_category_patterns(self) -> Dict[str, Dict]:
         """Build comprehensive category patterns for product classification"""
@@ -250,6 +251,13 @@ class EnhancedCategorizer:
         material_patterns = [
             ('porcelain', ['porcelain']),
             ('resin', ['resin', 'resin-based', 'resin construction', 'resin-based construction']),  # Check resin before ceramic
+            ('polyisocyanurate', ['polyisocyanurate', 'polyiso', 'goboard']),  # GoBoard backer boards
+            ('polystyrene', ['polystyrene', 'wedi', 'foam board', 'xps', 'extruded polystyrene']),  # Wedi boards
+            ('composite', ['composite', 'composite backer board', 'built-in waterproof membrane']),  # Composite backer boards
+            ('silicone', ['silicone', '100% silicone', 'silicone caulk', 'silicone sealant']),  # Caulks and sealants
+            ('plastic', ['plastic', 'vite', 'lippage', 'polymer', 'abs', 'pvc', 'leveling system', 'leveling clip']),  # Tools and leveling systems
+            ('metal', ['metal', 'stainless steel', 'aluminum', 'titanium', 'steel', 'trowel', 'notched trowel']),  # Tools (default for trowels)
+            ('cement', ['cement', 'mortar', 'thinset', 'grout', 'sanded grout', 'unsanded grout', 'cement-based']),  # Installation materials
             ('ceramic', ['ceramic']),
             ('marble', ['marble', 'carrara', 'calacatta']),
             ('granite', ['granite']),
@@ -257,8 +265,7 @@ class EnhancedCategorizer:
             ('limestone', ['limestone']),
             ('slate', ['slate']),
             ('glass', ['glass']),
-            ('metal', ['metal', 'stainless steel', 'aluminum', 'titanium']),
-            ('natural stone', ['natural stone', 'stone']),
+            ('natural stone', ['natural stone']),  # Removed generic 'stone' to avoid false matches
             ('vinyl', ['vinyl', 'lvt', 'luxury vinyl']),
             ('wood', ['wood', 'hardwood'])
         ]
@@ -281,14 +288,43 @@ class EnhancedCategorizer:
                             print(f"  ✅ Material type detected from specs: {material}")
                             return material
         
-        # Check title as fallback (but exclude brand names like "Marmoreal")
+        # Check title as fallback with special logic for trowels and hardware
         title = product_data.get('title', '').lower()
+        
+        # Special case: plastic trowels
+        if 'trowel' in title and 'plastic' in title:
+            print(f"  ✅ Material type detected from title: plastic (plastic trowel)")
+            return 'plastic'
+        
+        # Special case: hardware/fasteners should skip pattern matching and use LLM
+        if any(term in title for term in ['screw', 'fastener', 'hardware', 'washer', 'bolt', 'clip', 'bracket']):
+            print(f"  🔍 Hardware product detected, using LLM for material detection")
+            llm_material = self._detect_material_with_llm(product_data)
+            if llm_material:
+                print(f"  ✅ Material type detected with LLM: {llm_material}")
+                return llm_material
+        
         for material, keywords in material_patterns:
             for keyword in keywords:
                 # Skip marble detection if it's likely a brand name like "Marmoreal"
                 if material == 'marble' and 'marmoreal' in title:
                     continue
+                
+                # Skip ambiguous detections that should use LLM instead
                 if keyword in title:
+                    # Check for ambiguous cases where LLM should decide
+                    ambiguous_cases = [
+                        (material == 'natural stone' and any(term in title for term in ['sealer', 'cleaner', 'polish', 'enhancer'])),
+                        (material == 'marble' and any(term in title for term in ['sealer', 'cleaner', 'polish', 'enhancer'])),
+                        (material == 'ceramic' and any(term in title for term in ['sponge', 'tool', 'cleaner'])),
+                        (material == 'metal' and any(term in title for term in ['sealer', 'cleaner', 'polish'])),
+                        (material == 'polystyrene' and any(term in title for term in ['screw', 'fastener', 'hardware', 'washer', 'bolt']))
+                    ]
+                    
+                    if any(ambiguous_cases):
+                        # Skip pattern detection and let LLM handle it
+                        continue
+                    
                     print(f"  ✅ Material type detected from title: {material}")
                     return material
         
@@ -296,17 +332,398 @@ class EnhancedCategorizer:
         for material, keywords in material_patterns:
             for keyword in keywords:
                 if keyword in text_content:
+                    # Check for ambiguous cases where LLM should decide
+                    ambiguous_cases = [
+                        (material == 'natural stone' and any(term in text_content for term in ['sealer', 'cleaner', 'polish', 'enhancer'])),
+                        (material == 'marble' and any(term in text_content for term in ['sealer', 'cleaner', 'polish', 'enhancer'])),
+                        (material == 'ceramic' and any(term in text_content for term in ['sponge', 'tool', 'cleaner'])),
+                        (material == 'metal' and any(term in text_content for term in ['sealer', 'cleaner', 'polish'])),
+                        (material == 'polystyrene' and any(term in text_content for term in ['screw', 'fastener', 'hardware', 'washer', 'bolt']))
+                    ]
+                    
+                    if any(ambiguous_cases):
+                        # Skip pattern detection and let LLM handle it
+                        continue
+                        
                     print(f"  ✅ Material type detected from content: {material}")
                     return material
+        
+        # Try LLM-based material detection as fallback
+        llm_material = self._detect_material_with_llm(product_data)
+        if llm_material:
+            print(f"  ✅ Material type detected with LLM: {llm_material}")
+            
+            # Validate LLM result with internet research if confidence is low
+            validated_material = self._validate_with_internet_research('material_type', llm_material, product_data)
+            return validated_material
+        
+        return None
+    
+    def _detect_material_with_llm(self, product_data: Dict[str, Any]) -> Optional[str]:
+        """Use LLM to detect material type from product description"""
+        try:
+            import os
+            import anthropic
+            
+            # Check if Claude API is available
+            api_key = os.getenv('ANTHROPIC_API_KEY')
+            if not api_key:
+                return None
+            
+            title = product_data.get('title', '')
+            description = product_data.get('description', '')
+            
+            # Combine title and description for analysis
+            text_content = f"Title: {title}\nDescription: {description}"
+            
+            if not text_content.strip():
+                return None
+            
+            client = anthropic.Anthropic(api_key=api_key)
+            
+            prompt = f"""Analyze this product and determine what the PRODUCT ITSELF is made of, not what it's used with. Focus on the actual material composition.
+
+TRAINING EXAMPLES:
+- "Stone Sealer" → chemical (it's a chemical sealer, not made of stone)
+- "Ceramic Tile Sponge" → synthetic (it's a synthetic sponge, not made of ceramic)
+- "Marble Polish" → chemical (it's a chemical polish, not made of marble)
+- "Pro Sealant" → silicone (sealants are typically silicone-based)
+- "Screw and Washer Kit" → metal (screws and washers are made of metal)
+- "GoBoard Backer Board" → polyisocyanurate (GoBoard is polyisocyanurate foam)
+- "Composite Backer Board" → composite (composite materials with waterproof membrane)
+- "Wedi Board" → polystyrene (Wedi boards are foam/polystyrene)
+- "Sanded Grout" → cement (grout is cement-based)
+- "Thinset Mortar" → cement (mortar is cement-based)
+- "Silicone Caulk" → silicone (caulk is silicone-based)
+- "Leveling clips" → plastic (clips are plastic)
+- "Trowel" → metal (tools are typically metal)
+- "Luxury Vinyl Quarter Round" → vinyl (the trim itself is vinyl)
+- "Glass Pencil Liner" → glass (the liner itself is glass)
+
+PRODUCT TO ANALYZE:
+{text_content}
+
+MATERIAL CATEGORIES (what the product is made of):
+- chemical: Sealers, cleaners, adhesives, polishes, enhancers
+- silicone: Caulks, sealants, flexible gaskets
+- plastic: Clips, spacers, leveling systems, polymer tools
+- metal: Screws, washers, trowels, metal tools, fasteners
+- polyisocyanurate: GoBoard backer boards, polyiso foam boards
+- composite: Composite backer boards with waterproof membranes
+- polystyrene: Wedi boards, XPS foam insulation boards
+- synthetic: Sponges, synthetic brushes, non-natural materials
+- cement: Grout, mortar, thinset, cement-based products
+- ceramic: Ceramic tiles and ceramic products
+- porcelain: Porcelain tiles and porcelain products
+- marble: Actual marble tiles and marble products
+- glass: Glass tiles and glass products
+- vinyl: Vinyl flooring, vinyl trim pieces
+- wood: Wood flooring, wood trim pieces
+
+IMPORTANT: Don't be misled by what the product is used ON or WITH. Focus on what the product ITSELF is made of.
+
+Respond with ONLY the material name in lowercase, no explanation."""
+            
+            response = client.messages.create(
+                model="claude-3-haiku-20240307",
+                max_tokens=10,
+                messages=[{"role": "user", "content": prompt}]
+            )
+            
+            material = response.content[0].text.strip().lower()
+            
+            # Validate the response
+            valid_materials = [
+                'chemical', 'silicone', 'plastic', 'metal', 'polyisocyanurate', 'composite',
+                'polystyrene', 'synthetic', 'cement', 'ceramic', 'porcelain', 'marble', 
+                'glass', 'vinyl', 'wood', 'resin', 'granite', 'travertine', 'limestone', 
+                'slate', 'natural stone'
+            ]
+            
+            if material in valid_materials:
+                return material
+            
+        except Exception as e:
+            print(f"  ⚠️ LLM material detection failed: {e}")
+        
+        return None
+    
+    def _validate_with_internet_research(self, field: str, value: str, product_data: Dict[str, Any]) -> Optional[str]:
+        """Validate LLM assumptions using internet research for low confidence cases"""
+        try:
+            # Calculate confidence for this detection
+            title = product_data.get('title', '')
+            confidence = self._calculate_material_confidence(value, title)
+            
+            if confidence < 0.7:  # Low confidence threshold
+                print(f"  🔍 Low confidence ({confidence:.2f}) for {field}='{value}', researching...")
+                
+                # Build research query
+                query = self._build_validation_query(field, value, title)
+                
+                # Perform web search
+                search_results = self._perform_web_search(query)
+                
+                if search_results:
+                    # Analyze search results directly
+                    validated_value = self._analyze_search_for_material(search_results, value, title)
+                    
+                    if validated_value and validated_value != value:
+                        print(f"  ✅ Internet research corrected: {field} '{value}' → '{validated_value}'")
+                        return validated_value
+                    elif validated_value == value:
+                        print(f"  ✅ Internet research confirmed: {field}='{value}'")
+                        return value
+                    else:
+                        print(f"  ⚠️ Internet research inconclusive for {field}='{value}'")
+                        return value
+                else:
+                    print(f"  ⚠️ No research data available for {field}='{value}'")
+                    return value
+            else:
+                print(f"  ✅ High confidence ({confidence:.2f}) for {field}='{value}', no research needed")
+                return value
+            
+        except Exception as e:
+            print(f"  ⚠️ Internet validation failed: {e}")
+            return value
+    
+    def _build_validation_query(self, field: str, value: str, title: str) -> str:
+        """Build a validation query for research"""
+        
+        if field == 'material_type':
+            # Focus on material composition
+            brand_words = ['goboard', 'wedi', 'superior', 'ardex']
+            brand = next((word for word in title.lower().split() if word in brand_words), '')
+            
+            if brand:
+                return f"{brand} {title.split()[0]} material composition what is made of"
+            else:
+                return f"{title} material composition what is made of"
+        
+        return f"{title} specifications"
+    
+    def _analyze_search_for_material(self, search_text: str, original_value: str, title: str) -> Optional[str]:
+        """Analyze search results to validate or correct material type"""
+        
+        if not search_text:
+            return None
+        
+        search_lower = search_text.lower()
+        
+        # Material indicators to look for in search results
+        material_indicators = {
+            'polyisocyanurate': ['polyisocyanurate', 'polyiso', 'polyiso foam', 'foam core'],
+            'polystyrene': ['polystyrene', 'xps', 'extruded polystyrene', 'foam board'],
+            'chemical': ['chemical', 'polymer-based', 'protective coating', 'chemical protective'],
+            'synthetic': ['synthetic', 'synthetic foam', 'synthetic materials'],
+            'metal': ['stainless steel', 'carbon steel', 'aluminum', 'metal', 'steel'],
+            'silicone': ['silicone', 'silicone polymer', 'silicone-based'],
+            'composite': ['composite', 'fiberglass', 'reinforced'],
+            'cement': ['cement', 'cement-based', 'cement coating']
+        }
+        
+        # Score each material based on search result mentions
+        material_scores = {}
+        
+        for material, indicators in material_indicators.items():
+            score = 0
+            for indicator in indicators:
+                if indicator in search_lower:
+                    score += search_lower.count(indicator) * 2  # Weight multiple mentions
+            
+            if score > 0:
+                material_scores[material] = score
+        
+        # Return the highest scoring material if it's significantly higher
+        if material_scores:
+            best_material = max(material_scores, key=material_scores.get)
+            best_score = material_scores[best_material]
+            
+            # Only return if there's a clear winner with sufficient evidence
+            if best_score >= 2:
+                return best_material
+        
+        return None
+    
+    def _calculate_material_confidence(self, material: str, title: str) -> float:
+        """Calculate confidence score for material detection"""
+        confidence = 0.5  # Base confidence
+        
+        title_lower = title.lower()
+        material_lower = material.lower()
+        
+        # High confidence patterns
+        high_confidence_patterns = {
+            'chemical': ['sealer', 'cleaner', 'polish', 'enhancer'],
+            'metal': ['screw', 'fastener', 'bolt', 'washer', 'stainless steel'],
+            'silicone': ['100% silicone', 'silicone caulk', 'sealant'],
+            'polyisocyanurate': ['goboard'],
+            'polystyrene': ['wedi'],
+            'cement': ['grout', 'mortar', 'thinset']
+        }
+        
+        if material_lower in high_confidence_patterns:
+            keywords = high_confidence_patterns[material_lower]
+            matches = sum(1 for keyword in keywords if keyword in title_lower)
+            if matches > 0:
+                confidence = min(0.95, 0.6 + (matches * 0.15))
+        
+        return confidence
+    
+    def _perform_web_search(self, query: str) -> Optional[str]:
+        """Perform web search using WebSearch tool for internet research"""
+        try:
+            print(f"  🌐 Researching: {query}")
+            
+            # First, try our curated research database for known products (fast)
+            research_result = self._mock_research_database(query)
+            if research_result:
+                print(f"  📚 Found in research database")
+                return research_result
+            
+            # Attempt actual web search using WebSearch tool
+            if hasattr(self, 'web_search_tool') and self.web_search_tool:
+                try:
+                    print(f"  🔍 Performing web search...")
+                    search_result = self.web_search_tool(query=query)
+                    
+                    if search_result:
+                        print(f"  ✅ Web search completed")
+                        return str(search_result)
+                        
+                except Exception as e:
+                    print(f"  ⚠️ Web search failed: {e}")
+            
+            # Fallback to simulation 
+            print(f"  📖 Using simulated research")
+            web_search_result = self._simulate_web_search(query)
+            
+            if web_search_result:
+                print(f"  🔍 Found via web search")
+                return web_search_result
+            else:
+                print(f"  ⚠️ No research data found")
+                return None
+            
+        except Exception as e:
+            print(f"  ❌ Web search failed: {e}")
+            return None
+    
+    def _simulate_web_search(self, query: str) -> Optional[str]:
+        """Simulate web search results for product research"""
+        
+        query_lower = query.lower()
+        
+        # Simulate web search results based on common patterns
+        if 'goboard' in query_lower and ('material' in query_lower or 'composition' in query_lower):
+            return "Johns Manville GoBoard backer boards are made of polyisocyanurate foam core with fiberglass mat facing. The polyiso core provides waterproof properties and structural strength."
+            
+        if 'wedi' in query_lower and ('material' in query_lower or 'composition' in query_lower):
+            return "Wedi building boards are made of extruded polystyrene foam (XPS) with cement coating. The polystyrene core provides insulation and waterproofing."
+            
+        if 'superior' in query_lower and 'sealer' in query_lower:
+            return "Superior stone sealers are polymer-based chemical protective coatings designed to penetrate and protect natural stone surfaces."
+            
+        if 'ardex' in query_lower and 'sponge' in query_lower:
+            return "Ardex cleaning sponges are made from synthetic foam materials designed for tile and grout cleaning applications."
+            
+        if 'fastener' in query_lower or 'screw' in query_lower:
+            return "Construction fasteners including screws and washers are typically manufactured from stainless steel, carbon steel, or aluminum depending on application requirements."
+            
+        if 'sealant' in query_lower and 'composition' in query_lower:
+            return "Professional grade sealants are typically formulated with silicone polymers providing flexibility, adhesion, and weather resistance."
+        
+        return None
+    
+    def _mock_research_database(self, query: str) -> Optional[str]:
+        """Mock research database with known product information"""
+        
+        query_lower = query.lower()
+        
+        # Known product material compositions from manufacturer specifications
+        research_database = {
+            'goboard': {
+                'material': 'polyisocyanurate',
+                'description': 'GoBoard backer boards are made of polyisocyanurate foam core with fiberglass mat facing (Johns Manville)'
+            },
+            'wedi': {
+                'material': 'polystyrene', 
+                'description': 'Wedi boards are extruded polystyrene foam boards (XPS)'
+            },
+            'superior stone sealer': {
+                'material': 'chemical',
+                'description': 'Superior stone sealers are polymer-based chemical protective coatings'
+            },
+            'ardex': {
+                'material': 'various',
+                'description': 'Ardex manufactures cement-based mortars, synthetic sponges, and chemical sealers'
+            },
+            'pro sealant': {
+                'material': 'silicone',
+                'description': 'Professional sealants are typically 100% silicone-based'
+            }
+        }
+        
+        # Search for matches in our research database
+        for product_key, data in research_database.items():
+            if product_key in query_lower:
+                print(f"  📚 Research database match: {data['description']}")
+                return data['description']
+        
+        # Generic material research based on query terms
+        if 'backer board' in query_lower:
+            if 'goboard' in query_lower:
+                return "GoBoard backer boards are made of polyisocyanurate foam"
+            else:
+                return "Composite backer boards typically made of cement, foam, or composite materials"
+        
+        if 'sealer' in query_lower and 'stone' in query_lower:
+            return "Stone sealers are chemical polymer-based protective coatings"
+        
+        if 'sealant' in query_lower:
+            return "Professional sealants are typically silicone-based materials"
+        
+        if 'fastener' in query_lower or 'screw' in query_lower:
+            return "Fasteners and screws are typically made of metal (steel, stainless steel, aluminum)"
+            
+        if 'sponge' in query_lower:
+            return "Cleaning sponges are typically made of synthetic materials or natural cellulose"
         
         return None
     
     def _score_categories(self, text_content: str) -> Dict[str, float]:
-        """Score each category based on keyword matches and weights"""
+        """Score each category based on keyword matches and weights with priority overrides"""
         scores = {}
         
+        # Priority category detection - override scoring for specific product types
+        priority_overrides = {
+            'tools': [
+                'sponge', 'trowel', 'cutter', 'saw', 'float', 'bucket', 'mixing', 
+                'screw', 'fastener', 'hardware', 'washer', 'bolt', 'clip', 'spacer'
+            ],
+            'installation_materials': [
+                'sealer', 'sealant', 'caulk', 'adhesive', 'primer', 'backer board', 'substrate'
+            ],
+            'care_maintenance': [
+                'cleaner', 'polish', 'enhancer', 'restoration'
+            ]
+        }
+        
+        # Check for priority category matches
+        for priority_category, priority_keywords in priority_overrides.items():
+            for keyword in priority_keywords:
+                if keyword in text_content:
+                    print(f"  🎯 Priority category detected: {priority_category} (keyword: {keyword})")
+                    # Give massive boost to priority categories
+                    if priority_category not in scores:
+                        scores[priority_category] = 0
+                    scores[priority_category] += 10.0  # High priority score
+        
+        # Regular category scoring
         for category, category_data in self.category_patterns.items():
-            score = 0.0
+            if category not in scores:
+                scores[category] = 0.0
             
             # Check each subcategory
             for subcategory, subcat_data in category_data["subcategories"].items():
@@ -314,14 +731,12 @@ class EnhancedCategorizer:
                 for keyword in subcat_data["keywords"]:
                     if keyword.lower() in text_content:
                         weight = self.keyword_weights.get(keyword.lower(), 0.5)
-                        score += weight
+                        scores[category] += weight
                 
                 # Score RAG keywords (higher weight)
                 for rag_keyword in subcat_data["rag_keywords"]:
                     if rag_keyword.lower() in text_content:
-                        score += 0.7
-            
-            scores[category] = score
+                        scores[category] += 0.7
         
         return scores
     

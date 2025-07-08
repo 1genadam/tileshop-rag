@@ -6,7 +6,7 @@ Automatically detects and extracts all available specification fields from produ
 
 import re
 import json
-from typing import Dict, Any, List, Tuple
+from typing import Dict, Any, List, Tuple, Optional
 
 class EnhancedSpecificationExtractor:
     """Auto-expanding specification extractor for comprehensive data capture"""
@@ -185,9 +185,15 @@ class EnhancedSpecificationExtractor:
         
         # 4. Extract product category from title if provided
         if product_title:
-            product_category = self._extract_category_from_title(product_title)
-            if product_category:
-                specifications['product_category'] = product_category
+            # Try LLM-based category detection first
+            llm_category = self._detect_category_with_llm(product_title, html_content)
+            if llm_category:
+                specifications['product_category'] = llm_category
+            else:
+                # Fallback to keyword-based detection
+                product_category = self._extract_category_from_title(product_title)
+                if product_category:
+                    specifications['product_category'] = product_category
         
         # 5. Merge results with priority to __NEXT_DATA__, then known fields, then auto-detected
         final_specs = {**auto_detected, **specifications}
@@ -467,15 +473,17 @@ class EnhancedSpecificationExtractor:
             'tile': ['tile', 'tiles', 'ceramic', 'porcelain', 'mosaic', 'subway'],
             'grout': ['grout', 'grouting'],
             'trim': ['trim', 'bullnose', 'edge', 'corner', 'gl', 'great lakes', 'l-channel', 'round edge', 'box edge', 'somerset', 'durand', 'quarter round', 'quarter-round', 'pencil liner', 'liner'],
-            'adhesive': ['adhesive', 'mortar', 'cement'],
-            'sealer': ['sealer', 'sealant'],
-            'tool': ['tool', 'tools', 'cutter', 'spacer'],
+            'leveling': ['leveling', 'leveling system', 'leveling clip', 'leveling wedge', 'lippage', 'vite'],
+            'tool': ['tool', 'tools', 'trowel', 'notched trowel', 'margin trowel', 'float', 'spacer', 'spacers', 'cutter', 'tile cutter'],
+            'adhesive': ['adhesive', 'mortar', 'cement', 'thinset'],
+            'sealer': ['sealer', 'sealant', 'caulk', 'silicone', 'caulking'],
+            'substrate': ['substrate', 'board', 'backer board', 'cement board', 'wedi board', 'foam board'],
             'accessory': ['accessory', 'accessories']
         }
         
         # Check for category keywords in title (prioritize specific terms over generic ones)
-        # Priority order: trim > grout > tool > adhesive > sealer > accessory > tile
-        priority_order = ['trim', 'grout', 'tool', 'adhesive', 'sealer', 'accessory', 'tile']
+        # Priority order: trim > grout > leveling > tool > adhesive > sealer > substrate > accessory > tile
+        priority_order = ['trim', 'grout', 'leveling', 'tool', 'adhesive', 'sealer', 'substrate', 'accessory', 'tile']
         
         for category in priority_order:
             if category in category_keywords:
@@ -485,6 +493,102 @@ class EnhancedSpecificationExtractor:
         
         # Default fallback
         return "Product"
+    
+    def _detect_category_with_llm(self, product_title: str, html_content: str) -> Optional[str]:
+        """Use LLM to detect product category from title and content"""
+        try:
+            import os
+            import anthropic
+            import re
+            
+            # Check if Claude API is available
+            api_key = os.getenv('ANTHROPIC_API_KEY')
+            if not api_key:
+                return None
+            
+            # Extract description from HTML if available
+            desc_pattern = r'<meta\s+name=["\']description["\']\s+content=["\']([^"\'>]+)["\']'
+            desc_match = re.search(desc_pattern, html_content, re.IGNORECASE)
+            description = desc_match.group(1) if desc_match else ""
+            
+            # Combine title and description for analysis
+            text_content = f"Title: {product_title}\nDescription: {description}"
+            
+            if not text_content.strip():
+                return None
+            
+            client = anthropic.Anthropic(api_key=api_key)
+            
+            prompt = f"""Analyze this product and determine its category based on these validated examples:
+
+TRAINING EXAMPLES:
+- "Stone Sealer" → Sealer (chemical sealer product)
+- "Premium Gold Stone Sealer" → Sealer (chemical sealer product)
+- "Pro Sealant" → Sealer (sealant/caulk product)
+- "Ceramic Tile Sponge" → Tool (cleaning/installation tool)
+- "T-7 Sponge" → Tool (cleaning tool)
+- "Backer Board" → Substrate (structural substrate)
+- "GoBoard Backer Board" → Substrate (structural substrate)
+- "Screw and Washer Kit" → Tool (fastener/hardware tool)
+- "Fastener Kit" → Tool (installation hardware)
+- "Luxury Vinyl Quarter Round" → Trim
+- "Marble Somerset" → Trim  
+- "Glass Pencil Liner" → Trim
+- "Polished Bullnose" → Trim
+- "Sanded Grout" → Grout
+- "Thinset Mortar" → Adhesive
+- "Silicone Caulk" → Sealer
+- "Euro Style Trowel" → Tool
+- "Leveling Clips" → Leveling
+- "Lippage Washers" → Leveling
+- "Tile Spacers" → Tool
+- "Wedi Board" → Substrate
+- "Foam Board" → Substrate
+- "Porcelain Wall Tile" → Tile
+
+PRODUCT TO ANALYZE:
+{text_content}
+
+CATEGORY OPTIONS:
+- Tile: Floor tiles, wall tiles, mosaic tiles, ceramic, porcelain tiles
+- Trim: Bullnose, pencil liner, quarter round, Somerset, GL trim, edge pieces
+- Grout: Sanded grout, unsanded grout, grouting products
+- Adhesive: Mortar, thinset, tile adhesive, bonding agents
+- Sealer: Sealers, caulk, sealant, silicone, waterproofing products, chemical sealers
+- Tool: Trowels, cutters, sponges, installation tools, fasteners, hardware, screws
+- Leveling: Leveling systems, clips, wedges, lippage control, vite systems
+- Substrate: Backer boards, foam boards, Wedi boards, cement boards, structural boards
+- Accessory: Other installation accessories
+
+IMPORTANT: Focus on the primary function of the product:
+- Sealers/sealants = Sealer category
+- Cleaning tools/sponges/fasteners = Tool category  
+- Structural boards = Substrate category
+
+Respond with ONLY the category name, no explanation."""            
+            
+            response = client.messages.create(
+                model="claude-3-haiku-20240307",
+                max_tokens=10,
+                messages=[{"role": "user", "content": prompt}]
+            )
+            
+            category = response.content[0].text.strip()
+            
+            # Validate the response
+            valid_categories = [
+                'Tile', 'Trim', 'Grout', 'Adhesive', 'Sealer', 'Tool', 
+                'Leveling', 'Substrate', 'Accessory'
+            ]
+            
+            if category in valid_categories:
+                print(f"  ✅ Category detected with LLM: {category}")
+                return category
+            
+        except Exception as e:
+            print(f"  ⚠️ LLM category detection failed: {e}")
+        
+        return None
     
     def _clean_specifications(self, specifications: Dict[str, Any]) -> Dict[str, Any]:
         """Clean and standardize specification values with corruption filtering"""

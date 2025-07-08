@@ -1050,10 +1050,19 @@ def extract_product_data(crawl_results, base_url, category=None):
                             print("\n--- Applying Enhanced Categorization for RAG (Post-Field-Extraction) ---")
                             category_info = enhanced_categorizer.categorize_product(data)
                             
-                            # Extract material type if missing
-                            if not data.get('material_type') or data.get('material_type') in ['Material', 'None', None]:
+                            # Extract material type if missing or potentially incorrect
+                            current_material = data.get('material_type')
+                            if (not current_material or 
+                                current_material in ['Material', 'None', None] or
+                                # Re-evaluate potentially incorrect legacy detections
+                                (current_material == 'Natural Stone' and any(keyword in data.get('title', '').lower() 
+                                 for keyword in ['thinset', 'mortar', 'grout', 'adhesive', 'caulk', 'sealant']))):
+                                
                                 material_type = enhanced_categorizer.extract_material_type(data)
-                                if material_type:
+                                if material_type and material_type != current_material:
+                                    data['material_type'] = material_type
+                                    print(f"  ✅ Material type corrected: {current_material} → {material_type}")
+                                elif material_type:
                                     data['material_type'] = material_type
                                     print(f"  ✅ Material type added: {material_type}")
                             
@@ -1066,6 +1075,19 @@ def extract_product_data(crawl_results, base_url, category=None):
                             data['rag_keywords'] = json.dumps(category_info.rag_keywords)
                             data['installation_complexity'] = category_info.installation_complexity
                             data['typical_use_cases'] = json.dumps(category_info.typical_use_cases)
+                            
+                            # Also ensure product_category is set using LLM detection if needed
+                            if (ENHANCED_SPECIFICATION_EXTRACTION_AVAILABLE and spec_extractor and
+                                (not data.get('product_category') or data.get('product_category') in ['Product', 'None', None])):
+                                try:
+                                    llm_category = spec_extractor._detect_category_with_llm(
+                                        data.get('title', ''), main_html
+                                    )
+                                    if llm_category:
+                                        data['product_category'] = llm_category
+                                        print(f"  ✅ Product category set via LLM: {llm_category}")
+                                except Exception as e:
+                                    print(f"  ⚠️ LLM category detection failed: {e}")
                             
                             print(f"✅ Enhanced categorization applied with extracted applications:")
                             print(f"   Primary Category: {category_info.primary_category}")
