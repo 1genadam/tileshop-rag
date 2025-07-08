@@ -192,7 +192,7 @@ def auto_git_push(commit_message="Dashboard: Auto-commit system changes"):
                       cwd='/Users/robertsher/Projects/tileshop_rag', check=True)
         
         # Commit changes
-        full_commit_message = f"{commit_message}\n\n🤖 Auto-committed by reboot_dashboard.py\nTimestamp: {datetime.now(EST).isoformat()}"
+        full_commit_message = f"{commit_message}\n\n🤖 Auto-committed by dashboard_app.py\nTimestamp: {datetime.now(EST).isoformat()}"
         subprocess.run(['git', 'commit', '-m', full_commit_message], 
                       cwd='/Users/robertsher/Projects/tileshop_rag', check=True)
         

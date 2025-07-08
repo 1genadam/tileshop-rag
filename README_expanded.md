@@ -462,7 +462,7 @@ python3 acquire_all_products.py  # Uses curl_scraper.py internally
 ### **Optimized Dashboard Management**
 ```bash
 # Start dashboard (optimized for fast boot)
-python3 reboot_dashboard.py
+python3 dashboard_app.py
 
 # Access dashboard (should load in ~5 seconds)
 open http://127.0.0.1:8080
@@ -797,11 +797,11 @@ docker run -d \
 cd /Users/robertsher/Projects/tileshop_rag_clean
 
 # Using Poetry (Recommended)
-poetry run python reboot_dashboard.py
+poetry run python dashboard_app.py
 
 # Or using virtual environment
 source autogen_env/bin/activate
-python reboot_dashboard.py > dashboard.log 2>&1 &
+python dashboard_app.py > dashboard.log 2>&1 &
 ```
 - **Dashboard**: http://localhost:8080 - Complete control panel
 - **RAG Chat**: http://localhost:8080/chat - AI assistant for product queries
@@ -1736,7 +1736,7 @@ This category-specific parsing system ensures that each product type is processe
 
 | File | Purpose | Key Functionality | When to Use |
 |------|---------|-------------------|-------------|
-| **`reboot_dashboard.py`** | 🎯 **Main Flask Application** | All API endpoints, WebSocket handling, service orchestration | Primary entry point - contains all business logic |
+| **`dashboard_app.py`** | 🎯 **Main Flask Application** | All API endpoints, WebSocket handling, service orchestration | Primary entry point - contains all business logic |
 | **`reboot_dashboard.sh`** | 🔄 **Automated Startup Script** | Dashboard restart with environment verification | When dashboard needs clean restart with proper env |
 
 ### 📂 **Backend Modules (`/modules/`)**
@@ -1880,7 +1880,7 @@ This category-specific parsing system ensures that each product type is processe
 
 ### **🚀 Starting the System**
 ```
-reboot_dashboard.sh → reboot_dashboard.py → modules/* → templates/dashboard.html
+reboot_dashboard.sh → dashboard_app.py → modules/* → templates/dashboard.html
 ```
 
 ### **📊 Data Acquisition Process**  
@@ -1909,12 +1909,12 @@ retry_failed.py (analyze) → discover_missing_data.py (debug) → tileshop_scra
 
 | **I Want To...** | **Primary File** | **Supporting Files** |
 |-------------------|------------------|---------------------|
-| **Fix dashboard UI issues** | `dashboard.html`, `base.html` | `reboot_dashboard.py` (API endpoints) |
+| **Fix dashboard UI issues** | `dashboard.html`, `base.html` | `dashboard_app.py` (API endpoints) |
 | **Modify scraping logic** | `scrape_from_sitemap.py` | `intelligence_manager.py` (orchestration) |
 | **Add new data fields** | `tileshop_scraper.py` (test) → `scrape_from_sitemap.py` (implement) | `discover_missing_data.py` (analyze) |
 | **Debug AI chat issues** | `rag_manager.py` | `chat.html`, `/static/chat.js` |
 | **Fix database sync** | `sync_manager.py` | `db_manager.py` |
-| **Add service health checks** | `docker_manager.py` | `reboot_dashboard.py` (API endpoints) |
+| **Add service health checks** | `docker_manager.py` | `dashboard_app.py` (API endpoints) |
 | **Deploy to production** | `deploy.py` | `Dockerfile`, `fly.toml` |
 | **Recover from scraping failures** | `retry_failed.py` | Production scraper logs |
 
@@ -2033,13 +2033,13 @@ For production deployment, the scraper will need **custom filter criteria** to h
 ### **Correct Restart Sequence**
 ```bash
 # 1. Stop existing dashboard process
-pkill -f reboot_dashboard.py
+pkill -f dashboard_app.py
 
 # 2. Wait for process to terminate
 sleep 3
 
 # 3. Start dashboard in background with logging
-python reboot_dashboard.py > dashboard.log 2>&1 &
+python dashboard_app.py > dashboard.log 2>&1 &
 
 # 4. Verify startup and environment status
 sleep 2 && tail -10 dashboard.log
@@ -2062,7 +2062,7 @@ curl -s http://localhost:8080/api/docker/status | python -m json.tool
 ### Usage Commands
 ```bash
 # 🆕 Admin Dashboard (All-in-One)
-python reboot_dashboard.py > dashboard.log 2>&1 &    # Complete control center (background)
+python dashboard_app.py > dashboard.log 2>&1 &    # Complete control center (background)
 
 # Development & Testing
 python tileshop_scraper.py                    # Test individual product scraper
@@ -2149,10 +2149,10 @@ CRAWL4AI_TOKEN=your-token
 pip install gunicorn[eventlet]
 
 # Start in production mode with auto git push
-PRODUCTION=true python3 reboot_dashboard.py
+PRODUCTION=true python3 dashboard_app.py
 
 # Alternative: Enable auto git push without full production mode
-AUTO_GIT_PUSH=true python3 reboot_dashboard.py
+AUTO_GIT_PUSH=true python3 dashboard_app.py
 ```
 
 #### **Production Status Verification**

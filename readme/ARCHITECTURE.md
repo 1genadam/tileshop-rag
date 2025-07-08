@@ -42,7 +42,7 @@ The Tileshop RAG (Retrieval-Augmented Generation) system is a comprehensive inte
 
 ## Core Components
 
-### 1. Web Dashboard (`reboot_dashboard.py`)
+### 1. Web Dashboard (`dashboard_app.py`)
 
 **Purpose**: Central management interface for the entire system
 **Technology**: Flask, SocketIO, HTML/CSS/JavaScript
@@ -370,7 +370,7 @@ Health Check Request → Service Diagnostic → Container/System Check → Statu
 docker-compose up -d relational_db vector_db crawler api_gateway
 
 # Start dashboard
-python reboot_dashboard.py
+python dashboard_app.py
 
 # Access dashboard
 http://localhost:8080
@@ -526,7 +526,7 @@ tileshop_rag/
 │   ├── dashboard.html
 │   └── base.html
 ├── static/                  # CSS, JS, assets
-├── reboot_dashboard.py      # Main application
+├── dashboard_app.py         # Main application
 ├── docker-compose.yml       # Container orchestration
 └── .env                     # Configuration
 ```

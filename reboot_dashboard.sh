@@ -42,7 +42,7 @@ fi
 
 # Stop any existing dashboard processes
 echo "⏹️  Stopping existing dashboard processes..."
-pkill -f "python.*reboot_dashboard.py" 2>/dev/null
+pkill -f "python.*dashboard_app.py" 2>/dev/null
 sleep 2
 
 # Clear Python cache files
@@ -57,22 +57,22 @@ rm -rf flask_session/ 2>/dev/null || true
 rm -rf .cache/ 2>/dev/null || true
 
 # Verify process is stopped
-if pgrep -f "reboot_dashboard.py" > /dev/null; then
+if pgrep -f "dashboard_app.py" > /dev/null; then
     echo "⚠️  Force killing remaining processes..."
-    pkill -9 -f "reboot_dashboard.py" 2>/dev/null
+    pkill -9 -f "dashboard_app.py" 2>/dev/null
     sleep 1
 fi
 
 # Start dashboard in autogen_env (background mode)
 echo "🚀 Starting dashboard in autogen_env (background mode)..."
-source ../autogen_env/bin/activate && python reboot_dashboard.py > dashboard.log 2>&1 &
+source ../autogen_env/bin/activate && python dashboard_app.py > dashboard.log 2>&1 &
 
 # Wait for startup
 sleep 3
 
 # Check if dashboard started successfully
-if pgrep -f "reboot_dashboard.py" > /dev/null; then
-    PID=$(pgrep -f "reboot_dashboard.py")
+if pgrep -f "dashboard_app.py" > /dev/null; then
+    PID=$(pgrep -f "dashboard_app.py")
     echo "✅ Dashboard started successfully!"
     echo "   Process ID: $PID"
     echo "   Environment: autogen_env"
