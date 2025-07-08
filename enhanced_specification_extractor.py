@@ -67,6 +67,8 @@ class EnhancedSpecificationExtractor:
                 r'Made in[:\s]*([^<\n,]+)',
             ],
             "material_type": [
+                r'"Key"\s*:\s*"PDPInfo_MaterialType"[^}]*"Value"\s*:\s*"([^"]+)"',  # Tileshop JSON format - PRIORITY
+                r'"PDPInfo_MaterialType"[^}]*"Value"\s*:\s*"([^"]+)"',  # Alternative format
                 r'Material Type[:\s]*([^<\n,]+)',
                 r'"materialType"[:\s]*"([^"]+)"',
                 r'Material[:\s]*([^<\n,]+)',
@@ -170,20 +172,24 @@ class EnhancedSpecificationExtractor:
         specifications = {}
         auto_detected = {}
         
-        # 1. Extract known tile-specific fields
+        # 1. Extract from __NEXT_DATA__ JSON (highest priority - most accurate)
+        next_data_specs = self._extract_from_next_data(html_content)
+        specifications.update(next_data_specs)
+        
+        # 2. Extract known tile-specific fields
         if category.lower() in ['tile', 'tiles', 'ceramic', 'porcelain']:
             specifications.update(self._extract_known_fields(html_content))
         
-        # 2. Auto-detect unknown fields
+        # 3. Auto-detect unknown fields
         auto_detected = self._auto_detect_fields(html_content)
         
-        # 3. Extract product category from title if provided
+        # 4. Extract product category from title if provided
         if product_title:
             product_category = self._extract_category_from_title(product_title)
             if product_category:
                 specifications['product_category'] = product_category
         
-        # 4. Merge results with priority to known fields
+        # 5. Merge results with priority to __NEXT_DATA__, then known fields, then auto-detected
         final_specs = {**auto_detected, **specifications}
         
         # 5. Clean and validate
@@ -238,6 +244,87 @@ class EnhancedSpecificationExtractor:
                         detected[field_name] = field_value
         
         return detected
+    
+    def _extract_from_next_data(self, html_content: str) -> Dict[str, str]:
+        """Extract specifications from __NEXT_DATA__ JSON structure"""
+        extracted = {}
+        
+        try:
+            # Find __NEXT_DATA__ script tag
+            next_data_pattern = r'<script id="__NEXT_DATA__" type="application/json">([^<]+)</script>'
+            match = re.search(next_data_pattern, html_content)
+            
+            if match:
+                next_data_json = match.group(1)
+                data = json.loads(next_data_json)
+                
+                # Navigate to specifications
+                specs_path = data.get('props', {}).get('pageProps', {}).get('layoutData', {}).get('sitecore', {}).get('context', {}).get('productData', {}).get('Specifications', {})
+                
+                # Extract from PDPInfo_DesignInstallation array
+                design_installation = specs_path.get('PDPInfo_DesignInstallation', [])
+                if isinstance(design_installation, list):
+                    for spec_item in design_installation:
+                        if isinstance(spec_item, dict) and 'Key' in spec_item and 'Value' in spec_item:
+                            key = spec_item['Key']
+                            value = spec_item['Value']
+                            
+                            # Map PDPInfo keys to our field names
+                            field_mapping = {
+                                'PDPInfo_MaterialType': 'material_type',
+                                'PDPInfo_EdgeType': 'edge_type',
+                                'PDPInfo_Color': 'color',
+                                'PDPInfo_Finish': 'finish',
+                                'PDPInfo_Applications': 'applications',
+                                'PDPInfo_DirectionalLayout': 'directional_layout'
+                            }
+                            
+                            if key in field_mapping:
+                                field_name = field_mapping[key]
+                                extracted[field_name] = value
+                                print(f"  ✅ __NEXT_DATA__ extracted: {field_name} = {value}")
+                
+                # Extract from PDPInfo_Dimensions array
+                dimensions = specs_path.get('PDPInfo_Dimensions', [])
+                if isinstance(dimensions, list):
+                    for spec_item in dimensions:
+                        if isinstance(spec_item, dict) and 'Key' in spec_item and 'Value' in spec_item:
+                            key = spec_item['Key']
+                            value = spec_item['Value']
+                            
+                            field_mapping = {
+                                'PDPInfo_BoxQuantity': 'box_quantity',
+                                'PDPInfo_BoxWeight': 'box_weight',
+                                'PDPInfo_Thickness': 'thickness',
+                                'PDPInfo_ApproximateSize': 'approximate_size'
+                            }
+                            
+                            if key in field_mapping:
+                                field_name = field_mapping[key]
+                                extracted[field_name] = value
+                                print(f"  ✅ __NEXT_DATA__ extracted: {field_name} = {value}")
+                
+                # Extract from PDPInfo_TechnicalDetails array
+                technical = specs_path.get('PDPInfo_TechnicalDetails', [])
+                if isinstance(technical, list):
+                    for spec_item in technical:
+                        if isinstance(spec_item, dict) and 'Key' in spec_item and 'Value' in spec_item:
+                            key = spec_item['Key']
+                            value = spec_item['Value']
+                            
+                            field_mapping = {
+                                'PDPInfo_CountryOfOrigin': 'country_of_origin'
+                            }
+                            
+                            if key in field_mapping:
+                                field_name = field_mapping[key]
+                                extracted[field_name] = value
+                                print(f"  ✅ __NEXT_DATA__ extracted: {field_name} = {value}")
+        
+        except (json.JSONDecodeError, KeyError, AttributeError) as e:
+            print(f"  ⚠️ __NEXT_DATA__ extraction failed: {e}")
+        
+        return extracted
     
     def _normalize_field_name(self, field_name: str) -> str:
         """Normalize field names to consistent format"""
@@ -379,17 +466,22 @@ class EnhancedSpecificationExtractor:
         category_keywords = {
             'tile': ['tile', 'tiles', 'ceramic', 'porcelain', 'mosaic', 'subway'],
             'grout': ['grout', 'grouting'],
-            'trim': ['trim', 'bullnose', 'edge', 'corner', 'gl', 'great lakes', 'l-channel', 'round edge', 'box edge', 'somerset', 'durand'],
+            'trim': ['trim', 'bullnose', 'edge', 'corner', 'gl', 'great lakes', 'l-channel', 'round edge', 'box edge', 'somerset', 'durand', 'quarter round', 'quarter-round', 'pencil liner', 'liner'],
             'adhesive': ['adhesive', 'mortar', 'cement'],
             'sealer': ['sealer', 'sealant'],
             'tool': ['tool', 'tools', 'cutter', 'spacer'],
             'accessory': ['accessory', 'accessories']
         }
         
-        # Check for category keywords in title
-        for category, keywords in category_keywords.items():
-            if any(keyword in title_lower for keyword in keywords):
-                return category.title()
+        # Check for category keywords in title (prioritize specific terms over generic ones)
+        # Priority order: trim > grout > tool > adhesive > sealer > accessory > tile
+        priority_order = ['trim', 'grout', 'tool', 'adhesive', 'sealer', 'accessory', 'tile']
+        
+        for category in priority_order:
+            if category in category_keywords:
+                keywords = category_keywords[category]
+                if any(keyword in title_lower for keyword in keywords):
+                    return category.title()
         
         # Default fallback
         return "Product"

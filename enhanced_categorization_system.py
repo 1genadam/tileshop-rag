@@ -249,6 +249,7 @@ class EnhancedCategorizer:
         # Material type patterns with priority order
         material_patterns = [
             ('porcelain', ['porcelain']),
+            ('resin', ['resin', 'resin-based', 'resin construction', 'resin-based construction']),  # Check resin before ceramic
             ('ceramic', ['ceramic']),
             ('marble', ['marble', 'carrara', 'calacatta']),
             ('granite', ['granite']),
@@ -256,23 +257,22 @@ class EnhancedCategorizer:
             ('limestone', ['limestone']),
             ('slate', ['slate']),
             ('glass', ['glass']),
-            ('metal', ['metal', 'stainless steel', 'aluminum']),
+            ('metal', ['metal', 'stainless steel', 'aluminum', 'titanium']),
             ('natural stone', ['natural stone', 'stone']),
             ('vinyl', ['vinyl', 'lvt', 'luxury vinyl']),
             ('wood', ['wood', 'hardwood'])
         ]
         
-        # Check title first (highest priority)
-        title = product_data.get('title', '').lower()
-        for material, keywords in material_patterns:
-            for keyword in keywords:
-                if keyword in title:
-                    print(f"  ✅ Material type detected from title: {material}")
-                    return material
-        
-        # Check specifications
+        # Check specifications FIRST (highest priority - most accurate)
         specs = product_data.get('specifications', {})
         if isinstance(specs, dict):
+            # Check for material_type field first (PDPInfo extraction)
+            material_type_field = specs.get('material_type', '').lower()
+            if material_type_field and material_type_field not in ['material', 'material type']:
+                print(f"  ✅ Material type detected from material_type spec: {material_type_field}")
+                return material_type_field
+            
+            # Check generic material field
             material_field = specs.get('material', '').lower()
             if material_field and material_field != 'material':
                 for material, keywords in material_patterns:
@@ -280,6 +280,17 @@ class EnhancedCategorizer:
                         if keyword in material_field:
                             print(f"  ✅ Material type detected from specs: {material}")
                             return material
+        
+        # Check title as fallback (but exclude brand names like "Marmoreal")
+        title = product_data.get('title', '').lower()
+        for material, keywords in material_patterns:
+            for keyword in keywords:
+                # Skip marble detection if it's likely a brand name like "Marmoreal"
+                if material == 'marble' and 'marmoreal' in title:
+                    continue
+                if keyword in title:
+                    print(f"  ✅ Material type detected from title: {material}")
+                    return material
         
         # Check description and other fields
         for material, keywords in material_patterns:

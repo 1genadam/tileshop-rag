@@ -1,4 +1,6 @@
-# Tileshop RAG System - Complete Documentation
+# Tileshop RAG System - Production Environment
+
+**🚀 PRODUCTION ENVIRONMENT** - Stable, tested system for live operations
 
 **✅ SYSTEM STATUS**: Phase 2 Diagnostic Framework Complete (July 6, 2025)
 
@@ -12,22 +14,25 @@ This directory contains all system documentation and guides:
 | **ARCHITECTURE.md** | Complete system architecture | Understanding system design and components |
 | **TROUBLESHOOTING.md** | Phase 2 diagnostic troubleshooting | Resolving service issues and errors |
 
-## 🚀 Quick Start
+## 🚀 Production Quick Start
 
 ```bash
-# Start the complete system
+# Navigate to production environment
+cd /Users/robertsher/Projects/tileshop_rag_prod
+
+# Start the production system
 python reboot_dashboard.py
 
-# Access dashboard with all 17 services
+# Access production dashboard with all 17 services
 http://localhost:8080
 
 # Check all services health
 Click "Health Check All (17 Services)" button
 ```
 
-## 🎯 System Overview
+## 🎯 Production System Overview
 
-The Tileshop RAG System is a comprehensive intelligence platform featuring:
+The Tileshop RAG Production System is a comprehensive intelligence platform featuring:
 
 - **17 monitored services** across 3 categories (Microservices, Runtime, Pre-warming)
 - **Unified diagnostic framework** with standardized health checks
@@ -59,15 +64,18 @@ The Tileshop RAG System is a comprehensive intelligence platform featuring:
 
 ## 🔧 Core Operations
 
-### Dashboard Management
+### Production Dashboard Management
 ```bash
-# Start dashboard with all diagnostic services
+# Navigate to production directory
+cd /Users/robertsher/Projects/tileshop_rag_prod
+
+# Start production dashboard with all diagnostic services
 python reboot_dashboard.py
 
-# Stop dashboard
+# Stop production dashboard
 pkill -f "python reboot_dashboard.py"
 
-# Check dashboard status
+# Check production dashboard status
 ps aux | grep reboot_dashboard.py
 ```
 
@@ -306,6 +314,28 @@ docker ps --format "table {{.Names}}\t{{.Status}}"
 
 ---
 
-*Last Updated: July 6, 2025*  
-*Diagnostic Framework: Phase 2 Complete*  
-*Status: All 17 services operational*
+## 🏗️ Environment Structure
+
+**Production Environment** (`tileshop_rag_prod`):
+- Stable, tested system for live operations
+- Contains all parsing fixes and enhancements
+- Deployed to Fly.io for production use
+- Database schema includes all field fixes
+
+**Development Environment** (`tileshop_rag_dev`):
+- Development and testing environment
+- Use for new feature development
+- Safe environment for experimentation
+- Isolated from production operations
+
+**Backup** (`tileshop_rag_backup`):
+- Complete backup of the original system
+- Preserve original state before environment split
+- Recovery point if needed
+
+---
+
+*Last Updated: July 8, 2025*  
+*Environment: Production*  
+*Status: All 17 services operational*  
+*Parsing Fixes: Edge Type, Box Quantity, Product Category, Pricing Logic - All Complete*
