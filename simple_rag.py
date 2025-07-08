@@ -205,70 +205,144 @@ Always present complete solutions including necessary installation materials, pr
         }
     
     def calculate_material_needs(self, tile_selection: Dict, room_size: int, room_type: str) -> Dict[str, Any]:
-        """Calculate complete project materials based on room size and type"""
+        """Calculate complete project materials with expert installation knowledge"""
         
         # Base tile calculations
         tile_cost = tile_selection.get('price_per_sqft', 0) * room_size
         boxes_needed = max(1, (room_size / 10.76))  # Typical coverage per box
         
-        # Essential materials
+        # Detect project specifics
+        is_basement = room_type == 'basement' or 'basement' in room_type.lower()
+        is_heated = 'heated' in room_type.lower()
+        is_shower = room_type in ['bathroom', 'shower'] or 'shower' in room_type.lower()
+        
+        # Essential materials with expert knowledge
         essential_package = {
+            'thinset': {
+                'item': 'Modified thinset mortar',
+                'cost': 30.0,
+                'bags_needed': 1 if room_type not in ['bathroom', 'shower'] else 2,
+                'note': 'Professional-grade adhesive for secure installation'
+            },
             'grout': {
                 'item': 'Sanded grout (1/8" spacing)',
                 'cost': 17.0,
-                'coverage': '40-200 sq ft per bag'
-            },
-            'thinset': {
-                'item': 'Modified thinset',
-                'cost': 30.0,
-                'bags_needed': 1 if room_type not in ['bathroom', 'shower'] else 2,
-                'note': 'Double quantity for membrane installations'
+                'coverage': '40-200 sq ft per bag',
+                'note': 'Color-matched for seamless appearance'
             },
             'tools': {
-                'item': 'Basic installation tools',
+                'item': 'Professional trowel set',
                 'cost': 65.0,
-                'includes': '1/4" trowel + grout float + spacers'
+                'includes': '1/4" notched trowel + grout float + spacers'
             }
         }
         
-        # Wet area additions
-        if room_type in ['bathroom', 'shower']:
+        # Wet area waterproofing system (expert knowledge)
+        if is_shower or room_type in ['bathroom', 'shower']:
             essential_package.update({
-                'waterproofing': {
-                    'item': 'Backer-lite membrane (wet areas)',
+                'backer_lite': {
+                    'item': 'Backer-lite underlayment',
                     'cost': 85.0,
-                    'note': 'Essential for bathroom/shower floors'
+                    'note': 'Moisture-resistant substrate preparation'
+                },
+                'waterproof_tape': {
+                    'item': 'Wedi Subliner Dry Waterproof Sealing Tape',
+                    'sku': '348968',
+                    'cost': 45.0,
+                    'note': '3-4" overlap on backer-lite, 2-3" up wall for pool-like water retention'
+                },
+                'joint_sealant': {
+                    'item': 'Wedi Joint Sealant Cartridge',
+                    'sku': '348951',
+                    'cost': 28.0,
+                    'note': 'Waterproof connection sealing - prevents water damage to lower floors'
                 },
                 'caulk': {
                     'item': '100% silicone caulk',
                     'cost': 12.0,
-                    'note': 'Movement areas and transitions'
+                    'note': 'Movement joints and fixture connections'
                 },
-                'sealer': {
-                    'item': 'Grout sealer',
+                'grout_sealer': {
+                    'item': 'Premium grout sealer',
                     'cost': 25.0,
-                    'note': 'Moisture protection'
+                    'note': 'Long-term moisture protection'
                 }
             })
         
-        # Premium upgrades
+        # Heated floor system (expert knowledge)
+        if is_heated:
+            heated_components = {
+                'heated_mat': {
+                    'item': 'Electric heated floor mat',
+                    'cost': 200.0,
+                    'note': f'Cable spacing: {"2 spaces apart" if is_basement else "3-4 spaces apart"} (basement requires wider spacing for heat diffusion)'
+                },
+                'thermostat': {
+                    'item': 'Thermostat with sensor wire',
+                    'cost': 85.0,
+                    'note': 'Digital temperature control with floor sensor'
+                },
+                'protective_trowel': {
+                    'item': 'Plastic trowel',
+                    'cost': 15.0,
+                    'note': 'CRITICAL: Protects cables from scratching or cutting during installation'
+                },
+                'quarter_trowel': {
+                    'item': '1/4 inch trowel',
+                    'cost': 22.0,
+                    'note': 'For thinset application under heated mat'
+                }
+            }
+            
+            # Add relays for large installations
+            if room_size > 160:
+                heated_components['relay_wire'] = {
+                    'item': 'Relay and higher amp wire',
+                    'cost': 120.0,
+                    'note': 'Required for installations exceeding 160 sq ft'
+                }
+            
+            essential_package.update(heated_components)
+        
+        # Shower system options (expert knowledge)
+        shower_options = {}
+        if is_shower:
+            shower_options = {
+                'wedi_system': {
+                    'item': 'Wedi Shower Pan System',
+                    'cost': 350.0,
+                    'note': 'Modern waterproof system - pool-like water retention up to threshold height'
+                },
+                'traditional_system': {
+                    'item': 'Michigan Mud Pan System',
+                    'cost': 415.0,
+                    'components': ['Michigan mud', 'tar paper', 'wire lath', 'rubber liner', 'pre-slope kit', 'weep hole guard'],
+                    'note': 'Traditional shower construction with proven reliability'
+                }
+            }
+        
+        # Premium upgrades with expert recommendations
         premium_options = {
             'trim_package': {
                 'item': 'Matching trim and edging',
                 'cost': 45.0,
-                'note': 'Professional finishing'
+                'note': 'Professional finishing touches'
             },
             'euro_trowel': {
                 'item': 'Euro trowel (universal flexibility)',
                 'cost': 85.0,
-                'note': 'Handles any tile size perfectly'
+                'note': 'Handles any tile size with perfect ridges'
             },
             'professional_tools': {
-                'item': 'Complete tool kit',
+                'item': 'Complete professional tool kit',
                 'cost': 150.0,
-                'note': 'Everything needed for professional results'
+                'note': 'Everything needed for contractor-quality results'
             }
         }
+        
+        # Add shower options to premium
+        if shower_options:
+            premium_options.update(shower_options)
         
         # Calculate totals
         essential_total = sum(item.get('cost', 0) * item.get('bags_needed', 1) for item in essential_package.values())
@@ -282,6 +356,14 @@ Always present complete solutions including necessary installation materials, pr
             },
             'essential_package': essential_package,
             'premium_options': premium_options,
+            'shower_options': shower_options,
+            'expert_considerations': {
+                'is_basement': is_basement,
+                'is_heated': is_heated,
+                'is_shower': is_shower,
+                'heating_spacing': "2 spaces apart" if is_basement else "3-4 spaces apart",
+                'waterproofing_method': 'Pool-like water retention system' if is_shower else 'Standard moisture protection'
+            },
             'pricing': {
                 'tiles_only': tile_cost,
                 'essential_total': tile_cost + essential_total,
@@ -290,7 +372,7 @@ Always present complete solutions including necessary installation materials, pr
         }
     
     def generate_upselling_response(self, subway_tiles: List[Dict], project_details: Dict, materials: Dict) -> str:
-        """Generate compelling upselling response for subway tiles"""
+        """Generate compelling upselling response with expert installation knowledge"""
         
         if not subway_tiles:
             return "I couldn't find subway tiles matching your query. Let me help you with other tile options."
@@ -300,40 +382,95 @@ Always present complete solutions including necessary installation materials, pr
         room_type = project_details.get('room_type', 'room')
         room_size = project_details.get('size', 50)  # Default 50 sq ft
         
+        # Get expert considerations
+        expert_info = materials.get('expert_considerations', {})
+        
         response_parts = [
-            f"🏠 **Complete {room_type.replace('_', ' ').title()} Subway Tile Project**\n",
-            f"**Your Selected Subway Tile:** {primary_tile['title']}",
-            f"- **Base Cost:** ${materials['pricing']['tiles_only']:.2f} ({room_size} sq ft)",
-            f"- **Coverage:** {materials['tile_info']['boxes_needed']} boxes\n",
-            "🎯 **Essential Installation Materials:**"
+            f"🏠 **Complete {room_type.replace('_', ' ').title()} Installation Project - Expert Approach**\n",
+            f"**Your Selected Tile:** {primary_tile['title']}",
+            f"- **SKU:** {primary_tile['sku']} | **Price:** ${materials['pricing']['tiles_only']:.2f} | **Page:** https://www.tileshop.com/product/{primary_tile['sku']}",
+            f"- **Coverage:** {materials['tile_info']['boxes_needed']} boxes ({room_size} sq ft)\n"
         ]
         
-        # Add essential materials
+        # Add expert installation sequence
+        if expert_info.get('is_shower'):
+            response_parts.extend([
+                "🚿 **Expert Shower Installation Sequence:**",
+                "1. **Substrate Preparation** - Backer-lite or heated floor system",
+                "2. **Waterproofing System** - Pool-like water retention approach",
+                "3. **Layout Planning** - Prevents awkward cuts and ensures symmetry",
+                "4. **Tile Installation** - Professional adhesive application",
+                "5. **Grouting & Sealing** - Complete moisture protection",
+                "6. **Final Inspection** - Quality assurance and cleanup\n"
+            ])
+        
+        # Add heated floor expertise
+        if expert_info.get('is_heated'):
+            spacing = expert_info.get('heating_spacing', '3-4 spaces apart')
+            response_parts.extend([
+                "🔥 **Heated Floor Installation - Expert Knowledge:**",
+                f"- **Cable Spacing:** {spacing} {'(basement requires wider spacing for heat diffusion)' if expert_info.get('is_basement') else '(standard installation)'}",
+                "- **Wall Clearance:** 6-8 inches from walls (code requirement)",
+                "- **Furniture Restriction:** No cables under benches, tables, or couches",
+                "- **Critical Tool:** Plastic trowel to protect cables from damage\n"
+            ])
+        
+        response_parts.append("🎯 **Essential Installation Materials:**")
+        
+        # Add essential materials with expert details
         for key, item in materials['essential_package'].items():
             cost = item['cost'] * item.get('bags_needed', 1)
+            sku_info = f" (SKU: {item['sku']})" if item.get('sku') else ""
             note = f" - {item.get('note', '')}" if item.get('note') else ""
-            response_parts.append(f"✅ **{item['item'].title()}:** ${cost:.0f}{note}")
+            response_parts.append(f"✅ **{item['item'].title()}**{sku_info}: ${cost:.0f}{note}")
+        
+        # Add waterproofing expertise
+        if expert_info.get('is_shower'):
+            response_parts.extend([
+                "\n💧 **Expert Waterproofing System:**",
+                "- **Methodology:** Pool-like water retention system",
+                "- **Protection:** Prevents water damage to lower floors and ceiling stains",
+                "- **Retention:** Capable of holding water up to lowest surface height (typically threshold)",
+                "- **Professional Grade:** Same approach used in commercial installations\n"
+            ])
+        
+        # Add shower system options
+        if materials.get('shower_options'):
+            response_parts.extend([
+                "🚿 **Shower System Options - Expert Comparison:**"
+            ])
+            
+            for key, option in materials['shower_options'].items():
+                system_type = "Modern" if "wedi" in key.lower() else "Traditional"
+                response_parts.append(f"• **{system_type} System:** {option['item']} - ${option['cost']:.0f}")
+                response_parts.append(f"  {option['note']}")
         
         response_parts.extend([
             "\n⭐ **Professional Upgrade Options:"
         ])
         
-        # Add premium options
+        # Add premium options (excluding shower systems already shown)
         for key, item in materials['premium_options'].items():
-            note = f" - {item.get('note', '')}" if item.get('note') else ""
-            response_parts.append(f"🔹 **{item['item'].title()}:** ${item['cost']:.0f}{note}")
+            if key not in ['wedi_system', 'traditional_system']:
+                note = f" - {item.get('note', '')}" if item.get('note') else ""
+                response_parts.append(f"🔹 **{item['item'].title()}:** ${item['cost']:.0f}{note}")
         
         response_parts.extend([
             "\n💰 **Investment Summary:**",
             f"- **Tiles Only:** ${materials['pricing']['tiles_only']:.2f}",
             f"- **Essential Complete Package:** ${materials['pricing']['essential_total']:.2f}",
             f"- **Professional Complete Package:** ${materials['pricing']['premium_total']:.2f}\n",
-            "🛡️ **Why Complete Packages Save Money:**",
-            "- Prevents costly return trips for missing materials",
-            "- Ensures proper installation and long-term performance",
-            "- Professional tools create better results",
-            "- Warranty protection with complete system approach\n",
-            "Would you like me to customize this package for your specific project needs?"
+            "🛡️ **Why Expert Installation Approach Saves Money:**",
+            "- **Prevents Future Failures:** Proper substrate preparation prevents costly repairs",
+            "- **Water Damage Protection:** Professional waterproofing prevents structural damage",
+            "- **Long-term Performance:** Complete system approach ensures 20+ year lifespan",
+            "- **Code Compliance:** Professional installation meets all building codes",
+            "- **Warranty Protection:** Complete system warranty vs. individual component warranties\n",
+            "📞 **Next Steps:**",
+            "1. **Total Project Cost:** ${materials['pricing']['premium_total']:.2f}",
+            "2. **Would you like to be connected to a local contractor for this project?**",
+            "3. **All recommendations include SKU, pricing, and direct product page links**\n",
+            "*Ready to proceed with your expert installation project?*"
         ])
         
         return "\n".join(response_parts)
@@ -1116,7 +1253,7 @@ Once I know the size, I can show you everything you'll need for professional ins
                 f"   {price_info}{size_str}{color_str}{finish_str}\n"
                 f"{image_info}"
                 f"{content_preview}"
-                f"   More details: https://www.tileshop.com/product/{result['sku']}\n"
+                f"   **SKU:** {result['sku']} | **Price:** {price_info} | **Page:** https://www.tileshop.com/product/{result['sku']}\n"
             )
         
         # Add supporting materials section if we found actual tiles
@@ -1143,7 +1280,7 @@ Once I know the size, I can show you everything you'll need for professional ins
         return "\n".join(response_parts)
     
     def _generate_supporting_materials_section(self, query: str, results: List[Dict[str, Any]]) -> str:
-        """Generate supporting materials recommendations based on tile selection and application"""
+        """Generate supporting materials recommendations with expert installation knowledge"""
         if not results:
             return ""
         
@@ -1156,6 +1293,8 @@ Once I know the size, I can show you everything you'll need for professional ins
         is_floor = any(term in query_lower for term in ['floor', 'flooring'])
         is_wall = any(term in query_lower for term in ['wall', 'backsplash'])
         is_heated = any(term in query_lower for term in ['heated', 'heating', 'radiant'])
+        is_wood_plank = any(term in query_lower for term in ['wood plank', 'wood look', 'plank tile'])
+        is_shower = any(term in query_lower for term in ['shower', 'shower pan', 'shower base'])
         
         # Analyze tile characteristics from results
         has_large_tiles = False
@@ -1177,42 +1316,69 @@ Once I know the size, I can show you everything you'll need for professional ins
             elif any(stone in title for stone in ['marble', 'travertine', 'limestone', 'granite', 'slate']) and 'porcelain' not in title:
                 has_natural_stone = True
         
-        # Generate materials list based on conditions
+        # Generate materials list based on expert knowledge
         materials = []
         
         # Essential installation materials (always needed)
         if has_large_tiles or has_porcelain:
             materials.append("**LFT Thinset Mortar** - Superior bond strength for large format and porcelain tiles")
         else:
-            materials.append("**Premium Thinset Mortar** - Standard installation adhesive")
+            materials.append("**Modified Thinset Mortar** - Professional-grade installation adhesive")
         
         materials.append("**Tile Spacers/Wedges** - Ensure consistent joint spacing")
         materials.append("**Grout** - Sanded for joints >1/8\", unsanded for smaller joints")
         
-        # Wet area protection
-        if is_bathroom or is_kitchen or is_basement:
-            materials.append("**Backer-Lite Underlayment** - Moisture protection for wet areas")
-            materials.append("**Waterproof Membrane** - Additional moisture barrier")
+        # Expert wet area waterproofing system
+        if is_bathroom or is_kitchen or is_basement or is_shower:
+            materials.extend([
+                "**Backer-Lite Underlayment** - Moisture-resistant substrate preparation",
+                "**Wedi Subliner Dry Waterproof Sealing Tape (SKU: 348968)** - 3-4\" overlap on backer-lite, 2-3\" up wall",
+                "**Wedi Joint Sealant Cartridge (SKU: 348951)** - Waterproof connection sealing"
+            ])
         
-        # Heated floor systems (only add if heated is specifically mentioned)
+        # Expert heated floor installation
         if is_heated:
-            materials.append("**Heated Floor Mat & Cable** - Radiant heating system for comfort")
-            materials.append("**Uncoupling Membrane** - Prevents tile cracking from thermal expansion")
+            heating_spacing = "2 spaces apart" if is_basement else "3-4 spaces apart"
+            materials.extend([
+                f"**Heated Floor Mat & Cable** - Electric radiant heating ({heating_spacing} for {'basement' if is_basement else 'standard'} installation)",
+                "**Thermostat with Sensor Wire** - Digital temperature control",
+                "**Plastic Trowel** - CRITICAL: Protects cables from scratching or cutting",
+                "**1/4 Inch Trowel** - For thinset application under heated mat"
+            ])
+            
+            if is_basement:
+                materials.append("**Note:** Basement installations require wider cable spacing (2 spaces apart) due to increased heat diffusion")
         
-        # Dry area underlayment
-        if is_floor and not (is_bathroom or is_kitchen or is_basement):
-            materials.append("**Permat Underlayment** - Crack isolation for dry areas")
+        # Wood plank tile expert recommendations
+        if is_wood_plank:
+            materials.extend([
+                "**Layout Planning Tools** - Prevents awkward cuts at walls and fixtures",
+                "**Transition Strips** - Professional connections to adjacent flooring"
+            ])
+        
+        # Shower system expert options
+        if is_shower:
+            materials.extend([
+                "\n**🚿 Shower System Options (Expert Comparison):**",
+                "• **Wedi Shower System** - $350 (Modern pool-like water retention)",
+                "• **Michigan Mud Pan System** - $415 (Traditional proven reliability)"
+            ])
         
         # Natural stone specific materials
         if has_natural_stone:
-            materials.append("**Stone Sealer** - Protects natural stone from stains and moisture")
-            materials.append("**Stone-Safe Grout** - Non-acidic grout for natural stone")
+            materials.extend([
+                "**Stone Sealer** - Protects natural stone from stains and moisture",
+                "**Stone-Safe Grout** - Non-acidic grout for natural stone"
+            ])
         else:
             materials.append("**Grout Sealer** - Protects grout from moisture and stains")
         
         # Installation tools and finishing
-        materials.append("**Tile Leveling System** - Professional results with minimal lippage")
-        materials.append("**Trim Pieces** - Bullnose, edge trim for professional finishing")
+        materials.extend([
+            "**Tile Leveling System** - Professional results with minimal lippage",
+            "**Trim Pieces** - Bullnose, edge trim for professional finishing",
+            "**100% Silicone Caulk** - Flexible joints at walls and fixtures"
+        ])
         
         # Generate response section
         area_context = ""
@@ -1228,33 +1394,61 @@ Once I know the size, I can show you everything you'll need for professional ins
             area_context = " for your wall tiling"
         
         response_parts = [
-            f"\n🔧 **Complete Installation Package{area_context}:**\n",
-            "To ensure your project looks professional and lasts for years, I recommend these essential materials:\n"
+            f"\n🔧 **Complete Expert Installation Package{area_context}:**\n",
+            "Based on professional installation knowledge, I recommend these essential materials:\n"
         ]
         
         for material in materials:
             response_parts.append(f"✅ {material}")
         
+        # Expert installation sequence
+        if is_wood_plank and is_bathroom:
+            response_parts.extend([
+                "\n🎯 **Expert Installation Sequence:**",
+                "1. **Substrate Preparation** - Backer-lite or heated floor system",
+                "2. **Waterproofing Installation** - Pool-like water retention system",
+                "3. **Layout Planning** - Prevents awkward cuts and ensures symmetry",
+                "4. **Tile Installation** - Professional adhesive application",
+                "5. **Grouting & Sealing** - Complete moisture protection",
+                "6. **Final Inspection** - Quality assurance and cleanup"
+            ])
+        
         response_parts.extend([
-            "\n💡 **Professional Tips for Success:**",
-            "• I always recommend purchasing 10-15% extra tile for cuts and future repairs",
-            "• Use the right trowel size: 1/4\" notched for wall tiles, 3/8\" for floor tiles", 
-            "• Proper cure time makes all the difference: 24 hours before grouting, 72 hours before heavy use"
+            "\n💡 **Expert Professional Tips:**",
+            "• **Substrate Preparation Prevents Future Failures** - Proper prep is 50% of success",
+            "• **Waterproofing is Critical** - Pool-like system prevents structural damage",
+            "• **Layout Planning Prevents Awkward Cuts** - Measure twice, cut once",
+            "• **Proper Cure Time** - 24 hours before grouting, 72 hours before heavy use"
         ])
         
         if has_natural_stone:
-            response_parts.append("• For natural stone: seal before and after grouting for lasting beauty")
+            response_parts.append("• **Natural Stone Care** - Seal before and after grouting for lasting beauty")
         
         if is_heated:
-            response_parts.append("• Install your heating system before tile installation - it's much easier!")
+            response_parts.extend([
+                "• **Heated Floor Critical Requirements:**",
+                "  - Maintain 6-8 inches clearance from walls (code requirement)",
+                "  - No cables under furniture (benches, tables, couches)",
+                "  - Use plastic trowel to protect cables from damage"
+            ])
+        
+        if is_shower:
+            response_parts.extend([
+                "• **Shower Waterproofing Expertise:**",
+                "  - Creates pool-like water retention up to threshold height",
+                "  - Prevents water damage to lower floors and ceiling stains",
+                "  - Professional-grade approach used in commercial installations"
+            ])
         
         response_parts.extend([
-            "\n🏆 **Why choose our complete system approach?**",
-            "• Prevents costly return trips for missing materials",
-            "• Ensures all products work perfectly together", 
-            "• Professional results that you'll love for years to come",
-            "",
-            "📞 **Ready to get started?** I'd love to help calculate the exact quantities you'll need and put together your complete project package!"
+            "\n🏆 **Why Expert Installation Approach Works:**",
+            "• **Prevents Future Failures** - Proper installation prevents costly repairs",
+            "• **20+ Year Lifespan** - Professional approach ensures longevity",
+            "• **Code Compliance** - Meets all building codes and warranty requirements",
+            "• **Complete System Warranty** - Full project protection vs. individual components",
+            "\n💰 **Total Project Cost Calculation Available**",
+            "📞 **Local Contractor Connection Available**",
+            "\n*All recommendations include SKU, pricing, and direct product page links*"
         ])
         
         return "\n".join(response_parts)
