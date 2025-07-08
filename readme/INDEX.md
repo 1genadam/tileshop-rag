@@ -61,16 +61,16 @@ This index provides a comprehensive overview of all documentation files in the `
 
 ---
 
-## 🛠️ **SYSTEM MANAGEMENT & TROUBLESHOOTING**
+## 🛠️ **SYSTEM MANAGEMENT & SUPPORT**
 
-### Troubleshooting Guides
+### System Management & Support
 | File | Purpose | Key Content |
 |------|---------|-------------|
-| **[TROUBLESHOOTING.md](TROUBLESHOOTING.md)** | Phase 2 diagnostic troubleshooting guide | 17-service health checks, common issues, solution procedures |
-| **[TROUBLESHOOTING_GUIDE.md](TROUBLESHOOTING_GUIDE.md)** | General troubleshooting procedures | Service recovery, error resolution, system maintenance |
-| **[TROUBLESHOOTING_COMPREHENSIVE.md](TROUBLESHOOTING_COMPREHENSIVE.md)** | Extended troubleshooting documentation | Comprehensive error handling, diagnostic procedures |
-| **[DATABASE_RECOVERY_PROCEDURES.md](DATABASE_RECOVERY_PROCEDURES.md)** | Database recovery procedures | Data backup, recovery strategies, database maintenance |
-| **[ACQUISITION_TROUBLESHOOTING.md](ACQUISITION_TROUBLESHOOTING.md)** | Data acquisition issue resolution | Web scraping troubleshooting, Crawl4AI issues, data pipeline problems |
+| **[SYSTEM_DIAGNOSTICS.md](SYSTEM_DIAGNOSTICS.md)** | 17-service health monitoring framework | Service status checks, diagnostic procedures, system health validation |
+| **[QUICK_FIXES.md](QUICK_FIXES.md)** | Emergency solutions and rapid recovery | Dashboard restart, service recovery, common problem resolution |
+| **[ISSUE_RESOLUTION_GUIDE.md](ISSUE_RESOLUTION_GUIDE.md)** | Comprehensive problem solution database | Detailed error diagnosis, step-by-step solutions, root cause analysis |
+| **[DATABASE_RECOVERY_PROCEDURES.md](DATABASE_RECOVERY_PROCEDURES.md)** | Database recovery and maintenance | Data backup, recovery strategies, database troubleshooting |
+| **[DATA_ACQUISITION_RESET.md](DATA_ACQUISITION_RESET.md)** | Scraping session reset and counter management | Acquisition counter reset, fresh session setup, data pipeline cleanup |
 
 ---
 
@@ -183,7 +183,7 @@ This index provides a comprehensive overview of all documentation files in the `
 ### **New Users**
 - Start here: [QUICK_START.md](QUICK_START.md)
 - Dashboard guide: [DASHBOARD_MANUAL.md](DASHBOARD_MANUAL.md)
-- Troubleshooting: [TROUBLESHOOTING.md](TROUBLESHOOTING.md)
+- Emergency fixes: [QUICK_FIXES.md](QUICK_FIXES.md)
 
 ### **Developers**
 - CI/CD setup: [GITHUB_ACTIONS.md](GITHUB_ACTIONS.md)
@@ -191,8 +191,9 @@ This index provides a comprehensive overview of all documentation files in the `
 - Architecture: [ARCHITECTURE.md](ARCHITECTURE.md)
 
 ### **System Administrators**
+- System diagnostics: [SYSTEM_DIAGNOSTICS.md](SYSTEM_DIAGNOSTICS.md)
+- Issue resolution: [ISSUE_RESOLUTION_GUIDE.md](ISSUE_RESOLUTION_GUIDE.md)
 - Credentials management: [CREDENTIALS_TEMPLATE.md](CREDENTIALS_TEMPLATE.md)
-- Security practices: [GIT_COMMIT_INSTRUCTIONS.md](GIT_COMMIT_INSTRUCTIONS.md)
 - Production analysis: [PRODUCTION_SYSTEM_ANALYSIS.md](PRODUCTION_SYSTEM_ANALYSIS.md)
 
 ---

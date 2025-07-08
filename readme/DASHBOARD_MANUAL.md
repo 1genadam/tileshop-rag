@@ -372,5 +372,5 @@ python3 -c "from dashboard_app import test_supabase; test_supabase()"
 ---
 
 *For deployment information, see [DEPLOYMENT_COMPLETE.md](DEPLOYMENT_COMPLETE.md)*
-*For troubleshooting, see [TROUBLESHOOTING.md](TROUBLESHOOTING.md)*
+*For troubleshooting, see [QUICK_FIXES.md](QUICK_FIXES.md) and [SYSTEM_DIAGNOSTICS.md](SYSTEM_DIAGNOSTICS.md)*
 *For quick start, see [QUICK_START.md](QUICK_START.md)*

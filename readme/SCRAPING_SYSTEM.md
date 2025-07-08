@@ -283,4 +283,4 @@ python3 -c "from curl_scraper import validate_html_structure; validate_html_stru
 *This breakthrough enables unlimited reliable product data acquisition for the RAG system.*
 
 *For deployment information, see [DEPLOYMENT_COMPLETE.md](DEPLOYMENT_COMPLETE.md)*
-*For troubleshooting, see [ACQUISITION_TROUBLESHOOTING.md](ACQUISITION_TROUBLESHOOTING.md)*
+*For troubleshooting, see [DATA_ACQUISITION_RESET.md](DATA_ACQUISITION_RESET.md)*

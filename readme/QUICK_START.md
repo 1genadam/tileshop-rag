@@ -171,7 +171,7 @@ After getting the system running:
 1. **📖 Read the Documentation**: Check [INDEX.md](INDEX.md) for comprehensive guides
 2. **🎯 Learn the Dashboard**: See [DASHBOARD_MANUAL.md](DASHBOARD_MANUAL.md) for detailed operations
 3. **🚀 Deploy to Production**: Follow [DEPLOYMENT_COMPLETE.md](DEPLOYMENT_COMPLETE.md) for cloud deployment
-4. **🔧 Troubleshoot Issues**: Use [TROUBLESHOOTING.md](TROUBLESHOOTING.md) for common problems
+4. **🔧 Troubleshoot Issues**: Use [QUICK_FIXES.md](QUICK_FIXES.md) for emergency solutions or [SYSTEM_DIAGNOSTICS.md](SYSTEM_DIAGNOSTICS.md) for system health
 
 ---
 
@@ -194,4 +194,4 @@ After getting the system running:
 
 ---
 
-*For detailed documentation, see [INDEX.md](INDEX.md) | For issues, check [TROUBLESHOOTING.md](TROUBLESHOOTING.md)*
+*For detailed documentation, see [INDEX.md](INDEX.md) | For issues, check [QUICK_FIXES.md](QUICK_FIXES.md)*

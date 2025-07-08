@@ -1,6 +1,6 @@
-# Tileshop RAG System - Quick Troubleshooting Guide
+# ⚡ Quick Fixes & Emergency Solutions
 
-## 🚨 Emergency Quick Fixes
+## 🚨 Emergency Dashboard & System Recovery
 
 | **Problem** | **Quick Solution** |
 |-------------|-------------------|

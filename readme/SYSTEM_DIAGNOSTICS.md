@@ -1,7 +1,8 @@
-# Tileshop RAG System - Troubleshooting Guide
+# 🔍 System Diagnostics Guide
 
-## Overview
-This guide provides comprehensive troubleshooting steps for the Tileshop RAG system, including the standardized diagnostic framework implemented in Phase 2.
+## TileShop RAG System Health Monitoring & Service Status
+
+This guide covers the comprehensive 17-service diagnostic framework for monitoring system health, identifying service issues, and maintaining optimal performance.
 
 ## Quick Status Check
 

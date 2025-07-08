@@ -1,6 +1,6 @@
-# Acquisition Control Troubleshooting Guide
+# 🔄 Data Acquisition Reset Guide
 
-## Issue: Acquisition Counters Not Resetting to Zero
+## Resetting Acquisition Counters & Starting Fresh Scraping Sessions
 
 ### Problem Description
 After downloading a fresh sitemap, the acquisition control dashboard shows non-zero values for processed, successful, and error counts when they should all be at 0.
