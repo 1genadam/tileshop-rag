@@ -437,7 +437,7 @@ Respond with ONLY the material name in lowercase, no explanation."""
                 'chemical', 'silicone', 'plastic', 'metal', 'polyisocyanurate', 'composite',
                 'polystyrene', 'synthetic', 'cement', 'ceramic', 'porcelain', 'marble', 
                 'glass', 'vinyl', 'wood', 'resin', 'granite', 'travertine', 'limestone', 
-                'slate', 'natural stone'
+                'slate', 'natural stone', 'diamond', 'rubber', 'foam', 'fabric', 'quartz'
             ]
             
             if material in valid_materials:
