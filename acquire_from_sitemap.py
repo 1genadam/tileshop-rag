@@ -24,7 +24,7 @@ current_url = None
 
 def signal_handler(signum, frame):
     """Handle interruption signals gracefully"""
-    global interrupted, current_url
+    global interrupted
     interrupted = True
     print(f"\n⚠️  Interrupt signal received (Ctrl+C)")
     print(f"📝 Current URL being processed: {current_url}")

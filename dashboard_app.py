@@ -1082,7 +1082,6 @@ def generate_embeddings():
         
         def generate_embeddings_background():
             """Background task to generate and store actual embeddings"""
-            global embedding_progress
             try:
                 batch_size = 100  # Process 100 products at a time
                 batches = (total_products + batch_size - 1) // batch_size
@@ -1269,7 +1268,6 @@ def generate_embeddings():
 @app.route('/api/rag/embeddings-progress')
 def embeddings_progress():
     """Get current progress of embedding generation"""
-    global embedding_progress
     if 'embedding_progress' not in globals():
         return jsonify({
             'success': True,
