@@ -157,7 +157,7 @@ class EnhancedSpecificationExtractor:
             r'<div[^>]*class="[^"]*spec[^"]*"[^>]*>([^:]+):\s*([^<]+)</div>',
         ]
     
-    def extract_specifications(self, html_content: str, category: str = "tile") -> Dict[str, Any]:
+    def extract_specifications(self, html_content: str, category: str = "tile", product_title: str = "") -> Dict[str, Any]:
         """
         Extract all available specifications from HTML content
         Returns both known fields and auto-detected fields
@@ -175,10 +175,16 @@ class EnhancedSpecificationExtractor:
         # 2. Auto-detect unknown fields
         auto_detected = self._auto_detect_fields(html_content)
         
-        # 3. Merge results with priority to known fields
+        # 3. Extract product category from title if provided
+        if product_title:
+            product_category = self._extract_category_from_title(product_title)
+            if product_category:
+                specifications['product_category'] = product_category
+        
+        # 4. Merge results with priority to known fields
         final_specs = {**auto_detected, **specifications}
         
-        # 4. Clean and validate
+        # 5. Clean and validate
         final_specs = self._clean_specifications(final_specs)
         
         print(f"✅ Extracted {len(final_specs)} specification fields")
@@ -362,6 +368,29 @@ class EnhancedSpecificationExtractor:
             return False
         
         return True
+    
+    def _extract_category_from_title(self, product_title: str) -> str:
+        """Extract product category from title"""
+        title_lower = product_title.lower()
+        
+        # Category keywords mapping
+        category_keywords = {
+            'tile': ['tile', 'tiles', 'ceramic', 'porcelain', 'mosaic', 'subway'],
+            'grout': ['grout', 'grouting'],
+            'trim': ['trim', 'bullnose', 'edge', 'corner', 'gl', 'great lakes', 'l-channel', 'round edge', 'box edge', 'somerset', 'durand'],
+            'adhesive': ['adhesive', 'mortar', 'cement'],
+            'sealer': ['sealer', 'sealant'],
+            'tool': ['tool', 'tools', 'cutter', 'spacer'],
+            'accessory': ['accessory', 'accessories']
+        }
+        
+        # Check for category keywords in title
+        for category, keywords in category_keywords.items():
+            if any(keyword in title_lower for keyword in keywords):
+                return category.title()
+        
+        # Default fallback
+        return "Product"
     
     def _clean_specifications(self, specifications: Dict[str, Any]) -> Dict[str, Any]:
         """Clean and standardize specification values with corruption filtering"""

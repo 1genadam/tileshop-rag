@@ -5,45 +5,22 @@
 
 echo "🔄 Rebooting Tileshop Dashboard (Auto-Background Mode)..."
 
-# Git update and push
-echo "📥 Updating code from git repository..."
-git fetch origin
-if git status -uno | grep -q "behind"; then
-    echo "📦 New updates available, pulling changes..."
-    git pull origin $(git branch --show-current)
-    if [ $? -eq 0 ]; then
-        echo "✅ Git update successful"
-    else
-        echo "⚠️  Git update had conflicts, continuing with reboot..."
-    fi
-else
-    echo "✅ Code is up to date"
-fi
-
-# Check for local changes to push
-echo "📤 Checking for local changes to push..."
+# Quick git sync (optimized for speed)
+echo "📤 Quick git sync..."
 if ! git diff-index --quiet HEAD --; then
-    echo "📝 Local changes detected, committing and pushing..."
-    git add -A
-    git commit -m "Auto-commit during dashboard reboot
-
-🤖 Generated with [Claude Code](https://claude.ai/code)
-
-Co-Authored-By: Claude <noreply@anthropic.com>"
-    git push origin $(git branch --show-current)
-    if [ $? -eq 0 ]; then
-        echo "✅ Changes pushed to GitHub successfully"
-    else
-        echo "⚠️  Failed to push changes, continuing with reboot..."
-    fi
+    echo "📝 Auto-committing local changes..."
+    git add -A && git commit -m "Dashboard reboot auto-commit" --quiet
+    git push --quiet origin $(git branch --show-current) &
+    GIT_PID=$!
+    echo "✅ Git push started in background (PID: $GIT_PID)"
 else
-    echo "✅ No local changes to push"
+    echo "✅ No changes to commit"
 fi
 
-# Stop any existing dashboard processes
+# Stop any existing dashboard processes (fast)
 echo "⏹️  Stopping existing dashboard processes..."
 pkill -f "python.*dashboard_app.py" 2>/dev/null
-sleep 2
+sleep 1  # Reduced from 2 seconds
 
 # Clear Python cache files
 echo "🧹 Clearing Python cache..."
@@ -67,8 +44,8 @@ fi
 echo "🚀 Starting dashboard in autogen_env (background mode)..."
 source ../autogen_env/bin/activate && python dashboard_app.py > dashboard.log 2>&1 &
 
-# Wait for startup
-sleep 3
+# Wait for startup (fast check)
+sleep 1  # Reduced from 3 seconds
 
 # Check if dashboard started successfully
 if pgrep -f "dashboard_app.py" > /dev/null; then
