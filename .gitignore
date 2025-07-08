@@ -2,6 +2,17 @@
 .env
 .env.local
 .env.*.local
+.env.docker
+.env.production
+
+# Credentials files (actual credentials, not templates)
+credentials.md
+credentials.txt
+passwords.txt
+secrets.txt
+*_credentials.*
+*_passwords.*
+*_secrets.*
 
 # Python
 __pycache__/
