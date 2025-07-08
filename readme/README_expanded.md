@@ -32,6 +32,7 @@ A comprehensive e-commerce intelligence platform and AI-powered product discover
 - [📁 Project Architecture & File Index](#-project-architecture--file-index) - **★ COMPREHENSIVE FILE GUIDE**
 - [📊 Project Context & Goals](#project-context--goals) - Business objectives and technical goals
 - [🤖 Enhanced LLM & Web Search System](#-enhanced-llm--web-search-system) - **★ NEW: Advanced categorization system**
+- [⚡ Batch Processing Analysis](BATCH_PROCESSING_ANALYSIS.md) - **★ NEW: Rate limiting and concurrency analysis**
 - [📋 Database Schema](#database-schema) - Data structure and field definitions
 - [🔧 Features](#features) - Core functionality and capabilities
 
