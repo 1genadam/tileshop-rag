@@ -1,6 +1,6 @@
 {
-  "downloaded_at": "2025-07-09T10:49:09.522697",
-  "total_urls": 4771,
+  "downloaded_at": "2025-07-09T13:41:14.228558",
+  "total_urls": 4773,
   "status": "ready",
   "urls": [
     {
@@ -1048,6 +1048,12 @@
       "scrape_status": "pending"
     },
     {
+      "url": "https://www.tileshop.com/products/amazonia-solar-entalhe-matte-ceramic-wall-tile-18-x-48-in-485013",
+      "lastmod": null,
+      "scraped_at": null,
+      "scrape_status": "pending"
+    },
+    {
       "url": "https://www.tileshop.com/products/glacial-blanco-gloss-ceramic-subway-wall-tile-4-x-8-in-484977",
       "lastmod": null,
       "scraped_at": null,
@@ -1283,6 +1289,12 @@
     },
     {
       "url": "https://www.tileshop.com/products/max-rapolano-ivory-matte-porcelain-wall-and-floor-tile-12-x-24-in-684138",
+      "lastmod": null,
+      "scraped_at": null,
+      "scrape_status": "pending"
+    },
+    {
+      "url": "https://www.tileshop.com/products/statuario-nuovo-polished-porcelain-mosaic-wall-and-floor-tile-684141",
       "lastmod": null,
       "scraped_at": null,
       "scrape_status": "pending"

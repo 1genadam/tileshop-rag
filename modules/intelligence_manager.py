@@ -798,10 +798,11 @@ class ScraperManager:
                 is_fresh_sitemap = (completed_count == 0 and failed_count == 0 and pending_count == total_urls)
                 
                 if is_fresh_sitemap:
-                    # Reset all counts for a fresh sitemap
-                    logger.debug(f"Fresh sitemap detected - resetting counts to 0")
+                    # Reset progress counts for a fresh sitemap but keep total
+                    logger.debug(f"Fresh sitemap detected - resetting progress counts to 0 but keeping total: {total_urls}")
                     enhanced_stats['success_count'] = 0
                     enhanced_stats['error_count'] = 0
+                    enhanced_stats['estimated_total'] = total_urls
                 else:
                     # Only update counts if sitemap shows more progress (prevents backwards jumps)
                     if completed_count > current_success:
