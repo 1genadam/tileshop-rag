@@ -1,516 +1,511 @@
 {
-  "downloaded_at": "2025-07-09T15:10:20.264157",
+  "downloaded_at": "2025-07-09T15:55:04.799831",
   "total_urls": 4773,
   "status": "ready",
   "urls": [
     {
       "url": "https://www.tileshop.com/products/marmi-imperiali-zenobia-porcelain-wall-and-floor-tile-12-in-684287",
       "lastmod": null,
-      "scraped_at": "2025-07-09T15:11:06.033859",
+      "scraped_at": "2025-07-09T16:05:58.392257",
       "scrape_status": "completed"
     },
     {
       "url": "https://www.tileshop.com/products/marmi-imperiali-domitia-porcelain-wall-and-floor-tile-12-in-684286",
       "lastmod": null,
-      "scraped_at": "2025-07-09T15:11:15.705083",
+      "scraped_at": "2025-07-09T16:06:08.262405",
       "scrape_status": "completed"
     },
     {
       "url": "https://www.tileshop.com/products/marmi-imperiali-aurelia-porcelain-wall-and-floor-tile-12-in-684285",
       "lastmod": null,
-      "scraped_at": "2025-07-09T15:11:25.500094",
+      "scraped_at": "2025-07-09T16:06:18.927003",
       "scrape_status": "completed"
     },
     {
       "url": "https://www.tileshop.com/products/linewood-white-matte-ceramic-wall-tile-12-x-36-in-485020",
       "lastmod": null,
-      "scraped_at": "2025-07-09T15:11:34.592715",
+      "scraped_at": "2025-07-09T16:06:28.323494",
       "scrape_status": "completed"
     },
     {
       "url": "https://www.tileshop.com/products/laura-park-bespoke-white-ceramic-wall-tile-256-x-10-in-485000",
       "lastmod": null,
-      "scraped_at": "2025-07-09T15:11:44.220414",
+      "scraped_at": "2025-07-09T16:06:38.740777",
       "scrape_status": "completed"
     },
     {
       "url": "https://www.tileshop.com/products/laura-park-bespoke-aegean-blue-ceramic-wall-tile-256-x-10-in-484999",
       "lastmod": null,
-      "scraped_at": "2025-07-09T15:11:54.756003",
+      "scraped_at": "2025-07-09T16:06:48.165474",
       "scrape_status": "completed"
     },
     {
       "url": "https://www.tileshop.com/products/laura-park-bespoke-taupe-ceramic-wall-tile-256-x-10-in-484998",
       "lastmod": null,
-      "scraped_at": "2025-07-09T15:12:06.364471",
+      "scraped_at": "2025-07-09T16:06:59.100607",
       "scrape_status": "completed"
     },
     {
       "url": "https://www.tileshop.com/products/laura-park-bespoke-white-ceramic-wall-tile-256-x-5-in-484997",
       "lastmod": null,
-      "scraped_at": "2025-07-09T15:12:17.783308",
+      "scraped_at": "2025-07-09T16:07:08.782209",
       "scrape_status": "completed"
     },
     {
       "url": "https://www.tileshop.com/products/laura-park-bespoke-aegean-blue-ceramic-wall-tile-256-x-5-in-484996",
       "lastmod": null,
-      "scraped_at": "2025-07-09T15:12:27.504724",
+      "scraped_at": "2025-07-09T16:07:18.232674",
       "scrape_status": "completed"
     },
     {
       "url": "https://www.tileshop.com/products/laura-park-bespoke-taupe-ceramic-wall-tile-256-x-5-in-484995",
       "lastmod": null,
-      "scraped_at": "2025-07-09T15:12:37.446745",
+      "scraped_at": "2025-07-09T16:07:26.986998",
       "scrape_status": "completed"
     },
     {
       "url": "https://www.tileshop.com/products/laura-park-bespoke-white-ceramic-wall-tile-5-x-5-in-484994",
       "lastmod": null,
-      "scraped_at": "2025-07-09T15:12:45.352916",
+      "scraped_at": "2025-07-09T16:07:36.671607",
       "scrape_status": "completed"
     },
     {
       "url": "https://www.tileshop.com/products/laura-park-bespoke-aegean-blue-ceramic-wall-tile-5-x-5-in-484993",
       "lastmod": null,
-      "scraped_at": "2025-07-09T15:12:53.199868",
+      "scraped_at": "2025-07-09T16:07:48.151810",
       "scrape_status": "completed"
     },
     {
       "url": "https://www.tileshop.com/products/laura-park-bespoke-taupe-ceramic-wall-tile-5-x-5-in-484992",
       "lastmod": null,
-      "scraped_at": "2025-07-09T15:13:03.758272",
+      "scraped_at": "2025-07-09T16:07:57.541964",
       "scrape_status": "completed"
     },
     {
       "url": "https://www.tileshop.com/products/marmoreal-cement-smoke-quarter-round-84-in-683996",
       "lastmod": null,
-      "scraped_at": "2025-07-09T15:13:13.362123",
+      "scraped_at": "2025-07-09T16:08:07.648607",
       "scrape_status": "completed"
     },
     {
       "url": "https://www.tileshop.com/products/marmoreal-cement-smoke-flush-stair-84-in-683995",
       "lastmod": null,
-      "scraped_at": "2025-07-09T15:13:23.682789",
+      "scraped_at": "2025-07-09T16:08:18.657375",
       "scrape_status": "completed"
     },
     {
       "url": "https://www.tileshop.com/products/marmoreal-cement-smoke-overlap-stair-84-in-683994",
       "lastmod": null,
-      "scraped_at": "2025-07-09T15:13:34.108089",
+      "scraped_at": "2025-07-09T16:08:28.116918",
       "scrape_status": "completed"
     },
     {
       "url": "https://www.tileshop.com/products/marmoreal-cement-smoke-reducer-84-in-683993",
       "lastmod": null,
-      "scraped_at": "2025-07-09T15:13:44.132506",
+      "scraped_at": "2025-07-09T16:08:41.020650",
       "scrape_status": "completed"
     },
     {
       "url": "https://www.tileshop.com/products/marmoreal-cement-smoke-t-molding-84-in-683992",
       "lastmod": null,
-      "scraped_at": "2025-07-09T15:13:53.151719",
+      "scraped_at": "2025-07-09T16:08:50.126758",
       "scrape_status": "completed"
     },
     {
       "url": "https://www.tileshop.com/products/marmoreal-cement-silver-grey-quarter-round-84-in-683991",
       "lastmod": null,
-      "scraped_at": "2025-07-09T15:14:03.141047",
+      "scraped_at": "2025-07-09T16:08:58.628524",
       "scrape_status": "completed"
     },
     {
       "url": "https://www.tileshop.com/products/marmoreal-cement-silver-grey-flush-stair-84-in-683990",
       "lastmod": null,
-      "scraped_at": "2025-07-09T15:14:11.276253",
+      "scraped_at": "2025-07-09T16:09:09.406899",
       "scrape_status": "completed"
     },
     {
       "url": "https://www.tileshop.com/products/marmoreal-cement-silver-grey-overlap-stair-84-in-683989",
       "lastmod": null,
-      "scraped_at": "2025-07-09T15:14:19.765388",
+      "scraped_at": "2025-07-09T16:09:19.081718",
       "scrape_status": "completed"
     },
     {
       "url": "https://www.tileshop.com/products/marmoreal-cement-silver-grey-reducer-84-in-683988",
       "lastmod": null,
-      "scraped_at": "2025-07-09T15:14:31.329631",
+      "scraped_at": "2025-07-09T16:09:27.824583",
       "scrape_status": "completed"
     },
     {
       "url": "https://www.tileshop.com/products/marmoreal-cement-silver-grey-t-molding-84-in-683987",
       "lastmod": null,
-      "scraped_at": "2025-07-09T15:14:40.420196",
-      "scrape_status": "completed"
+      "scraped_at": null,
+      "scrape_status": "pending"
     },
     {
       "url": "https://www.tileshop.com/products/marmoreal-cement-taupe-quarter-round-84-in-683986",
       "lastmod": null,
-      "scraped_at": "2025-07-09T15:14:50.706125",
-      "scrape_status": "completed"
+      "scraped_at": null,
+      "scrape_status": "pending"
     },
     {
       "url": "https://www.tileshop.com/products/marmoreal-cement-taupe-flush-stair-84-in-683985",
       "lastmod": null,
-      "scraped_at": "2025-07-09T15:15:02.277793",
-      "scrape_status": "completed"
+      "scraped_at": null,
+      "scrape_status": "pending"
     },
     {
       "url": "https://www.tileshop.com/products/marmoreal-cement-taupe-overlap-stair-84-in-683984",
       "lastmod": null,
-      "scraped_at": "2025-07-09T15:15:13.002481",
-      "scrape_status": "completed"
+      "scraped_at": null,
+      "scrape_status": "pending"
     },
     {
       "url": "https://www.tileshop.com/products/marmoreal-cement-taupe-reducer-84-in-683983",
       "lastmod": null,
-      "scraped_at": "2025-07-09T15:15:22.431564",
-      "scrape_status": "completed"
+      "scraped_at": null,
+      "scrape_status": "pending"
     },
     {
       "url": "https://www.tileshop.com/products/marmoreal-cement-taupe-t-molding-84-in-683982",
       "lastmod": null,
-      "scraped_at": "2025-07-09T15:15:30.060650",
-      "scrape_status": "completed"
+      "scraped_at": null,
+      "scrape_status": "pending"
     },
     {
       "url": "https://www.tileshop.com/products/marmoreal-silver-emperador-quarter-round-84-in-683981",
       "lastmod": null,
-      "scraped_at": "2025-07-09T15:15:39.529660",
-      "scrape_status": "completed"
+      "scraped_at": null,
+      "scrape_status": "pending"
     },
     {
       "url": "https://www.tileshop.com/products/marmoreal-silver-emperador-flush-stair-84-in-683980",
       "lastmod": null,
-      "scraped_at": "2025-07-09T15:15:48.797165",
-      "scrape_status": "completed"
+      "scraped_at": null,
+      "scrape_status": "pending"
     },
     {
       "url": "https://www.tileshop.com/products/marmoreal-silver-emperador-overlap-stair-84-in-683979",
       "lastmod": null,
-      "scraped_at": "2025-07-09T15:15:57.765650",
-      "scrape_status": "completed"
+      "scraped_at": null,
+      "scrape_status": "pending"
     },
     {
       "url": "https://www.tileshop.com/products/marmoreal-silver-emperador-reducer-84-in-683978",
       "lastmod": null,
-      "scraped_at": "2025-07-09T15:16:06.591921",
-      "scrape_status": "completed"
+      "scraped_at": null,
+      "scrape_status": "pending"
     },
     {
       "url": "https://www.tileshop.com/products/marmoreal-silver-emperador-t-molding-84-in-683977",
       "lastmod": null,
-      "scraped_at": "2025-07-09T15:16:16.312429",
-      "scrape_status": "completed"
+      "scraped_at": null,
+      "scrape_status": "pending"
     },
     {
       "url": "https://www.tileshop.com/products/marmoreal-carrara-quarter-round-84-in-683976",
       "lastmod": null,
-      "scraped_at": "2025-07-09T15:16:26.414500",
-      "scrape_status": "completed"
+      "scraped_at": null,
+      "scrape_status": "pending"
     },
     {
       "url": "https://www.tileshop.com/products/marmoreal-carrara-flush-stair-84-in-683975",
       "lastmod": null,
-      "scraped_at": "2025-07-09T15:16:37.080310",
-      "scrape_status": "completed"
+      "scraped_at": null,
+      "scrape_status": "pending"
     },
     {
       "url": "https://www.tileshop.com/products/marmoreal-carrara-reducer-84-in-683973",
       "lastmod": null,
-      "scraped_at": "2025-07-09T15:16:48.135929",
-      "scrape_status": "completed"
+      "scraped_at": null,
+      "scrape_status": "pending"
     },
     {
       "url": "https://www.tileshop.com/products/marmoreal-carrara-overlap-stair-84-in-683974",
       "lastmod": null,
-      "scraped_at": "2025-07-09T15:16:57.927892",
-      "scrape_status": "completed"
+      "scraped_at": null,
+      "scrape_status": "pending"
     },
     {
       "url": "https://www.tileshop.com/products/marmoreal-carrara-t-molding-84-in-683972",
       "lastmod": null,
-      "scraped_at": "2025-07-09T15:17:07.261577",
-      "scrape_status": "completed"
+      "scraped_at": null,
+      "scrape_status": "pending"
     },
     {
       "url": "https://www.tileshop.com/products/marmoreal-calacatta-quarter-round-84-in-683971",
       "lastmod": null,
-      "scraped_at": "2025-07-09T15:17:18.956498",
-      "scrape_status": "completed"
+      "scraped_at": null,
+      "scrape_status": "pending"
     },
     {
       "url": "https://www.tileshop.com/products/marmoreal-calacatta-flush-stair-84-in-683970",
       "lastmod": null,
-      "scraped_at": "2025-07-09T15:17:29.408918",
-      "scrape_status": "completed"
+      "scraped_at": null,
+      "scrape_status": "pending"
     },
     {
       "url": "https://www.tileshop.com/products/marmoreal-calacatta-overlap-stair-84-in-683969",
       "lastmod": null,
-      "scraped_at": "2025-07-09T15:17:38.010330",
-      "scrape_status": "completed"
+      "scraped_at": null,
+      "scrape_status": "pending"
     },
     {
       "url": "https://www.tileshop.com/products/marmoreal--calacatta-reducer-84-in-683968",
       "lastmod": null,
-      "scraped_at": "2025-07-09T15:17:43.911466",
-      "scrape_status": "completed"
+      "scraped_at": null,
+      "scrape_status": "pending"
     },
     {
       "url": "https://www.tileshop.com/products/marmoreal-calacatta-t-molding-84-in-683967",
       "lastmod": null,
-      "scraped_at": "2025-07-09T15:17:53.142111",
-      "scrape_status": "completed"
+      "scraped_at": null,
+      "scrape_status": "pending"
     },
     {
       "url": "https://www.tileshop.com/products/terracotta-burgundy-skirting-outside-corner-quarry-wall-trim-tile-683831",
       "lastmod": null,
-      "scraped_at": "2025-07-09T15:18:02.587319",
-      "scrape_status": "failed",
-      "error": "Unexpected error: [Errno 32] Broken pipe"
+      "scraped_at": null,
+      "scrape_status": "pending"
     },
     {
       "url": "https://www.tileshop.com/products/terracotta-burgundy-skirting-inside-corner-quarry-wall-trim-tile-683830",
       "lastmod": null,
-      "scraped_at": "2025-07-09T15:18:09.965058",
-      "scrape_status": "completed"
+      "scraped_at": null,
+      "scrape_status": "pending"
     },
     {
       "url": "https://www.tileshop.com/products/terracotta-burgundy-skirting-quarry-wall-trim-tile-683829",
       "lastmod": null,
-      "scraped_at": "2025-07-09T15:18:17.932479",
-      "scrape_status": "completed"
+      "scraped_at": null,
+      "scrape_status": "pending"
     },
     {
       "url": "https://www.tileshop.com/products/arabian-niro-white-polished-porcelain-wall-and-floor-tile-24-x-24-in-684347",
       "lastmod": null,
-      "scraped_at": "2025-07-09T15:18:28.312987",
-      "scrape_status": "completed"
+      "scraped_at": null,
+      "scrape_status": "pending"
     },
     {
       "url": "https://www.tileshop.com/products/arabian-niro-white-polished-porcelain-wall-and-floor-tile-12-x-24-in-684346",
       "lastmod": null,
-      "scraped_at": "2025-07-09T15:18:37.807779",
-      "scrape_status": "completed"
+      "scraped_at": null,
+      "scrape_status": "pending"
     },
     {
       "url": "https://www.tileshop.com/products/arabian-niro-white-matte-porcelain-wall-and-floor-tile-24-x-24-in-684344",
       "lastmod": null,
-      "scraped_at": "2025-07-09T15:18:51.321502",
-      "scrape_status": "completed"
+      "scraped_at": null,
+      "scrape_status": "pending"
     },
     {
       "url": "https://www.tileshop.com/products/arabian-niro-white-matte-porcelain-wall-and-floor-tile-12-x-24-in-684343",
       "lastmod": null,
-      "scraped_at": "2025-07-09T15:19:01.305508",
-      "scrape_status": "completed"
+      "scraped_at": null,
+      "scrape_status": "pending"
     },
     {
       "url": "https://www.tileshop.com/products/arabian-pisa-oro-polished-porcelain-wall-and-floor-tile-24-x-24-in-684341",
       "lastmod": null,
-      "scraped_at": "2025-07-09T15:19:10.207257",
-      "scrape_status": "completed"
+      "scraped_at": null,
+      "scrape_status": "pending"
     },
     {
       "url": "https://www.tileshop.com/products/arabian-pisa-oro-polished-porcelain-wall-and-floor-tile-12-x-24-in-684340",
       "lastmod": null,
-      "scraped_at": "2025-07-09T15:19:21.225025",
-      "scrape_status": "completed"
+      "scraped_at": null,
+      "scrape_status": "pending"
     },
     {
       "url": "https://www.tileshop.com/products/arabian-pisa-oro-matte-porcelain-wall-and-floor-tile-24-x-24-in-684339",
       "lastmod": null,
-      "scraped_at": "2025-07-09T15:19:33.247691",
-      "scrape_status": "completed"
+      "scraped_at": null,
+      "scrape_status": "pending"
     },
     {
       "url": "https://www.tileshop.com/products/arabian-pisa-oro-matte-porcelain-wall-and-floor-tile-12-x-24-in-684338",
       "lastmod": null,
-      "scraped_at": "2025-07-09T15:19:43.469885",
-      "scrape_status": "completed"
+      "scraped_at": null,
+      "scrape_status": "pending"
     },
     {
       "url": "https://www.tileshop.com/products/arabian-lenci-white-polished-porcelain-wall-and-floor-tile-24-x-48-in-684337",
       "lastmod": null,
-      "scraped_at": "2025-07-09T15:19:55.255167",
-      "scrape_status": "completed"
+      "scraped_at": null,
+      "scrape_status": "pending"
     },
     {
       "url": "https://www.tileshop.com/products/arabian-lenci-white-polished-porcelain-wall-and-floor-tile-24-x-24-in-684336",
       "lastmod": null,
-      "scraped_at": "2025-07-09T15:20:04.137101",
-      "scrape_status": "completed"
+      "scraped_at": null,
+      "scrape_status": "pending"
     },
     {
       "url": "https://www.tileshop.com/products/arabian-lenci-white-polished-wall-and-floor-tile-12-x-24-in-684335",
       "lastmod": null,
-      "scraped_at": "2025-07-09T15:20:13.713778",
-      "scrape_status": "completed"
+      "scraped_at": null,
+      "scrape_status": "pending"
     },
     {
       "url": "https://www.tileshop.com/products/arabian-lenci-white-matte-porcelain-wall-and-floor-tile-12-x-24-in-684334",
       "lastmod": null,
-      "scraped_at": "2025-07-09T15:20:24.032050",
-      "scrape_status": "completed"
+      "scraped_at": null,
+      "scrape_status": "pending"
     },
     {
       "url": "https://www.tileshop.com/products/arabian-tresana-white-polished-porcelain-wall-and-floor-tile-24-x-48-in-684333",
       "lastmod": null,
-      "scraped_at": "2025-07-09T15:20:35.801484",
-      "scrape_status": "completed"
+      "scraped_at": null,
+      "scrape_status": "pending"
     },
     {
       "url": "https://www.tileshop.com/products/arabian-tresana-white-polished-porcelain-wall-and-floor-tile-24-x-24-in-684332",
       "lastmod": null,
-      "scraped_at": "2025-07-09T15:20:46.235857",
-      "scrape_status": "completed"
+      "scraped_at": null,
+      "scrape_status": "pending"
     },
     {
       "url": "https://www.tileshop.com/products/arabian-tresana-white-polished-porcelain-wall-and-floor-tile-12-x-24-in-684331",
       "lastmod": null,
-      "scraped_at": "2025-07-09T15:20:55.885384",
-      "scrape_status": "completed"
+      "scraped_at": null,
+      "scrape_status": "pending"
     },
     {
       "url": "https://www.tileshop.com/products/arabian-tresana-white-matte-porcelain-wall-and-floor-tile-24-x-48-in-684330",
       "lastmod": null,
-      "scraped_at": "2025-07-09T15:21:06.197649",
-      "scrape_status": "completed"
+      "scraped_at": null,
+      "scrape_status": "pending"
     },
     {
       "url": "https://www.tileshop.com/products/arabian-tresana-white-matte-porcelain-wall-and-floor-tile-24-x-24-in-684329",
       "lastmod": null,
-      "scraped_at": "2025-07-09T15:21:16.893153",
-      "scrape_status": "completed"
+      "scraped_at": null,
+      "scrape_status": "pending"
     },
     {
       "url": "https://www.tileshop.com/products/arabian-tresana-white-matte-porcelain-wall-and-floor-tile-12-x-24-in-684328",
       "lastmod": null,
-      "scraped_at": "2025-07-09T15:21:19.933741",
-      "scrape_status": "failed",
-      "error": "Unexpected error: [Errno 32] Broken pipe"
+      "scraped_at": null,
+      "scrape_status": "pending"
     },
     {
       "url": "https://www.tileshop.com/products/arabian-niro-white-polished-porcelain-wall-and-floor-tile-24-x-48-in-684348",
       "lastmod": null,
-      "scraped_at": "2025-07-09T15:21:25.647644",
-      "scrape_status": "completed"
+      "scraped_at": null,
+      "scrape_status": "pending"
     },
     {
       "url": "https://www.tileshop.com/products/arabian-niro-white-matte-porcelain-wall-and-floor-tile-24-x-48-in-684345",
       "lastmod": null,
-      "scraped_at": "2025-07-09T15:21:34.579059",
-      "scrape_status": "completed"
+      "scraped_at": null,
+      "scrape_status": "pending"
     },
     {
       "url": "https://www.tileshop.com/products/arabian-pisa-oro-polished-porcelain-wall-and-floor-tile-24-x-48-in-684342",
       "lastmod": null,
-      "scraped_at": "2025-07-09T15:21:44.318946",
-      "scrape_status": "completed"
+      "scraped_at": null,
+      "scrape_status": "pending"
     },
     {
       "url": "https://www.tileshop.com/products/oak-cremona-torro-laminate-t-molding-169-x-84-in-684435",
       "lastmod": null,
-      "scraped_at": "2025-07-09T15:21:55.033101",
-      "scrape_status": "completed"
+      "scraped_at": null,
+      "scrape_status": "pending"
     },
     {
       "url": "https://www.tileshop.com/products/oak-cremona-torro-laminate-reducer-175-x-84-in-684434",
       "lastmod": null,
-      "scraped_at": "2025-07-09T15:22:05.771377",
-      "scrape_status": "completed"
+      "scraped_at": null,
+      "scrape_status": "pending"
     },
     {
       "url": "https://www.tileshop.com/products/oak-cremona-torro-laminate-overlap-stair-nose-2-x-84-in-684433",
       "lastmod": null,
-      "scraped_at": "2025-07-09T15:22:17.188244",
-      "scrape_status": "completed"
+      "scraped_at": null,
+      "scrape_status": "pending"
     },
     {
       "url": "https://www.tileshop.com/products/oak-cremona-torro-laminate-flush-stair-nose-2-x-84-in-684432",
       "lastmod": null,
-      "scraped_at": "2025-07-09T15:22:25.314369",
-      "scrape_status": "completed"
+      "scraped_at": null,
+      "scrape_status": "pending"
     },
     {
       "url": "https://www.tileshop.com/products/oak-cremona-torro-laminate-quarter-round-75-x-84-in-684431",
       "lastmod": null,
-      "scraped_at": "2025-07-09T15:22:36.278626",
-      "scrape_status": "completed"
+      "scraped_at": null,
+      "scrape_status": "pending"
     },
     {
       "url": "https://www.tileshop.com/products/historic-oak-laminate-quarter-round-75-x-84-in-684278",
       "lastmod": null,
-      "scraped_at": "2025-07-09T15:22:45.814173",
-      "scrape_status": "completed"
+      "scraped_at": null,
+      "scrape_status": "pending"
     },
     {
       "url": "https://www.tileshop.com/products/historic-oak-laminate-flush-stair-nose-2-x-84-in-684277",
       "lastmod": null,
-      "scraped_at": "2025-07-09T15:22:55.834387",
-      "scrape_status": "failed",
-      "error": "Unexpected error: [Errno 32] Broken pipe"
+      "scraped_at": null,
+      "scrape_status": "pending"
     },
     {
       "url": "https://www.tileshop.com/products/historic-oak-laminate-overlap-stair-nose-2-x-84-in-684276",
       "lastmod": null,
-      "scraped_at": "2025-07-09T15:23:00.358333",
-      "scrape_status": "completed"
+      "scraped_at": null,
+      "scrape_status": "pending"
     },
     {
       "url": "https://www.tileshop.com/products/historic-oak-laminate-reducer-175-x-84-in-684275",
       "lastmod": null,
-      "scraped_at": "2025-07-09T15:23:09.264152",
-      "scrape_status": "completed"
+      "scraped_at": null,
+      "scrape_status": "pending"
     },
     {
       "url": "https://www.tileshop.com/products/historic-oak-laminate-t-molding-169-x-84-in-684274",
       "lastmod": null,
-      "scraped_at": "2025-07-09T15:23:19.697831",
-      "scrape_status": "completed"
+      "scraped_at": null,
+      "scrape_status": "pending"
     },
     {
       "url": "https://www.tileshop.com/products/sundance-oak-laminate-quarter-round-75-x-84-in-684273",
       "lastmod": null,
-      "scraped_at": "2025-07-09T15:23:22.734038",
-      "scrape_status": "failed",
-      "error": "Unexpected error: [Errno 32] Broken pipe"
+      "scraped_at": null,
+      "scrape_status": "pending"
     },
     {
       "url": "https://www.tileshop.com/products/sundance-oak-laminate-flush-stair-nose-2-x-84-in-684272",
       "lastmod": null,
-      "scraped_at": "2025-07-09T15:23:30.171878",
-      "scrape_status": "completed"
+      "scraped_at": null,
+      "scrape_status": "pending"
     },
     {
       "url": "https://www.tileshop.com/products/sundance-oak-laminate-overlap-stair-nose-2-x-84-in-684271",
       "lastmod": null,
-      "scraped_at": "2025-07-09T15:23:40.880774",
-      "scrape_status": "completed"
+      "scraped_at": null,
+      "scrape_status": "pending"
     },
     {
       "url": "https://www.tileshop.com/products/sundance-oak-laminate-t-molding-169-x-84-in-684269",
       "lastmod": null,
-      "scraped_at": "2025-07-09T15:23:50.235348",
-      "scrape_status": "failed",
-      "error": "Unexpected error: [Errno 32] Broken pipe"
+      "scraped_at": null,
+      "scrape_status": "pending"
     },
     {
       "url": "https://www.tileshop.com/products/sundance-oak-laminate-reducer-175-x-84-in-684270",
       "lastmod": null,
-      "scraped_at": "2025-07-09T15:23:55.386634",
-      "scrape_status": "completed"
+      "scraped_at": null,
+      "scrape_status": "pending"
     },
     {
       "url": "https://www.tileshop.com/products/natura-montreux-oak-laminate-quarter-round-75-x-84-in-684268",
       "lastmod": null,
-      "scraped_at": "2025-07-09T15:24:05.387896",
-      "scrape_status": "completed"
+      "scraped_at": null,
+      "scrape_status": "pending"
     },
     {
       "url": "https://www.tileshop.com/products/natura-montreux-oak-laminate-flush-stair-nose-2-x-84-in-684267",
       "lastmod": null,
-      "scraped_at": "2025-07-09T15:24:15.464765",
-      "scrape_status": "completed"
+      "scraped_at": null,
+      "scrape_status": "pending"
     },
     {
       "url": "https://www.tileshop.com/products/natura-montreux-oak-laminate-overlap-stair-nose-2-x-84-in-684266",

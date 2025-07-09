@@ -3787,15 +3787,36 @@ Status: ${comp.is_in_sync ? 'In Sync' : 'Out of Sync'}`;
             try {
                 let specs = typeof product.specifications === 'string' ? JSON.parse(product.specifications) : product.specifications;
                 if (typeof specs === 'object' && specs !== null) {
+                    
+                    // Filter out duplicate/unwanted fields
+                    const fieldsToExclude = ['approximatesize', 'boxweight', 'directionallayout', 'surfaceabrasions', 'shadevariation', 'countryoforigin', 'frostresistance'];
+                    
+                    // Field display name mapping
+                    const fieldDisplayNames = {
+                        'surface_abrasion': 'Surface Abrasion',
+                        'shade_variation': 'Shade Variation', 
+                        'country_of_origin': 'Country of Origin',
+                        'frost_resistance': 'Frost Resistance',
+                        'directional_layout': 'Directional Layout',
+                        'box_weight': 'Box Weight',
+                        'box_quantity': 'Box Quantity',
+                        'edge_type': 'Edge Type',
+                        'material_type': 'Material Type',
+                        'product_category': 'Product Category'
+                    };
+                    
                     html += `<div style="display: grid; gap: 0.75rem;">`;
-                    Object.entries(specs).forEach(([key, value]) => {
-                        html += `
-                            <div style="display: flex; justify-content: space-between; align-items: center; padding: 0.75rem; background: #f9fafb; border-radius: 6px; border-left: 4px solid #f59e0b;">
-                                <span style="font-weight: 600; color: #374151; text-transform: capitalize;">${key.replace(/_/g, ' ')}</span>
-                                <span style="color: #6b7280; font-family: monospace;">${value}</span>
-                            </div>
-                        `;
-                    });
+                    Object.entries(specs)
+                        .filter(([key, value]) => !fieldsToExclude.includes(key))
+                        .forEach(([key, value]) => {
+                            const displayName = fieldDisplayNames[key] || key.replace(/_/g, ' ');
+                            html += `
+                                <div style="display: flex; justify-content: space-between; align-items: center; padding: 0.75rem; background: #f9fafb; border-radius: 6px; border-left: 4px solid #f59e0b;">
+                                    <span style="font-weight: 600; color: #374151; text-transform: capitalize;">${displayName}</span>
+                                    <span style="color: #6b7280; font-family: monospace;">${value}</span>
+                                </div>
+                            `;
+                        });
                     html += `</div>`;
                 } else {
                     html += `<pre style="background: #f9fafb; padding: 1rem; border-radius: 6px; font-size: 0.9rem; overflow-x: auto;">${JSON.stringify(specs, null, 2)}</pre>`;
