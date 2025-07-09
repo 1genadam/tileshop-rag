@@ -169,7 +169,8 @@ class AOSChatManager:
     def handle_greeting_phase(self, query: str, customer: Dict = None) -> str:
         """Handle AOS greeting phase"""
         if customer:
-            return f"Welcome back, {customer['first_name']}! I'm excited to help you with your tile project today. What brings you back to The Tile Shop?"
+            customer_name = customer['first_name'] if customer else "Welcome"
+            return f"Welcome back, {customer_name}! I'm excited to help you with your tile project today. What brings you back to The Tile Shop?"
         else:
             return """Hello! Welcome to The Tile Shop. I'm here to help you find the perfect tile solution for your project. 
 
@@ -198,28 +199,33 @@ May I have your name and phone number so I can provide you with personalized ass
             first_missing = missing_info[0]
             
             if first_missing == 'WHAT':
-                return f"""Perfect, {customer['first_name']}! To make sure I recommend the absolute best options for you, let me understand your project better through our proven consultation process.
+                customer_name = customer['first_name'] if customer else "there"
+                return f"""Perfect, {customer_name}! To make sure I recommend the absolute best options for you, let me understand your project better through our proven consultation process.
 
 **WHAT**: Tell me about the specific area you're tiling - is this a kitchen backsplash, bathroom floor, shower walls, or something else? And can you give me the dimensions? For example, length and width for floors, or length and height for backsplashes?"""
             
             elif first_missing == 'WHO':
-                return f"""Great information, {customer['first_name']}! 
+                customer_name = customer['first_name'] if customer else "Great"
+                return f"""Great information, {customer_name}! 
 
 **WHO**: Are you planning to install this yourself, or will you be working with a contractor? If DIY, have you done tile work before?"""
             
             elif first_missing == 'WHEN':
-                return f"""Excellent, {customer['first_name']}!
+                customer_name = customer['first_name'] if customer else "Excellent"
+                return f"""Excellent, {customer_name}!
 
 **WHEN**: Do you have a target date for when you'd like this completed? When are you hoping to start?"""
             
             elif first_missing == 'HOW MUCH':
-                return f"""Perfect, {customer['first_name']}!
+                customer_name = customer['first_name'] if customer else "Perfect"
+                return f"""Perfect, {customer_name}!
 
 **HOW MUCH**: Do you have a budget range in mind for the tile portion of this project? This helps me show you options that fit your investment level."""
         
         else:
             # All needs assessment info collected, move to design phase
-            return f"""Excellent, {customer['first_name']}! I have all the details I need about your {collected_info.get('project_type')} project. 
+            customer_name = customer['first_name'] if customer else "Excellent"
+            return f"""Excellent, {customer_name}! I have all the details I need about your {collected_info.get('project_type')} project. 
 
 Based on your {collected_info.get('installation_method')} installation, {collected_info.get('project_timeline')} timeline, and {collected_info.get('budget_range')} budget, I have some fantastic tile options that would be perfect for your space.
 
@@ -229,12 +235,14 @@ Let me show you a few tiles that I think you'll love..."""
         """Handle AOS design and details phase"""
         if not products:
             # Need to get product recommendations
-            return f"""Based on what you've told me about your project, {customer['first_name']}, I have some excellent options in mind. Let me search for the perfect tiles for your space...
+            customer_name = customer['first_name'] if customer else ""
+            return f"""Based on what you've told me about your project{', ' + customer_name if customer_name else ''}, I have some excellent options in mind. Let me search for the perfect tiles for your space...
 
 Would you like to see tiles in a specific style - modern, traditional, rustic, or contemporary?"""
         
         # Present products with benefits
-        response = f"""Perfect, {customer['first_name']}! Here are tiles that would work beautifully for your project:\n\n"""
+        customer_name = customer['first_name'] if customer else "Perfect"
+        response = f"""Perfect, {customer_name}! Here are tiles that would work beautifully for your project:\n\n"""
         
         for i, product in enumerate(products[:3], 1):
             response += f"""**{i}. {product.get('title', 'Premium Tile')}** (SKU: {product.get('sku', 'N/A')})
@@ -246,19 +254,22 @@ Would you like to see tiles in a specific style - modern, traditional, rustic, o
 
 """
         
-        response += f"""Which of these resonates most with your vision, {customer['first_name']}? I can provide more details about any of these options or show you similar alternatives."""
+        customer_name = customer['first_name'] if customer else ""
+        response += f"""Which of these resonates most with your vision{', ' + customer_name if customer_name else ''}? I can provide more details about any of these options or show you similar alternatives."""
         
         return response
     
     def handle_close_phase(self, query: str, customer: Dict, selected_product: Dict = None) -> str:
         """Handle AOS closing phase"""
         if selected_product:
-            return f"""Excellent choice, {customer['first_name']}! The {selected_product.get('title')} is going to look absolutely stunning in your space. I can already picture how beautiful it's going to make your {selected_product.get('room_type', 'area')} feel.
+            customer_name = customer['first_name'] if customer else "Excellent choice"
+            return f"""Excellent choice, {customer_name}! The {selected_product.get('title')} is going to look absolutely stunning in your space. I can already picture how beautiful it's going to make your {selected_product.get('room_type', 'area')} feel.
 
 Should we move forward with calculating the exact quantities you'll need and get your order placed today? I can also make sure we include all the necessary trim pieces and accessories to complete your project perfectly."""
         
         else:
-            return f"""I can see you're excited about these options, {customer['first_name']}! To help you make the best decision, which tile caught your eye the most? Once you let me know your preference, I can calculate exactly what you'll need and provide you with complete project pricing."""
+            customer_name = customer['first_name'] if customer else ""
+            return f"""I can see you're excited about these options{', ' + customer_name if customer_name else ''}! To help you make the best decision, which tile caught your eye the most? Once you let me know your preference, I can calculate exactly what you'll need and provide you with complete project pricing."""
     
     def _generate_benefit_statement(self, product: Dict) -> str:
         """Generate benefit statement based on product features"""
@@ -373,7 +384,7 @@ Should we move forward with calculating the exact quantities you'll need and get
                 'project_id': project_id,
                 'collected_info': {},
                 'conversation_data': {
-                    'customer_name': customer['first_name'],
+                    'customer_name': customer['first_name'] if customer else None,
                     'name_usage_count': 0,
                     'project_inquiry_made': False,
                     'credibility_statements': 0,
