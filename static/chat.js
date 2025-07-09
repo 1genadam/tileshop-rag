@@ -4,10 +4,12 @@ console.log('External JavaScript loaded (fixed version)');
 // Global variables
 let messageCount = 0;
 
-// Send message function
+// Send message function with AOS integration
 async function sendMessage() {
-    console.log('Send function called (external)');
+    console.log('Send function called (AOS enhanced)');
     const input = document.getElementById('chat-input');
+    const phoneInput = document.getElementById('customer-phone');
+    const nameInput = document.getElementById('customer-name');
     const message = input.value.trim();
     
     if (!message) {
@@ -20,26 +22,53 @@ async function sendMessage() {
     input.value = '';
     updateCharCount();
     
-    // Send to API
+    // Show typing indicator
+    showTypingIndicator();
+    
+    // Send to AOS API
     try {
-        const response = await fetch('/api/rag/chat', {
+        const requestData = {
+            query: message,
+            phone_number: phoneInput ? phoneInput.value.trim() : '',
+            first_name: nameInput ? nameInput.value.trim() : ''
+        };
+        
+        const response = await fetch('/api/chat/unified', {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ query: message })
+            body: JSON.stringify(requestData)
         });
         
         const data = await response.json();
         
-        console.log('API Response:', data);
+        console.log('AOS API Response:', data);
+        hideTypingIndicator();
+        
         if (data.success) {
             console.log('Adding assistant message:', data.response);
-            addMessage(data.response, 'assistant');
+            addMessage(data.response, 'assistant', {
+                aos_phase: data.aos_phase,
+                collected_info: data.collected_info,
+                customer_id: data.customer_id
+            });
+            
+            // Show AOS phase indicator
+            if (data.aos_phase) {
+                showAOSPhase(data.aos_phase);
+            }
+            
+            // Show collected information progress
+            if (data.collected_info && Object.keys(data.collected_info).length > 0) {
+                showCollectedInfo(data.collected_info);
+            }
+            
         } else {
             console.log('Adding error message:', data.error);
             addMessage('Error: ' + (data.error || 'Unknown error'), 'error');
         }
     } catch (error) {
         console.error('Send error:', error);
+        hideTypingIndicator();
         addMessage('Connection error: ' + error.message, 'error');
     }
 }
@@ -333,6 +362,90 @@ function useSuggestion(text) {
         updateCharCount();
         sendMessage();
     }
+}
+
+// AOS Helper Functions
+function showTypingIndicator() {
+    const container = document.getElementById('typing-indicator-container');
+    if (container) {
+        container.classList.remove('hidden');
+    }
+}
+
+function hideTypingIndicator() {
+    const container = document.getElementById('typing-indicator-container');
+    if (container) {
+        container.classList.add('hidden');
+    }
+}
+
+function showAOSPhase(phase) {
+    // Create or update AOS phase indicator
+    let phaseIndicator = document.getElementById('aos-phase-indicator');
+    if (!phaseIndicator) {
+        phaseIndicator = document.createElement('div');
+        phaseIndicator.id = 'aos-phase-indicator';
+        phaseIndicator.className = 'fixed top-20 right-4 bg-blue-500 text-white px-3 py-1 rounded-lg text-sm z-50';
+        document.body.appendChild(phaseIndicator);
+    }
+    
+    const phaseNames = {
+        'greeting': '👋 Greeting',
+        'needs_assessment': '📋 Needs Assessment',
+        'design_details': '🎨 Design Consultation',
+        'close': '🤝 Closing',
+        'objection_handling': '💬 Objection Handling'
+    };
+    
+    phaseIndicator.textContent = phaseNames[phase] || `📊 ${phase}`;
+    
+    // Auto-hide after 3 seconds
+    setTimeout(() => {
+        if (phaseIndicator) {
+            phaseIndicator.style.opacity = '0.5';
+        }
+    }, 3000);
+}
+
+function showCollectedInfo(collectedInfo) {
+    // Create or update collected info panel
+    let infoPanel = document.getElementById('collected-info-panel');
+    if (!infoPanel) {
+        infoPanel = document.createElement('div');
+        infoPanel.id = 'collected-info-panel';
+        infoPanel.className = 'fixed bottom-20 right-4 bg-green-50 border border-green-200 rounded-lg p-3 max-w-sm text-sm z-50';
+        document.body.appendChild(infoPanel);
+    }
+    
+    const infoKeys = Object.keys(collectedInfo);
+    if (infoKeys.length === 0) {
+        infoPanel.style.display = 'none';
+        return;
+    }
+    
+    let infoHTML = '<div class="font-semibold text-green-800 mb-2">📊 Project Information</div>';
+    
+    if (collectedInfo.project_type) {
+        infoHTML += `<div>🏠 <strong>Project:</strong> ${collectedInfo.project_type}</div>`;
+    }
+    if (collectedInfo.surface_area_sf) {
+        infoHTML += `<div>📐 <strong>Area:</strong> ${collectedInfo.surface_area_sf} sq ft</div>`;
+    }
+    if (collectedInfo.installation_method) {
+        infoHTML += `<div>🔧 <strong>Installation:</strong> ${collectedInfo.installation_method}</div>`;
+    }
+    if (collectedInfo.budget_range) {
+        infoHTML += `<div>💰 <strong>Budget:</strong> ${collectedInfo.budget_range}</div>`;
+    }
+    if (collectedInfo.project_timeline) {
+        infoHTML += `<div>📅 <strong>Timeline:</strong> ${collectedInfo.project_timeline}</div>`;
+    }
+    
+    const completionPercentage = Math.round((infoKeys.length / 6) * 100); // 6 key fields
+    infoHTML += `<div class="mt-2 pt-2 border-t border-green-200 text-xs text-green-600">Progress: ${completionPercentage}%</div>`;
+    
+    infoPanel.innerHTML = infoHTML;
+    infoPanel.style.display = 'block';
 }
 
 // DOM Ready initialization

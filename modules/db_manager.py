@@ -9,6 +9,8 @@ import json
 import logging
 import csv
 import io
+import re
+import uuid
 from typing import Dict, List, Any, Optional, Tuple
 from datetime import datetime
 
@@ -601,6 +603,215 @@ class DatabaseManager:
         except Exception as e:
             logger.error(f"Error getting unique values: {e}")
             return []
+    
+    # Customer Conversation Management Methods
+    def normalize_phone(self, phone_input: str) -> str:
+        """Convert any phone format to normalized format"""
+        # Remove all non-digits
+        digits = re.sub(r'[^\d]', '', phone_input)
+        
+        # Handle US numbers (assume US if 10 digits)
+        if len(digits) == 10:
+            digits = '1' + digits
+        elif len(digits) == 11 and digits[0] == '1':
+            pass  # Already normalized
+        else:
+            raise ValueError("Invalid phone number format")
+        
+        return digits  # Returns: "15551234567"
+    
+    def get_or_create_customer(self, phone_input: str, first_name: str = None) -> Optional[Dict]:
+        """Primary customer lookup by phone number"""
+        try:
+            phone_normalized = self.normalize_phone(phone_input)
+            
+            conn = self.get_connection('relational_db')
+            cursor = conn.cursor(cursor_factory=psycopg2.extras.RealDictCursor)
+            
+            # Try to find existing customer
+            cursor.execute("""
+                SELECT * FROM customers 
+                WHERE phone_normalized = %s
+            """, (phone_normalized,))
+            
+            customer = cursor.fetchone()
+            
+            if customer:
+                cursor.close()
+                conn.close()
+                return dict(customer)
+            
+            # Create new customer if not found and name provided
+            if first_name:
+                cursor.execute("""
+                    INSERT INTO customers (phone_normalized, phone_primary, first_name, customer_type)
+                    VALUES (%s, %s, %s, 'diy_homeowner') 
+                    RETURNING *
+                """, (phone_normalized, phone_input, first_name))
+                
+                new_customer = cursor.fetchone()
+                conn.commit()
+                cursor.close()
+                conn.close()
+                
+                return dict(new_customer)
+            
+            cursor.close()
+            conn.close()
+            return None  # Need name for new customer
+            
+        except Exception as e:
+            logger.error(f"Error getting/creating customer: {e}")
+            return None
+    
+    def get_conversation_history(self, phone_number: str) -> List[Dict]:
+        """Get conversation history for customer by phone"""
+        try:
+            phone_normalized = self.normalize_phone(phone_number)
+            
+            conn = self.get_connection('relational_db')
+            cursor = conn.cursor(cursor_factory=psycopg2.extras.RealDictCursor)
+            
+            cursor.execute("""
+                SELECT 
+                    DATE(cl.conversation_date) as conversation_date,
+                    COUNT(*) as turn_count,
+                    MAX(cl.aos_phase) as final_phase,
+                    MAX(cl.aos_score_overall) as overall_score,
+                    STRING_AGG(cl.outcome, ', ') as outcomes,
+                    MIN(cl.conversation_date) as start_time,
+                    MAX(cl.conversation_date) as end_time
+                FROM customers c
+                JOIN projects p ON c.customer_id = p.customer_id
+                JOIN conversation_log cl ON p.project_id = cl.project_id
+                WHERE c.phone_normalized = %s
+                GROUP BY DATE(cl.conversation_date)
+                ORDER BY conversation_date DESC
+                LIMIT 10
+            """, (phone_normalized,))
+            
+            conversations = cursor.fetchall()
+            cursor.close()
+            conn.close()
+            
+            return [dict(row) for row in conversations]
+            
+        except Exception as e:
+            logger.error(f"Error getting conversation history: {e}")
+            return []
+    
+    def get_conversation_detail(self, phone_number: str, conversation_date: str) -> List[Dict]:
+        """Get detailed conversation for specific date"""
+        try:
+            phone_normalized = self.normalize_phone(phone_number)
+            
+            conn = self.get_connection('relational_db')
+            cursor = conn.cursor(cursor_factory=psycopg2.extras.RealDictCursor)
+            
+            cursor.execute("""
+                SELECT 
+                    cl.conversation_date,
+                    cl.aos_phase,
+                    cl.aos_score_greeting,
+                    cl.aos_score_needs,
+                    cl.aos_score_design,
+                    cl.aos_score_close,
+                    cl.aos_score_overall,
+                    cl.outcome,
+                    cl.conversation_summary,
+                    cl.next_action,
+                    p.project_name,
+                    pr.room_type,
+                    pr.room_style
+                FROM customers c
+                JOIN projects p ON c.customer_id = p.customer_id
+                JOIN conversation_log cl ON p.project_id = cl.project_id
+                LEFT JOIN project_rooms pr ON p.project_id = pr.project_id
+                WHERE c.phone_normalized = %s
+                AND DATE(cl.conversation_date) = %s
+                ORDER BY cl.conversation_date ASC
+            """, (phone_normalized, conversation_date))
+            
+            conversation_turns = cursor.fetchall()
+            cursor.close()
+            conn.close()
+            
+            return [dict(row) for row in conversation_turns]
+            
+        except Exception as e:
+            logger.error(f"Error getting conversation detail: {e}")
+            return []
+    
+    def save_conversation_turn(self, customer_id: str, project_id: str, 
+                              aos_phase: str, user_message: str, 
+                              response_text: str, aos_scores: Dict = None,
+                              collected_info: Dict = None) -> bool:
+        """Save a conversation turn to database"""
+        try:
+            conn = self.get_connection('relational_db')
+            cursor = conn.cursor()
+            
+            cursor.execute("""
+                INSERT INTO conversation_log (
+                    project_id, conversation_date, interaction_type, aos_phase,
+                    aos_score_greeting, aos_score_needs, aos_score_design, 
+                    aos_score_close, aos_score_overall, conversation_summary,
+                    outcome, next_action
+                ) VALUES (
+                    %s, NOW(), 'initial_inquiry', %s,
+                    %s, %s, %s, %s, %s, %s, %s, %s
+                )
+            """, (
+                project_id, aos_phase,
+                aos_scores.get('greeting') if aos_scores else None,
+                aos_scores.get('needs') if aos_scores else None,
+                aos_scores.get('design') if aos_scores else None,
+                aos_scores.get('close') if aos_scores else None,
+                aos_scores.get('overall') if aos_scores else None,
+                f"User: {user_message}\\n\\nSystem: {response_text}",
+                'information_gathered',
+                'continue_conversation'
+            ))
+            
+            conn.commit()
+            cursor.close()
+            conn.close()
+            
+            return True
+            
+        except Exception as e:
+            logger.error(f"Error saving conversation turn: {e}")
+            return False
+    
+    def create_customer_project(self, customer_id: str, project_data: Dict = None) -> Optional[str]:
+        """Create a new project for customer"""
+        try:
+            conn = self.get_connection('relational_db')
+            cursor = conn.cursor()
+            
+            cursor.execute("""
+                INSERT INTO projects (customer_id, project_name, project_status, 
+                                    installation_method, sales_associate)
+                VALUES (%s, %s, %s, %s, %s)
+                RETURNING project_id
+            """, (
+                customer_id,
+                project_data.get('project_name', 'Tile Project') if project_data else 'Tile Project',
+                'inquiry',
+                project_data.get('installation_method', 'unknown') if project_data else 'unknown',
+                'AI Assistant'
+            ))
+            
+            project_id = cursor.fetchone()[0]
+            conn.commit()
+            cursor.close()
+            conn.close()
+            
+            return str(project_id)
+            
+        except Exception as e:
+            logger.error(f"Error creating customer project: {e}")
+            return None
     
     def _get_products_docker_exec(self, offset: int, limit: int, search: str, 
                                  sort_by: str, sort_order: str, 

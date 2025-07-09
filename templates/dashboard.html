@@ -1560,12 +1560,28 @@
             }
         }
         
-        document.getElementById('acquisition-status-text').textContent = 
-            status.is_running ? 'Running' : 'Idle';
+        // Update status text with session indicator
+        const statusText = status.is_running ? 'Running (Current Session)' : 'Idle (Last Session)';
+        document.getElementById('acquisition-status-text').textContent = statusText;
         
         document.getElementById('acquisition-mode-text').textContent = 
             status.mode || '-';
         
+        // Show current session stats if running, last session stats if idle
+        if (status.is_running) {
+            // CURRENT SESSION: Show live stats
+            updateCurrentSessionStats(status);
+        } else {
+            // LAST SESSION: Show last session stats if available, otherwise show current stats
+            if (hasLastSessionData(status)) {
+                updateLastSessionStats(status);
+            } else {
+                updateCurrentSessionStats(status);
+            }
+        }
+    }
+    
+    function updateCurrentSessionStats(status) {
         // Stabilize progress percentage to prevent jumping
         const currentProgress = parseFloat((status.stats && status.stats.progress_percent) || 0);
         const displayProgress = Math.min(100, Math.max(0, currentProgress)); // Clamp between 0-100
@@ -1598,6 +1614,87 @@
             (status.stats && status.stats.error_count) || 0;
         
         // Calculate and display runtime
+        updateRuntimeAndSpeed(status);
+        
+        // Update current URL with visual feedback
+        updateCurrentUrl(status);
+    }
+    
+    function updateLastSessionStats(status) {
+        // For last session, show the final stats but indicate they are from last session
+        const lastProgress = parseFloat((status.stats && status.stats.progress_percent) || 0);
+        const displayProgress = Math.min(100, Math.max(0, lastProgress));
+        
+        document.getElementById('acquisition-progress').textContent = 
+            displayProgress.toFixed(1) + '% (Last)';
+        
+        // Update progress bar
+        const progressBar = document.getElementById('acquisition-progress-bar');
+        if (progressBar) {
+            progressBar.style.width = displayProgress + '%';
+        }
+        
+        // Show last session final counts
+        document.getElementById('acquisition-count').textContent = 
+            (status.stats && status.stats.products_processed) || 0;
+        
+        document.getElementById('acquisition-total').textContent = 
+            (status.stats && status.stats.estimated_total) || 0;
+        
+        document.getElementById('acquisition-success').textContent = 
+            (status.stats && status.stats.success_count) || 0;
+        
+        document.getElementById('acquisition-errors').textContent = 
+            (status.stats && status.stats.error_count) || 0;
+        
+        // Show last session completion status
+        const successful = (status.stats && status.stats.success_count) || 0;
+        const total = (status.stats && status.stats.estimated_total) || 0;
+        
+        document.getElementById('acquisition-runtime').textContent = 
+            status.runtime_seconds ? formatDuration(Math.floor(status.runtime_seconds)) : '--';
+        
+        if (successful > 0) {
+            if (successful >= total && total > 0) {
+                document.getElementById('acquisition-speed').textContent = '✅ Completed';
+            } else {
+                document.getElementById('acquisition-speed').textContent = '⏸️ Stopped';
+            }
+        } else {
+            document.getElementById('acquisition-speed').textContent = '-- pages/min';
+        }
+        
+        document.getElementById('acquisition-counter').textContent = '--';
+        document.getElementById('acquisition-eta').textContent = 'ETA: --';
+        
+        // Show last URL or completion status
+        const currentUrlDiv = document.getElementById('current-url');
+        const urlIndicator = document.getElementById('url-status-indicator');
+        
+        if (successful >= total && total > 0) {
+            currentUrlDiv.textContent = '✅ Last session completed successfully';
+            urlIndicator.style.background = '#16a34a'; // Green
+        } else if (successful > 0) {
+            currentUrlDiv.textContent = `⏸️ Last session stopped at ${successful}/${total} products`;
+            urlIndicator.style.background = '#f59e0b'; // Yellow
+        } else {
+            currentUrlDiv.textContent = 'No recent activity';
+            urlIndicator.style.background = '#6b7280'; // Gray
+        }
+    }
+    
+    function hasLastSessionData(status) {
+        // Check if we have meaningful last session data to display
+        return !status.is_running && status.stats && (
+            (status.stats.products_processed > 0) ||
+            (status.stats.success_count > 0) ||
+            (status.stats.error_count > 0) ||
+            (status.runtime_seconds > 0)
+        );
+    }
+    
+    function updateRuntimeAndSpeed(status) {
+        // Calculate and display runtime for current session
         if (status.is_running) {
             let runtime = 0;
             
@@ -1619,20 +1716,13 @@
                     document.getElementById('acquisition-speed').textContent = avgReadSpeed + ' pages/min';
                 } else if (status.is_running && successful > 0) {
                     document.getElementById('acquisition-speed').textContent = 'Calculating...';
-                } else if (!status.is_running && successful > 0) {
-                    // When not running but has processed products, show completed status
-                    document.getElementById('acquisition-speed').textContent = 'Completed';
                 } else {
                     document.getElementById('acquisition-speed').textContent = 'Starting...';
                 }
                 
                 // Update Counter (seconds since last read)
                 const counterSeconds = status.counter_seconds_since_last_read || 0;
-                if (status.is_running) {
-                    document.getElementById('acquisition-counter').textContent = counterSeconds;
-                } else {
-                    document.getElementById('acquisition-counter').textContent = '--';
-                }
+                document.getElementById('acquisition-counter').textContent = counterSeconds;
                 
                 // Calculate ETA based on remaining items and average read speed
                 if (avgReadSpeed > 0 && successful > 0) {
@@ -1653,28 +1743,21 @@
                 document.getElementById('acquisition-eta').textContent = 'ETA: Calculating...';
             }
         } else {
-            // System is not running
-            const successful = (status.stats && status.stats.success_count) || 0;
-            
+            // System is not running - show idle state
             document.getElementById('acquisition-runtime').textContent = '--';
-            
-            // Show "Completed" if we have processed products, otherwise show default
-            if (successful > 0) {
-                document.getElementById('acquisition-speed').textContent = 'Completed';
-            } else {
-                document.getElementById('acquisition-speed').textContent = '-- pages/min';
-            }
-            
+            document.getElementById('acquisition-speed').textContent = '-- pages/min';
             document.getElementById('acquisition-counter').textContent = '--';
             document.getElementById('acquisition-eta').textContent = 'ETA: --';
         }
-        
+    }
+    
+    function updateCurrentUrl(status) {
         // Update current URL with visual feedback
         const currentUrlDiv = document.getElementById('current-url');
         const urlIndicator = document.getElementById('url-status-indicator');
         const previousUrl = currentUrlDiv.textContent;
         
-        if (status.stats.current_url) {
+        if (status.stats && status.stats.current_url) {
             currentUrlDiv.textContent = status.stats.current_url;
             
             // Highlight URL change
@@ -1936,6 +2019,9 @@
             const result = await apiCall('/api/acquisition/start', 'POST', data);
             
             if (result.success) {
+                // Reset acquisition statistics immediately
+                resetAcquisitionStats();
+                
                 // Update to show initialization phase
                 startBtn.innerHTML = '<i class="fas fa-cog fa-spin"></i> Initializing...';
                 showAlert('Learning subprocess starting - initializing environment...', 'info');
@@ -2378,6 +2464,9 @@
         }
         
         try {
+            // Reset embedding progress immediately
+            resetEmbeddingStats();
+            
             // Start the embedding generation process
             const result = await apiCall('/api/rag/generate-embeddings', 'POST', {});
             
@@ -3267,6 +3356,9 @@ Status: ${comp.is_in_sync ? 'In Sync' : 'Out of Sync'}`;
             // Reset progress display
             updateSitemapProgress('preparing', 0, 'Preparing download...');
             
+            // Reset sitemap statistics immediately
+            resetSitemapStats();
+            
             const response = await fetch('/api/acquisition/download-sitemap', {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
@@ -3294,6 +3386,63 @@ Status: ${comp.is_in_sync ? 'In Sync' : 'Out of Sync'}`;
             updateSitemapProgress('error', 0, 'Download request failed: ' + error.message);
             showAlert('Error starting download: ' + error.message, 'error');
         }
+    }
+    
+    function resetSitemapStats() {
+        // Reset all sitemap statistics to initial state
+        const totalCountEl = document.getElementById('sitemap-total-count');
+        const pendingCountEl = document.getElementById('sitemap-pending-count');
+        const learnedCountEl = document.getElementById('sitemap-learned-count');
+        const insertedCountEl = document.getElementById('sitemap-inserted-count');
+        const statusMessageEl = document.getElementById('sitemap-status-message');
+        const completionRateEl = document.getElementById('sitemap-completion-rate');
+        
+        if (totalCountEl) totalCountEl.textContent = '0';
+        if (pendingCountEl) pendingCountEl.textContent = '0';
+        if (learnedCountEl) learnedCountEl.textContent = '0';
+        if (insertedCountEl) insertedCountEl.textContent = '0';
+        if (statusMessageEl) statusMessageEl.textContent = 'Initializing download...';
+        if (completionRateEl) completionRateEl.textContent = '0%';
+    }
+    
+    function resetAcquisitionStats() {
+        // Reset all acquisition statistics to initial state
+        const countEl = document.getElementById('acquisition-count');
+        const totalEl = document.getElementById('acquisition-total');
+        const successEl = document.getElementById('acquisition-success');
+        const errorsEl = document.getElementById('acquisition-errors');
+        const speedEl = document.getElementById('acquisition-speed');
+        const counterEl = document.getElementById('acquisition-counter');
+        const runtimeEl = document.getElementById('acquisition-runtime');
+        const etaEl = document.getElementById('acquisition-eta');
+        const progressBarEl = document.getElementById('acquisition-progress-bar');
+        const currentUrlEl = document.getElementById('current-url');
+        
+        if (countEl) countEl.textContent = '0';
+        if (totalEl) totalEl.textContent = '0';
+        if (successEl) successEl.textContent = '0';
+        if (errorsEl) errorsEl.textContent = '0';
+        if (speedEl) speedEl.textContent = '-- pages/min';
+        if (counterEl) counterEl.textContent = '--';
+        if (runtimeEl) runtimeEl.textContent = '--';
+        if (etaEl) etaEl.textContent = 'ETA: --';
+        if (progressBarEl) progressBarEl.style.width = '0%';
+        if (currentUrlEl) currentUrlEl.textContent = 'Initializing...';
+    }
+    
+    function resetEmbeddingStats() {
+        // Reset embedding generation progress
+        const percentageEl = document.getElementById('embedding-progress-percentage');
+        const progressCountEl = document.getElementById('progress-count');
+        const progressTotalEl = document.getElementById('progress-total');
+        const progressPercentageEl = document.getElementById('progress-percentage');
+        const progressBarEl = document.getElementById('progress-bar');
+        
+        if (percentageEl) percentageEl.textContent = '0%';
+        if (progressCountEl) progressCountEl.textContent = '0';
+        if (progressTotalEl) progressTotalEl.textContent = '0';
+        if (progressPercentageEl) progressPercentageEl.textContent = '0%';
+        if (progressBarEl) progressBarEl.style.width = '0%';
     }
     
     function updateSitemapProgress(stage, progress, message, details) {

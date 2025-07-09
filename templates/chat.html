@@ -257,9 +257,14 @@
 
         <div class="bg-white rounded-lg shadow-sm chat-container">
             <div class="p-4 border-b border-gray-200">
-                <h2 class="text-xl font-semibold text-gray-800 flex items-center">
-                    <span class="material-icons mr-2 text-blue-600">support_agent</span> AI Product Assistant
-                </h2>
+                <div class="flex justify-between items-center">
+                    <h2 class="text-xl font-semibold text-gray-800 flex items-center">
+                        <span class="material-icons mr-2 text-blue-600">support_agent</span> AI Product Assistant
+                    </h2>
+                    <button id="conversation-history-btn" class="bg-gray-500 hover:bg-gray-600 text-white px-4 py-2 rounded-lg flex items-center transition duration-150 ease-in-out disabled:opacity-50 disabled:cursor-not-allowed" disabled title="Enter phone number to view conversation history">
+                        <span class="material-icons mr-2">history</span> Conversation History
+                    </button>
+                </div>
             </div>
 
             <div class="chat-messages flex flex-col space-y-4 p-6" id="chat-messages">
@@ -283,6 +288,19 @@
             </div>
 
             <div class="p-4 border-t border-gray-200 bg-gray-50">
+                <div class="mb-3">
+                    <div class="flex items-center space-x-3 mb-2">
+                        <div class="relative">
+                            <span class="material-icons absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400">phone</span>
+                            <input class="border border-gray-300 rounded-lg py-2 pl-10 pr-4 focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none transition duration-150 ease-in-out" id="customer-phone" placeholder="Phone number (for returning customers)" type="tel">
+                        </div>
+                        <div class="relative">
+                            <span class="material-icons absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400">person</span>
+                            <input class="border border-gray-300 rounded-lg py-2 pl-10 pr-4 focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none transition duration-150 ease-in-out" id="customer-name" placeholder="Your name" type="text">
+                        </div>
+                    </div>
+                </div>
+                
                 <div class="flex items-center space-x-3">
                     <div class="relative flex-grow">
                         <span class="material-icons absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400">search</span>
@@ -311,5 +329,224 @@
             <p>© 2024 Tile Shop Admin. All rights reserved.</p>
         </footer>
     </main>
+
+    <!-- Conversation History Modal -->
+    <div id="conversation-history-modal" class="fixed inset-0 bg-black bg-opacity-50 hidden z-50">
+        <div class="flex items-center justify-center min-h-screen p-4">
+            <div class="bg-white rounded-lg shadow-xl max-w-4xl w-full max-h-[90vh] overflow-hidden">
+                <div class="p-6 border-b border-gray-200 flex justify-between items-center">
+                    <h3 class="text-xl font-semibold text-gray-800 flex items-center">
+                        <span class="material-icons mr-2 text-blue-600">history</span> Conversation History
+                    </h3>
+                    <button id="close-history-modal" class="text-gray-400 hover:text-gray-600">
+                        <span class="material-icons">close</span>
+                    </button>
+                </div>
+                <div class="p-6 overflow-y-auto max-h-[70vh]">
+                    <div id="conversation-list" class="space-y-3">
+                        <!-- Conversation list will be populated here -->
+                    </div>
+                    <div id="conversation-detail" class="hidden">
+                        <button id="back-to-list" class="mb-4 text-blue-600 hover:text-blue-800 flex items-center">
+                            <span class="material-icons mr-1">arrow_back</span> Back to conversations
+                        </button>
+                        <div id="conversation-turns" class="space-y-4">
+                            <!-- Conversation turns will be populated here -->
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Phone number validation and conversation history functionality
+        document.addEventListener('DOMContentLoaded', function() {
+            const phoneInput = document.getElementById('customer-phone');
+            const historyBtn = document.getElementById('conversation-history-btn');
+            const historyModal = document.getElementById('conversation-history-modal');
+            const closeModalBtn = document.getElementById('close-history-modal');
+            const conversationList = document.getElementById('conversation-list');
+            const conversationDetail = document.getElementById('conversation-detail');
+            const backToListBtn = document.getElementById('back-to-list');
+
+            // Enable/disable conversation history button based on phone number
+            phoneInput.addEventListener('input', function() {
+                const phoneNumber = this.value.trim();
+                const isValidPhone = phoneNumber.length >= 10; // Basic validation
+                
+                if (isValidPhone) {
+                    historyBtn.disabled = false;
+                    historyBtn.title = 'View conversation history';
+                } else {
+                    historyBtn.disabled = true;
+                    historyBtn.title = 'Enter phone number to view conversation history';
+                }
+            });
+
+            // Open conversation history modal
+            historyBtn.addEventListener('click', function() {
+                const phoneNumber = phoneInput.value.trim();
+                if (!phoneNumber) {
+                    alert('Please enter a phone number first');
+                    return;
+                }
+                
+                loadConversationHistory(phoneNumber);
+                historyModal.classList.remove('hidden');
+            });
+
+            // Close modal
+            closeModalBtn.addEventListener('click', function() {
+                historyModal.classList.add('hidden');
+            });
+
+            // Close modal on backdrop click
+            historyModal.addEventListener('click', function(e) {
+                if (e.target === historyModal) {
+                    historyModal.classList.add('hidden');
+                }
+            });
+
+            // Back to list button
+            backToListBtn.addEventListener('click', function() {
+                conversationDetail.classList.add('hidden');
+                conversationList.classList.remove('hidden');
+            });
+
+            function loadConversationHistory(phoneNumber) {
+                conversationList.innerHTML = '<div class="text-center py-8"><span class="material-icons animate-spin text-blue-600">refresh</span><p class="mt-2 text-gray-600">Loading conversation history...</p></div>';
+                
+                fetch(`/api/conversations/history/${encodeURIComponent(phoneNumber)}`)
+                    .then(response => response.json())
+                    .then(data => {
+                        if (data.success) {
+                            displayConversationList(data.conversations, phoneNumber);
+                        } else {
+                            conversationList.innerHTML = '<div class="text-center py-8 text-red-600"><span class="material-icons">error</span><p class="mt-2">Error loading conversation history: ' + data.error + '</p></div>';
+                        }
+                    })
+                    .catch(error => {
+                        conversationList.innerHTML = '<div class="text-center py-8 text-red-600"><span class="material-icons">error</span><p class="mt-2">Network error loading conversation history</p></div>';
+                    });
+            }
+
+            function displayConversationList(conversations, phoneNumber) {
+                if (conversations.length === 0) {
+                    conversationList.innerHTML = '<div class="text-center py-8 text-gray-500"><span class="material-icons">chat_bubble_outline</span><p class="mt-2">No conversation history found for this phone number</p></div>';
+                    return;
+                }
+
+                const listHTML = conversations.map(convo => `
+                    <div class="conversation-item bg-gray-50 hover:bg-gray-100 p-4 rounded-lg cursor-pointer border border-gray-200 transition duration-150 ease-in-out" data-date="${convo.conversation_date}" data-phone="${phoneNumber}">
+                        <div class="flex justify-between items-start mb-2">
+                            <h4 class="font-semibold text-gray-800">${new Date(convo.conversation_date).toLocaleDateString()}</h4>
+                            <span class="text-sm text-gray-500">${convo.turn_count} turns</span>
+                        </div>
+                        <div class="flex justify-between items-center text-sm text-gray-600">
+                            <span>Phase: ${convo.final_phase || 'N/A'}</span>
+                            <span>Score: ${convo.overall_score || 'N/A'}/4</span>
+                        </div>
+                        <div class="mt-2 text-sm text-gray-500">
+                            ${convo.start_time ? new Date(convo.start_time).toLocaleTimeString() : ''} - ${convo.end_time ? new Date(convo.end_time).toLocaleTimeString() : ''}
+                        </div>
+                        <div class="mt-2 text-sm text-blue-600">
+                            Outcome: ${convo.outcomes || 'N/A'}
+                        </div>
+                    </div>
+                `).join('');
+
+                conversationList.innerHTML = listHTML;
+
+                // Add click listeners to conversation items
+                document.querySelectorAll('.conversation-item').forEach(item => {
+                    item.addEventListener('click', function() {
+                        const date = this.getAttribute('data-date');
+                        const phone = this.getAttribute('data-phone');
+                        loadConversationDetail(phone, date);
+                    });
+                });
+            }
+
+            function loadConversationDetail(phoneNumber, date) {
+                const conversationTurns = document.getElementById('conversation-turns');
+                conversationTurns.innerHTML = '<div class="text-center py-8"><span class="material-icons animate-spin text-blue-600">refresh</span><p class="mt-2 text-gray-600">Loading conversation details...</p></div>';
+                
+                conversationList.classList.add('hidden');
+                conversationDetail.classList.remove('hidden');
+
+                fetch(`/api/conversations/detail/${encodeURIComponent(phoneNumber)}/${date}`)
+                    .then(response => response.json())
+                    .then(data => {
+                        if (data.success) {
+                            displayConversationDetail(data.conversation_turns);
+                        } else {
+                            conversationTurns.innerHTML = '<div class="text-center py-8 text-red-600"><span class="material-icons">error</span><p class="mt-2">Error loading conversation details: ' + data.error + '</p></div>';
+                        }
+                    })
+                    .catch(error => {
+                        conversationTurns.innerHTML = '<div class="text-center py-8 text-red-600"><span class="material-icons">error</span><p class="mt-2">Network error loading conversation details</p></div>';
+                    });
+            }
+
+            function displayConversationDetail(turns) {
+                const conversationTurns = document.getElementById('conversation-turns');
+                
+                if (turns.length === 0) {
+                    conversationTurns.innerHTML = '<div class="text-center py-8 text-gray-500"><span class="material-icons">chat_bubble_outline</span><p class="mt-2">No conversation details found</p></div>';
+                    return;
+                }
+
+                const turnsHTML = turns.map(turn => `
+                    <div class="conversation-turn border border-gray-200 rounded-lg p-4">
+                        <div class="flex justify-between items-center mb-3 text-sm text-gray-500">
+                            <span class="flex items-center">
+                                <span class="material-icons mr-1 text-xs">schedule</span>
+                                ${new Date(turn.conversation_date).toLocaleTimeString()}
+                            </span>
+                            <div class="flex items-center space-x-4">
+                                <span class="flex items-center">
+                                    <span class="material-icons mr-1 text-xs">psychology</span>
+                                    ${turn.aos_phase || 'N/A'}
+                                </span>
+                                <span class="flex items-center">
+                                    <span class="material-icons mr-1 text-xs">star</span>
+                                    ${turn.aos_score_overall || 'N/A'}/4
+                                </span>
+                            </div>
+                        </div>
+                        
+                        <div class="space-y-3">
+                            <div class="bg-blue-50 p-3 rounded-lg">
+                                <div class="flex items-center mb-2">
+                                    <span class="material-icons mr-2 text-blue-600 text-sm">person</span>
+                                    <span class="font-medium text-blue-800">Customer</span>
+                                </div>
+                                <p class="text-gray-700">${turn.conversation_summary ? turn.conversation_summary.split('\\n\\n')[0].replace('User: ', '') : 'No message recorded'}</p>
+                            </div>
+                            
+                            <div class="bg-green-50 p-3 rounded-lg">
+                                <div class="flex items-center mb-2">
+                                    <span class="material-icons mr-2 text-green-600 text-sm">support_agent</span>
+                                    <span class="font-medium text-green-800">AI Assistant</span>
+                                </div>
+                                <p class="text-gray-700">${turn.conversation_summary ? turn.conversation_summary.split('\\n\\n')[1]?.replace('System: ', '') || 'No response recorded' : 'No response recorded'}</p>
+                            </div>
+                        </div>
+                        
+                        <div class="mt-3 pt-3 border-t border-gray-100 text-xs text-gray-500">
+                            <div class="flex justify-between">
+                                <span>Project: ${turn.project_name || 'General Inquiry'}</span>
+                                <span>Room: ${turn.room_type || 'N/A'} ${turn.room_style ? '(' + turn.room_style + ')' : ''}</span>
+                                <span>Outcome: ${turn.outcome || 'N/A'}</span>
+                            </div>
+                        </div>
+                    </div>
+                `).join('');
+
+                conversationTurns.innerHTML = turnsHTML;
+            }
+        });
+    </script>
 </body>
 </html>

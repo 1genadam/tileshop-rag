@@ -1047,6 +1047,214 @@ def sync_cleanup():
     except Exception as e:
         return jsonify({'success': False, 'error': str(e)})
 
+# Customer Conversation Management API Endpoints
+@app.route('/api/conversations/history/<phone_number>', methods=['GET'])
+def get_conversation_history_api(phone_number):
+    """Get conversation history for customer by phone"""
+    try:
+        conversations = db_manager.get_conversation_history(phone_number)
+        return jsonify({
+            'success': True,
+            'conversations': conversations
+        })
+    except Exception as e:
+        logger.error(f"Error getting conversation history: {e}")
+        return jsonify({'success': False, 'error': str(e)})
+
+@app.route('/api/conversations/detail/<phone_number>/<conversation_date>', methods=['GET'])
+def get_conversation_detail_api(phone_number, conversation_date):
+    """Get detailed conversation for specific date"""
+    try:
+        conversation_turns = db_manager.get_conversation_detail(phone_number, conversation_date)
+        return jsonify({
+            'success': True,
+            'conversation_turns': conversation_turns
+        })
+    except Exception as e:
+        logger.error(f"Error getting conversation detail: {e}")
+        return jsonify({'success': False, 'error': str(e)})
+
+@app.route('/api/chat/unified', methods=['POST'])
+def unified_chat_api():
+    """Unified chat endpoint combining AOS methodology with RAG knowledge system"""
+    try:
+        from modules.aos_chat_manager import AOSChatManager
+        
+        data = request.get_json()
+        query = data.get('query', '')
+        phone_number = data.get('phone_number', '')
+        first_name = data.get('first_name', '')
+        user_id = session.get('user_id', 'default')
+        
+        if not query:
+            return jsonify({'success': False, 'error': 'Query is required'})
+        
+        # Initialize AOS chat manager
+        aos_chat = AOSChatManager(db_manager)
+        
+        # Handle customer session
+        if phone_number:
+            customer_session = aos_chat.get_or_create_customer_session(phone_number, first_name)
+            if not customer_session:
+                return jsonify({'success': False, 'error': 'Could not create customer session'})
+        else:
+            # Anonymous session
+            customer_session = {
+                'customer': None,
+                'project_id': None,
+                'collected_info': {},
+                'conversation_data': {},
+                'current_phase': 'greeting'
+            }
+        
+        # Detect AOS phase
+        aos_phase = aos_chat.detect_aos_phase(query, customer_session)
+        
+        # Extract information from query
+        extracted_info = aos_chat.extract_information_from_query(query)
+        customer_session['collected_info'].update(extracted_info)
+        
+        # **SMART ROUTING**: Use RAG knowledge system intelligently within AOS framework
+        rag_response = None
+        use_rag_knowledge = False
+        
+        # Determine if we need RAG knowledge system
+        if any(keyword in query.lower() for keyword in [
+            'show me', 'find', 'search', 'sku', 'price', 'cost', 'specifications', 
+            'dcof', 'slip resistant', 'calculate', 'how much', 'what tile',
+            'recommend', 'similar', 'compare', 'alternatives'
+        ]):
+            use_rag_knowledge = True
+            logger.info("Using RAG knowledge system for product-specific query")
+            
+            # Get enhanced RAG response with all knowledge systems
+            rag_result = rag_manager.enhanced_chat(query, user_id)
+            if rag_result.get('success'):
+                rag_response = rag_result.get('response', '')
+        
+        # Generate AOS-structured response
+        if aos_phase == 'greeting':
+            if use_rag_knowledge and rag_response:
+                # Blend greeting with product knowledge
+                aos_greeting = aos_chat.handle_greeting_phase(query, customer_session['customer'])
+                response = f"{aos_greeting}\n\n{rag_response}"
+            else:
+                response = aos_chat.handle_greeting_phase(query, customer_session['customer'])
+                
+        elif aos_phase == 'needs_assessment':
+            if use_rag_knowledge and rag_response:
+                # Use RAG knowledge to enhance needs assessment
+                needs_response = aos_chat.handle_needs_assessment(query, customer_session['customer'], customer_session['collected_info'])
+                response = f"{needs_response}\n\n**Product Information:**\n{rag_response}"
+            else:
+                response = aos_chat.handle_needs_assessment(query, customer_session['customer'], customer_session['collected_info'])
+                
+        elif aos_phase == 'design_details':
+            if use_rag_knowledge and rag_response:
+                # RAG system handles product details, AOS structures the sales approach
+                design_intro = f"Perfect! Based on your {customer_session['collected_info'].get('project_type', 'project')}, here are some excellent options:"
+                response = f"{design_intro}\n\n{rag_response}"
+            else:
+                # Fallback to basic product search
+                products = rag_manager.search_products(query, limit=3)
+                response = aos_chat.handle_design_phase(query, customer_session['customer'], products)
+                
+        elif aos_phase == 'close':
+            if use_rag_knowledge and rag_response:
+                # Use RAG for pricing/calculations, AOS for closing
+                close_response = aos_chat.handle_close_phase(query, customer_session['customer'])
+                response = f"{rag_response}\n\n{close_response}"
+            else:
+                response = aos_chat.handle_close_phase(query, customer_session['customer'])
+        else:
+            # Default: Use full RAG system with AOS context
+            if rag_response:
+                response = rag_response
+            else:
+                rag_result = rag_manager.enhanced_chat(query, user_id)
+                response = rag_result.get('response', 'I apologize, but I had trouble processing your request. Could you please rephrase?')
+        
+        # Save conversation turn if we have a customer
+        conversation_saved = False
+        if customer_session['customer'] and customer_session['project_id']:
+            # Calculate AOS scores
+            scorer = aos_chat.scorer
+            aos_scores = {}
+            
+            if aos_phase == 'greeting':
+                aos_scores['greeting'] = scorer.score_greeting_phase(customer_session['conversation_data'])
+            elif aos_phase == 'needs_assessment':
+                aos_scores['needs'] = scorer.score_needs_assessment_phase(customer_session['collected_info'])
+            elif aos_phase == 'design_details':
+                aos_scores['design'] = scorer.score_design_phase(customer_session['conversation_data'])
+            elif aos_phase == 'close':
+                aos_scores['close'] = scorer.score_close_phase(customer_session['conversation_data'])
+            
+            # Calculate overall score
+            phase_scores = [score for score in aos_scores.values() if score]
+            aos_scores['overall'] = round(sum(phase_scores) / len(phase_scores)) if phase_scores else None
+            
+            # Save to database
+            conversation_saved = db_manager.save_conversation_turn(
+                customer_session['customer']['customer_id'],
+                customer_session['project_id'],
+                aos_phase,
+                query,
+                response,
+                aos_scores,
+                customer_session['collected_info']
+            )
+            
+            # Check if conversation should be vectorized (selective criteria)
+            should_vectorize = aos_chat.should_vectorize_conversation(
+                customer_session['conversation_data'], 
+                customer_session['collected_info']
+            )
+            
+            if should_vectorize:
+                logger.info(f"Conversation meets vectorization criteria for customer {customer_session['customer']['customer_id']}")
+                # Note: Vectorization would happen in background worker
+        
+        return jsonify({
+            'success': True,
+            'response': response,
+            'aos_phase': aos_phase,
+            'collected_info': customer_session['collected_info'],
+            'customer_id': customer_session['customer']['customer_id'] if customer_session['customer'] else None,
+            'conversation_saved': conversation_saved,
+            'knowledge_used': use_rag_knowledge,
+            'vectorization_eligible': aos_chat.should_vectorize_conversation(
+                customer_session['conversation_data'], 
+                customer_session['collected_info']
+            ) if customer_session['customer'] else False
+        })
+        
+    except Exception as e:
+        logger.error(f"Error in unified chat: {e}")
+        return jsonify({'success': False, 'error': str(e)})
+
+# Keep original endpoints for backward compatibility
+@app.route('/api/rag/chat', methods=['POST'])
+def rag_chat():
+    """Original RAG chat endpoint (maintained for compatibility)"""
+    try:
+        data = request.get_json()
+        query = data.get('query', '')
+        user_id = session.get('user_id', 'default')
+        
+        # Use enhanced chat functionality
+        result = rag_manager.enhanced_chat(query, user_id)
+        return jsonify(result)
+    except Exception as e:
+        logger.error(f"Error in RAG chat: {e}")
+        return jsonify({'success': False, 'error': str(e)})
+
+@app.route('/api/chat/aos', methods=['POST'])  
+def aos_chat_api():
+    """AOS-only chat endpoint (maintained for testing)"""
+    # Redirect to unified endpoint
+    return unified_chat_api()
+
 @app.route('/api/rag/generate-embeddings', methods=['POST'])
 def generate_embeddings():
     """Generate embeddings for all products in relational database"""
@@ -1302,20 +1510,7 @@ def rag_sync():
     except Exception as e:
         return jsonify({'success': False, 'error': str(e)})
 
-@app.route('/api/rag/chat', methods=['POST'])
-def rag_chat():
-    """Enhanced chat with RAG system, calculator, and knowledge base"""
-    try:
-        data = request.get_json()
-        query = data.get('query', '')
-        user_id = session.get('user_id', 'default')
-        
-        # Use enhanced chat functionality
-        result = rag_manager.enhanced_chat(query, user_id)
-        return jsonify(result)
-    except Exception as e:
-        logger.error(f"Error in RAG chat: {e}")
-        return jsonify({'success': False, 'error': str(e)})
+# Duplicate rag_chat function removed - using the one defined earlier
 
 @app.route('/api/rag/search', methods=['POST'])
 def rag_search():
