@@ -581,9 +581,6 @@
                         <button class="btn btn-primary btn-xs" id="download-sitemap-btn" onclick="downloadSitemap()" disabled>
                             <i class="fas fa-download"></i> Download Sitemap
                         </button>
-                        <button class="btn btn-secondary btn-xs" onclick="refreshSitemapStatus()" style="margin-left: 0.5rem;">
-                            <i class="fas fa-refresh"></i> Refresh
-                        </button>
                     </div>
                 </div>
             </div>
@@ -3328,21 +3325,6 @@ Status: ${comp.is_in_sync ? 'In Sync' : 'Out of Sync'}`;
         }
     }
     
-    // Refresh sitemap status to sync frontend with backend
-    async function refreshSitemapStatus() {
-        try {
-            const sitemapStatus = await apiCall('/api/acquisition/sitemap-status');
-            if (sitemapStatus.success) {
-                updateSitemapStats(sitemapStatus);
-                showAlert('Sitemap status refreshed', 'success');
-            } else {
-                showAlert('Failed to refresh sitemap status', 'error');
-            }
-        } catch (error) {
-            showAlert('Error refreshing sitemap status: ' + error.message, 'error');
-        }
-    }
-    
     // Sitemap Download Functions
     async function downloadSitemap() {
         const sitemapUrl = document.getElementById('sitemap-url').textContent;
@@ -3673,6 +3655,7 @@ Status: ${comp.is_in_sync ? 'In Sync' : 'Out of Sync'}`;
             { key: 'box_weight', label: 'Box Weight', icon: 'fas fa-weight-hanging' },
             { key: 'edge_type', label: 'Edge Type', icon: 'fas fa-cut' },
             { key: 'shade_variation', label: 'Shade Variation', icon: 'fas fa-adjust' },
+            { key: 'pei_rating', label: 'Surface Abrasion', icon: 'fas fa-star' },
             { key: 'number_of_faces', label: 'Number of Faces', icon: 'fas fa-layer-group' },
             { key: 'directional_layout', label: 'Directional Layout', icon: 'fas fa-arrows-alt', format: 'boolean' },
             { key: 'country_of_origin', label: 'Country of Origin', icon: 'fas fa-globe-americas' },

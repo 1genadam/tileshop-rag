@@ -990,12 +990,11 @@ def extract_product_data(crawl_results, base_url, category=None):
                             field_mappings = {
                                 'boxquantity': 'box_quantity',
                                 'box_quantity': 'box_quantity',  # Direct mapping
-                                'boxweight': 'box_weight', 
+ 
                                 'edgetype': 'edge_type',
                                 'edge_type': 'edge_type',  # Direct mapping
                                 'shadevariation': 'shade_variation',
                                 'faces': 'number_of_faces',
-                                'directionallayout': 'directional_layout',
                                 'countryoforigin': 'country_of_origin',
                                 'materialtype': 'material_type',
                                 'dimensions': 'thickness',  # Sometimes thickness comes as "dimensions"
