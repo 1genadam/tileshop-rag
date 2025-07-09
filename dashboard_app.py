@@ -681,9 +681,9 @@ def download_sitemap_api():
                 for i, url_data in enumerate(urls_data):
                     url = url_data['url']
                     # Apply filtering logic (same as download_sitemap.py)
-                    if ("tileshop.com/products" in url and 
+                    if ("tileshop.com/products/" in url and 
                         "https://www.tileshop.com/products/,-w-," not in url and
-                        "https://www.tileshop.com/products/" not in url and
+                        url != "https://www.tileshop.com/products/" and
                         "sample" not in url):
                         filtered_urls.append(url_data)
                     
