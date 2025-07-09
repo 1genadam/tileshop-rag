@@ -45,6 +45,7 @@ This index provides a comprehensive overview of all documentation files in the `
 | **[QUICK_START.md](QUICK_START.md)** | Getting started guide for new users | One-command startup, service overview, first steps, troubleshooting |
 | **[DASHBOARD_MANUAL.md](DASHBOARD_MANUAL.md)** | Complete dashboard operations guide | Service management, scraping control, database management, RAG chat interface |
 | **[SCRAPING_SYSTEM.md](SCRAPING_SYSTEM.md)** | Production data acquisition system | curl_scraper.py documentation, batch processing, technical implementation |
+| **[URL_FILTER_MAINTENANCE.md](URL_FILTER_MAINTENANCE.md)** | URL filtering system maintenance guide | Filter criteria management, multi-file updates, error prevention procedures |
 
 ---
 

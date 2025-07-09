@@ -683,6 +683,7 @@ def download_sitemap_api():
                     # Apply filtering logic (same as download_sitemap.py)
                     if ("tileshop.com/products" in url and 
                         "https://www.tileshop.com/products/,-w-," not in url and
+                        "https://www.tileshop.com/products/" not in url and
                         "sample" not in url):
                         filtered_urls.append(url_data)
                     

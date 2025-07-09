@@ -61,6 +61,7 @@ def filter_product_urls(urls_data):
         # Filter conditions from n8n workflow
         if ("tileshop.com/products" in url and 
             "https://www.tileshop.com/products/,-w-," not in url and
+            "https://www.tileshop.com/products/" not in url and
             "sample" not in url):
             filtered_urls.append(url_data)
     
