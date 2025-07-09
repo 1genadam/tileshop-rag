@@ -35,7 +35,6 @@ class EnhancedSpecificationExtractor:
             ],
             "box_weight": [
                 r'Box Weight[:\s]*([0-9.]+\s*lbs?)',
-                r'"boxWeight"[:\s]*"([^"]+)"',
                 r'Weight per Box[:\s]*([^<\n,]+)',
             ],
             "edge_type": [
@@ -57,7 +56,6 @@ class EnhancedSpecificationExtractor:
             ],
             "directional_layout": [
                 r'Directional Layout[:\s]*(Yes|No)',
-                r'"directionalLayout"[:\s]*"([^"]+)"',
                 r'Directional[:\s]*(Yes|No)',
             ],
             "country_of_origin": [
@@ -302,7 +300,6 @@ class EnhancedSpecificationExtractor:
                                 'PDPInfo_BoxQuantity': 'box_quantity',
                                 'PDPInfo_BoxWeight': 'box_weight',
                                 'PDPInfo_Thickness': 'thickness',
-                                'PDPInfo_ApproximateSize': 'approximate_size'
                             }
                             
                             if key in field_mapping:
