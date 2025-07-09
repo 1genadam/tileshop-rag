@@ -15,6 +15,7 @@ This index provides a comprehensive overview of all documentation files in the `
 | **[FLY_DEPLOYMENT_DELEGATION.md](FLY_DEPLOYMENT_DELEGATION.md)** | Fly.io deployment delegation framework | Multi-agent deployment coordination, Docker configuration, PostgreSQL setup, technical specifications | Fly.io deployment procedures |
 | **[flyio-deployment-roadmap.md](flyio-deployment-roadmap.md)** | Comprehensive Fly.io migration strategy | Cloud migration from local services, database migration, cost analysis, risk assessment | Migration planning |
 | **[GIT_COMMIT_INSTRUCTIONS.md](GIT_COMMIT_INSTRUCTIONS.md)** | Git workflow and commit procedures | GitHub repository info, personal access token setup, pull request creation, security best practices | **✅ Contains GitHub repo info** |
+| **[DEPLOYMENT_STATUS_UPDATE.md](DEPLOYMENT_STATUS_UPDATE.md)** | Current deployment status and history | Production environment status, performance metrics, monitoring, recent deployments | **✅ Live deployment info** |
 
 ### **✅ NEW: GitHub Actions / CI/CD**
 | File | Purpose | Key Content | Deployment Info |
@@ -59,6 +60,7 @@ This index provides a comprehensive overview of all documentation files in the `
 | **[ENHANCED_CATEGORIZATION_SUMMARY.md](ENHANCED_CATEGORIZATION_SUMMARY.md)** | Product categorization system | LLM-powered categorization, accuracy improvements, system integration |
 | **[LLM_ENHANCEMENT_DOCUMENTATION.md](LLM_ENHANCEMENT_DOCUMENTATION.md)** | LLM integration improvements | Claude API integration, response optimization, error handling |
 | **[DATABASE_SCHEMA_ENHANCEMENTS.md](DATABASE_SCHEMA_ENHANCEMENTS.md)** | Database architecture improvements | Schema optimizations, performance enhancements, data integrity |
+| **[DUPLICATE_FIELD_CLEANUP.md](DUPLICATE_FIELD_CLEANUP.md)** | Technical Specifications duplicate field removal | Database cleanup, frontend filtering, field display name improvements |
 
 ---
 
@@ -72,6 +74,12 @@ This index provides a comprehensive overview of all documentation files in the `
 | **[ISSUE_RESOLUTION_GUIDE.md](ISSUE_RESOLUTION_GUIDE.md)** | Comprehensive problem solution database | Detailed error diagnosis, step-by-step solutions, root cause analysis |
 | **[DATABASE_RECOVERY_PROCEDURES.md](DATABASE_RECOVERY_PROCEDURES.md)** | Database recovery and maintenance | Data backup, recovery strategies, database troubleshooting |
 | **[DATA_ACQUISITION_RESET.md](DATA_ACQUISITION_RESET.md)** | Scraping session reset and counter management | Acquisition counter reset, fresh session setup, data pipeline cleanup |
+
+### **✅ NEW: Analytics & Troubleshooting**
+| File | Purpose | Key Content |
+|------|---------|-------------|
+| **[LEARNING_ANALYTICS_FIX.md](LEARNING_ANALYTICS_FIX.md)** | Critical analytics database routing fix | Complete fix documentation, root cause analysis, prevention measures |
+| **[ANALYTICS_TROUBLESHOOTING.md](ANALYTICS_TROUBLESHOOTING.md)** | Comprehensive analytics troubleshooting guide | Diagnostic procedures, common issues, emergency recovery, monitoring |
 
 ---
 
@@ -194,11 +202,18 @@ This index provides a comprehensive overview of all documentation files in the `
 ### **System Administrators**
 - System diagnostics: [SYSTEM_DIAGNOSTICS.md](SYSTEM_DIAGNOSTICS.md)
 - Issue resolution: [ISSUE_RESOLUTION_GUIDE.md](ISSUE_RESOLUTION_GUIDE.md)
+- Analytics troubleshooting: [ANALYTICS_TROUBLESHOOTING.md](ANALYTICS_TROUBLESHOOTING.md)
 - Credentials management: [CREDENTIALS_TEMPLATE.md](CREDENTIALS_TEMPLATE.md)
 - Production analysis: [PRODUCTION_SYSTEM_ANALYSIS.md](PRODUCTION_SYSTEM_ANALYSIS.md)
 
 ---
 
-*Last Updated: 2025-07-08*
-*Total Documentation Files: 33*
+*Last Updated: 2025-07-09*
+*Total Documentation Files: 37*
 *Deployment Method: **Automated GitHub Actions → Fly.io deployment***
+
+### **✅ LATEST UPDATES**
+- **[DEPLOYMENT_STATUS_UPDATE.md](DEPLOYMENT_STATUS_UPDATE.md)** - Production deployment status and metrics (July 9, 2025)
+- **[DUPLICATE_FIELD_CLEANUP.md](DUPLICATE_FIELD_CLEANUP.md)** - Technical Specifications duplicate field removal (July 9, 2025)
+- **[LEARNING_ANALYTICS_FIX.md](LEARNING_ANALYTICS_FIX.md)** - Critical database routing fix for analytics
+- **[ANALYTICS_TROUBLESHOOTING.md](ANALYTICS_TROUBLESHOOTING.md)** - Comprehensive analytics troubleshooting guide

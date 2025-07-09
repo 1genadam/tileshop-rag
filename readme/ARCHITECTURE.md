@@ -27,7 +27,7 @@ The Tileshop RAG (Retrieval-Augmented Generation) system is a comprehensive inte
 │  │ Relational DB   │    │   Vector DB     │    │ Sync Manager│  │
 │  │ (PostgreSQL)    │    │ (PostgreSQL +   │    │ (Database   │  │
 │  │  Port: 5432     │    │  pgvector)      │    │  Sync)      │  │
-│  │                 │    │  Port: 5433     │    │             │  │
+│  │ ✅ Analytics    │    │ ✅ RAG Search   │    │             │  │
 │  └─────────────────┘    └─────────────────┘    └─────────────┘  │
 │                                                                 │
 ├─────────────────────────────────────────────────────────────────┤
@@ -145,6 +145,7 @@ CREATE TABLE product_embeddings (
 │  │ • Structured data   │              │ • AI-powered search │   │
 │  │ • Fast exact queries│              │ • Natural language  │   │
 │  │ • Business logic    │              │ • Content discovery │   │
+│  │ ✅ Analytics source │              │ ❌ NOT for analytics│   │
 │  └─────────────────────┘              └─────────────────────┘   │
 │                                                                 │
 ├─────────────────────────────────────────────────────────────────┤
@@ -546,7 +547,32 @@ tileshop_rag/
 
 ---
 
-## Recent Updates (July 7, 2025)
+## Recent Updates
+
+### ✅ **CRITICAL FIX - Analytics Database Routing** (July 9, 2025)
+
+**Issue**: Learning Analytics displayed all zero values despite active learning process
+**Root Cause**: Dashboard was querying vector database instead of relational database for analytics
+**Fix**: Changed `dashboard_app.py:887` from `'supabase'` to `'relational_db'` parameter
+
+**Impact**:
+- ✅ Analytics now correctly show 4763 total products
+- ✅ Success rate displays 100% 
+- ✅ Proper coverage calculation (99.8%)
+- ✅ Real-time learning metrics functional
+
+**Database Routing Fix**:
+```python
+# BEFORE (incorrect)
+stats = db_manager.get_product_stats('supabase')  # ❌ Vector DB
+
+# AFTER (correct)  
+stats = db_manager.get_product_stats('relational_db')  # ✅ Relational DB
+```
+
+**Documentation**: See [LEARNING_ANALYTICS_FIX.md](LEARNING_ANALYTICS_FIX.md) for complete details
+
+### Previous Updates (July 7, 2025)
 
 ### PDF Knowledge Base Integration - COMPLETE & OPERATIONAL
 - **✅ Complete PDF Pipeline**: JSON-embedded PDF extraction from Tileshop's Scene7 CDN
