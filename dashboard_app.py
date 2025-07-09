@@ -881,10 +881,10 @@ def database_status():
 
 @app.route('/api/database/stats')
 def database_stats():
-    """Get database statistics from Supabase"""
+    """Get database statistics from relational database"""
     try:
-        # Use Supabase for external access
-        stats = db_manager.get_product_stats('supabase')
+        # Use relational_db where actual product data is stored
+        stats = db_manager.get_product_stats('relational_db')
         return jsonify({'success': True, 'stats': stats})
     except Exception as e:
         return jsonify({'success': False, 'error': str(e)})
