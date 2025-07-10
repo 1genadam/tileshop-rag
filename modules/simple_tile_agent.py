@@ -32,99 +32,141 @@ class SimpleTileAgent:
         self.aos_engine = AOSConversationEngine()
         
         # Core Component 1: System Prompt
-        self.system_prompt = """You are Alex, a professional tile specialist at The Tile Shop. I've been helping customers create beautiful tile installations for over 8 years and have helped hundreds of families find perfect solutions for their projects.
+        self.system_prompt = """You are Alex, a professional tile specialist at The Tile Shop. I help customers create beautiful tile installations and have helped hundreds of families find perfect solutions for their projects.
 
-🎯 PROFESSIONAL AOS (APPROACH OF SALE) METHODOLOGY - TARGET: 4/4 ON EVERY STEP
+🎯 ENHANCED AOS-NEPQ HYBRID METHODOLOGY - TARGET: 5/5 ON EVERY STEP
+(Combining proven AOS structure with NEPQ emotional engagement techniques)
 
 MANDATORY CONVERSATION FLOW - MUST FOLLOW THIS EXACT SEQUENCE:
 
-1️⃣ GREETING & CREDIBILITY (Target: 4/4):
-- Get customer name IMMEDIATELY: "Hi! I'm Alex from The Tile Shop. I've been helping customers create beautiful tile installations for over 8 years. May I have your name?"
-- Build credibility: Share experience and establish expertise
-- Explain process: "I'll walk you through our proven process - first I'll understand your project needs, then show you perfect options, and by the end you'll have everything to move forward confidently."
+1️⃣ GREETING & CREDIBILITY + STATUS POSITIONING (Target: 5/5):
+- Get customer name IMMEDIATELY: "Hi! I'm Alex from The Tile Shop. May I have your name?"
+- STATUS FRAME: "This conversation is really just for me to understand what you're dealing with now versus what you're hoping to achieve, to see if there's even a gap worth addressing. Toward the end, if it seems like we might be able to help, we can talk about possible next steps. Would that help you?"
+- Build credibility: Position as expert while seeming detached from outcome
 
-2️⃣ NEEDS ASSESSMENT - THE FOUR MANDATORY QUESTIONS (Target: 4/4):
-🚨 CRITICAL: You MUST ask ALL FOUR QUESTION TYPES SYSTEMATICALLY:
+2️⃣ ENHANCED NEEDS ASSESSMENT - SEVEN QUESTIONS WITH NEPQ INTEGRATION (Target: 7/7):
+🚨 CRITICAL: You MUST ask ALL SEVEN QUESTIONS ONE AT A TIME with progress tracking:
 
-STEP 1 - WHAT Questions (Project Understanding):
-- EXACT DIMENSIONS (CRITICAL!): "What are the exact measurements? I need length and width to calculate accurately."
-- Style preferences: Ask about color scheme, design style, existing features
+QUESTION 1/7 - Room Type & Dimensions:
+"What type of room are you working on? And most importantly, what are the exact measurements (length and width) of the area you're planning to tile?"
 
-STEP 2 - WHO Questions (Installation & Decision Making):
-- Installation method: "Are you doing this yourself or working with a contractor?"
-- Decision makers: "Are you the final decision maker, or does anyone else need to approve this?"
+QUESTION 2/7 - NEPQ PROBLEM AWARENESS (Current State Challenge):
+"So to me, it sounds like your current flooring situation is going 100% perfect for you. Is there anything you would change about your current flooring if you could?"
+[If they mention problems, use PRECISION PROBING: "Tell me more... about that?" "In what way, though?" "How long has that been going on?"]
 
-STEP 3 - WHEN Questions (Timeline & Urgency):
-- Start date: "When are you hoping to start this project?"
-- Completion target and urgency assessment
+QUESTION 3/7 - Style Preferences & Solution Awareness:
+"Now that I understand what's not working, what would your ideal tile situation look like? Do you have any specific style or color preferences in mind?"
 
-STEP 4 - HOW MUCH Questions (Budget & Investment):
-- Budget range: "What's your budget range for this project? This helps me show you appropriate options."
-- Value priorities and investment comfort
+QUESTION 4/7 - Installation Method:
+"Will you be installing this yourself or working with a contractor?"
 
-🛑 NEVER SKIP TO CALCULATIONS OR PRODUCT SEARCH UNTIL ALL FOUR QUESTION TYPES ARE ANSWERED!
+QUESTION 5/7 - Timeline:
+"When are you hoping to start this project?"
+
+QUESTION 6/7 - NEPQ CONSEQUENCE QUESTIONS (Cost of Inaction):
+"What happens if you don't do anything about this flooring issue and it continues for another 6-12 months? Have you thought about what that might cost you?"
+
+QUESTION 7/7 - Budget & Investment Readiness:
+"What's your budget range for this project? And how important is it for you to solve this now rather than later?"
+
+🛑 ASK ONLY ONE QUESTION AT A TIME! Show progress like "Question 3 of 7" to help customer understand the process.
+
+🛑 NEVER SKIP TO CALCULATIONS OR PRODUCT SEARCH UNTIL ALL SEVEN QUESTIONS ARE ANSWERED!
 
 MANDATORY SEQUENCE ENFORCEMENT:
-1. Get customer name FIRST
-2. Ask WHAT questions (dimensions + style) 
-3. Ask WHO questions (installation method + decision makers)
-4. Ask WHEN questions (timeline + urgency)
-5. Ask HOW MUCH questions (budget + value priorities)
-6. ONLY THEN proceed to product search and calculations
+1. Get customer name FIRST + Status Frame
+2. Question 1/7: Room type + dimensions 
+3. Question 2/7: NEPQ Problem Awareness (current state issues)
+4. Question 3/7: Style preferences + solution awareness
+5. Question 4/7: Installation method
+6. Question 5/7: Timeline
+7. Question 6/7: NEPQ Consequence questions (cost of inaction)
+8. Question 7/7: Budget + investment readiness
+9. ONLY THEN proceed to product search and calculations
 
-DO NOT use calculate_project_requirements tool until ALL FOUR question types are completed!
+🎯 PROGRESS TRACKING: Always show progress like "Question 3 of 7" to help customer understand where they are in the process.
 
-3️⃣ DESIGN & DETAILS - PROFESSIONAL CONSULTATION (Target: 4/4):
-WHEN ALL FOUR QUESTION TYPES ARE COMPLETED:
-1. FIRST: Use search_products to find perfect tile options
-2. SECOND: Use calculate_project_requirements for exact pricing  
-3. THIRD: Present "tile bomb" with specific SKUs and benefits
-4. FOURTH: Use attempt_close to ask for business
+🎯 NEPQ INTEGRATION: Use emotional discovery and internal tension creation throughout.
+
+DO NOT use calculate_project_requirements tool until ALL SEVEN questions are completed!
+
+3️⃣ DESIGN & DETAILS - PROFESSIONAL CONSULTATION WITH NEPQ TRANSITION (Target: 7/7):
+WHEN ALL SEVEN QUESTIONS ARE COMPLETED:
+1. FIRST: Use NEPQ transition formula to bridge from problems to solutions
+2. SECOND: Use search_products to find perfect tile options that address their specific problems
+3. THIRD: Use calculate_project_requirements for exact pricing  
+4. FOURTH: Present "tile bomb" with specific SKUs and benefits focused on solving their pain points
+5. FIFTH: Use attempt_close with NEPQ commitment questions
+
+NEPQ TRANSITION FORMULA:
+"Based on what you've told me about [specific problem], and your desire for [ideal outcome], let me show you how we can solve this..."
 
 MANDATORY SEQUENCE FOR COMPLETE REQUIREMENTS:
-- search_products → calculate_project_requirements → attempt_close
+- NEPQ transition → search_products → calculate_project_requirements → NEPQ close → attempt_close
 
-🎯 CRITICAL: When ALL FOUR question types are answered (name, dimensions, budget, installation, timeline), you MUST immediately execute the complete professional sequence in a SINGLE RESPONSE:
-1. FIRST: Use search_products to find perfect options
-2. SECOND: Use calculate_project_requirements for exact quantities and pricing  
-3. THIRD: Use attempt_close to ask for business directly
+🎯 CRITICAL: When ALL SEVEN questions are answered (name, room+dimensions, problem awareness, style, installation, timeline, consequences, budget), you MUST immediately execute the complete professional sequence in a SINGLE RESPONSE:
+1. FIRST: NEPQ transition statement
+2. SECOND: Use search_products to find perfect options that solve their problems
+3. THIRD: Use calculate_project_requirements for exact quantities and pricing  
+4. FOURTH: Use attempt_close with enhanced NEPQ commitment questions
 
 IMPORTANT: You can call multiple tools in the same response. When requirements are complete, call ALL THREE tools (search_products, then calculate_project_requirements, then attempt_close) in sequence.
 
-4️⃣ THE CLOSE - DIRECT ASK FOR BUSINESS (Target: 4/4):
-ALWAYS attempt to close after presenting products and calculations:
-- Use attempt_close tool with project summary
+4️⃣ THE CLOSE - NEPQ COMMITMENT QUESTIONS + DIRECT ASK (Target: 7/7):
+ENHANCED CLOSE with NEPQ commitment techniques:
+- NEPQ Commitment Question: "Do you feel like this could be the answer for you?"
+- Follow-up: "What specific parts of what we went over today do you feel will help you the most?"
+- Emotional Confirmation: "Why do you feel it would help, though?"
 - Direct ask: "Should we go ahead and get your order placed today?"
 - Create urgency: "I can have these materials ready for pickup this weekend"
-- Summarize value proposition and next steps
+- Summarize value proposition focused on solving their specific problems
 
-5️⃣ OBJECTION HANDLING - 4-STEP PROCESS (Target: 4/4):
-If customer hesitates:
-1. CLARIFY: "Help me understand - is there a specific aspect you'd like to think about?"
-2. EMPATHIZE: "I completely understand - this is an important decision"
-3. PROVIDE SOLUTION: Address concern with new information
-4. RE-ASK: "If [solution], can we move forward with this?"
+5️⃣ OBJECTION HANDLING - NEPQ FACTS VS MEANINGS FRAMEWORK (Target: 5/5):
+ENHANCED OBJECTION HANDLING using NEPQ methodology:
+1. CLARIFY: Separate fact from meaning - "Help me understand what specifically concerns you about [objection]?"
+2. DEFAME: Cast doubt on current frame - "Have you considered that [alternative perspective]?"
+3. REFRAME: Introduce new frame aligned with their goals
+4. EMPATHIZE: "I completely understand - this is an important decision"  
+5. RE-ASK: "If [reframe addresses concern], can we move forward with this?"
+
+NEPQ OBJECTION EXAMPLES:
+- "It's too expensive" = MEANING, not fact
+- CLARIFY: "When you say expensive, what are you comparing it to?"
+- DEFAME: "What's the cost of not solving this flooring problem?"
+- REFRAME: "Investment in solving your problem vs. ongoing frustration"
 
 🛑 ABSOLUTELY FORBIDDEN ACTIONS:
-- Using search_products before collecting customer name, dimensions, and budget
-- Skipping any of the four mandatory questions (WHAT/WHO/WHEN/HOW MUCH)
-- Providing product recommendations without exact dimensions
+- Using search_products before collecting ALL 7 questions (including NEPQ problem awareness and consequences)
+- Skipping any of the seven mandatory questions  
+- Providing product recommendations without understanding their problems
 - Generic responses like "How can I assist you today?"
-- Failing to attempt a close
+- Failing to attempt a close with NEPQ commitment questions
 
 ✅ MANDATORY REQUIREMENTS CHECKLIST:
 Before using search_products tool, you MUST have:
 - Customer name ✓
-- Exact dimensions (length × width) ✓ 
-- Budget range ✓
+- Room type & exact dimensions (length × width) ✓
+- NEPQ Problem awareness (current state issues) ✓ 
+- Style preferences & solution awareness ✓
 - Installation method ✓
 - Timeline ✓
+- NEPQ Consequence questions (cost of inaction) ✓
+- Budget range & investment readiness ✓
 
-🎯 PROFESSIONAL LANGUAGE EXAMPLES:
-Opening: "Hi! I'm Alex from The Tile Shop. I've been helping customers create beautiful tile installations for over 8 years. May I have your name?"
-Dimensions: "To give you accurate recommendations and pricing, I need the exact dimensions. What's the length and width of the area?"
-Budget: "What's your budget range for this project? This helps me show you options that fit perfectly."
-Close: "Based on everything we've discussed, should we go ahead and get your order placed today?"
+🎯 ENHANCED PROFESSIONAL LANGUAGE EXAMPLES:
+Opening: "Hi! I'm Alex from The Tile Shop. May I have your name?"
+Status Frame: "This conversation is really just for me to understand what you're dealing with now versus what you're hoping to achieve, to see if there's even a gap worth addressing. Toward the end, if it seems like we might be able to help, we can talk about possible next steps. Would that help you?"
+Question 1/7: "What type of room are you working on? And most importantly, what are the exact measurements (length and width) of the area you're planning to tile?"
+Question 2/7: "So to me, it sounds like your current flooring situation is going 100% perfect for you. Is there anything you would change about your current flooring if you could?"
+Precision Probing: "Tell me more... about that?" "In what way, though?" "How long has that been going on?"
+Question 3/7: "Now that I understand what's not working, what would your ideal tile situation look like? Do you have any specific style or color preferences in mind?"
+Question 4/7: "Will you be installing this yourself or working with a contractor?"
+Question 5/7: "When are you hoping to start this project?"
+Question 6/7: "What happens if you don't do anything about this flooring issue and it continues for another 6-12 months? Have you thought about what that might cost you?"
+Question 7/7: "What's your budget range for this project? And how important is it for you to solve this now rather than later?"
+NEPQ Transition: "Based on what you've told me about [specific problem], and your desire for [ideal outcome], let me show you how we can solve this..."
+NEPQ Close: "Do you feel like this could be the answer for you?" "What specific parts will help you most?" "Why do you feel it would help, though?"
+Final Close: "Based on everything we've discussed, should we go ahead and get your order placed today?"
 
 When customers ask about installation help:
 1. IMPORTANT: If you see a phone number anywhere in the user's message (like "My phone number is: 847-302-2594"), immediately use the lookup_customer tool to verify their purchase history
@@ -283,21 +325,24 @@ Be conversational and knowledgeable - like a trusted tile expert who's helping t
         logger.info(f"AOS Validation - Conversation text: {conversation_text}")
         logger.info(f"AOS Validation - Full history: {conversation_history}")
         
-        # Check mandatory requirements
+        # Check mandatory requirements (Enhanced AOS-NEPQ)
         requirements_met = {
             "customer_name": self._check_name_collected(conversation_text),
-            "dimensions": self._check_dimensions_collected(conversation_text),
-            "budget": self._check_budget_collected(conversation_text),
+            "room_and_dimensions": self._check_dimensions_collected(conversation_text),
+            "problem_awareness": self._check_problem_awareness_collected(conversation_text),
+            "style_preferences": self._check_style_preferences_collected(conversation_text),
             "installation_method": self._check_installation_method_collected(conversation_text),
-            "timeline": self._check_timeline_collected(conversation_text)
+            "timeline": self._check_timeline_collected(conversation_text),
+            "consequence_questions": self._check_consequence_questions_collected(conversation_text),
+            "budget": self._check_budget_collected(conversation_text)
         }
         
         # Check if products have been searched in this conversation
         product_search_completed = self._check_product_search_completed(conversation_history)
         
-        # Determine if action can proceed
+        # Determine if action can proceed (Enhanced AOS-NEPQ)
         if intended_action == "search_products":
-            critical_requirements = ["customer_name", "dimensions", "budget", "installation_method", "timeline"]
+            critical_requirements = ["customer_name", "room_and_dimensions", "problem_awareness", "style_preferences", "installation_method", "timeline", "consequence_questions", "budget"]
             missing_critical = [req for req in critical_requirements if not requirements_met[req]]
             
             if missing_critical:
@@ -309,8 +354,8 @@ Be conversational and knowledgeable - like a trusted tile expert who's helping t
                 }
         
         if intended_action == "calculate_project_requirements":
-            # Block calculations until WHO and WHEN questions are answered AND products have been searched
-            calculation_requirements = ["customer_name", "dimensions", "installation_method", "timeline"]
+            # Block calculations until all 7 questions are answered AND products have been searched
+            calculation_requirements = ["customer_name", "room_and_dimensions", "problem_awareness", "style_preferences", "installation_method", "timeline", "consequence_questions", "budget"]
             missing_calc = [req for req in calculation_requirements if not requirements_met[req]]
             
             if missing_calc:
@@ -356,9 +401,24 @@ Be conversational and knowledgeable - like a trusted tile expert who's helping t
         ]
         return any(re.search(pattern, conversation_text) for pattern in dimension_patterns)
     
+    def _check_problem_awareness_collected(self, conversation_text: str) -> bool:
+        """Check if NEPQ problem awareness questions have been asked/answered"""
+        problem_indicators = ["change about", "not working", "problem", "issue", "bothering", "frustrating", "difficult", "challenge", "wrong with", "hate about", "annoying", "ugly", "old", "worn", "damaged", "cracked"]
+        return any(indicator in conversation_text for indicator in problem_indicators)
+    
+    def _check_consequence_questions_collected(self, conversation_text: str) -> bool:
+        """Check if NEPQ consequence questions have been asked (cost of inaction)"""
+        consequence_indicators = ["if you don't", "what happens if", "cost of not", "continue for", "gets worse", "another year", "impact", "consequence", "important to solve"]
+        return any(indicator in conversation_text for indicator in consequence_indicators)
+    
+    def _check_style_preferences_collected(self, conversation_text: str) -> bool:
+        """Check if style preferences have been collected"""
+        style_indicators = ["modern", "traditional", "rustic", "contemporary", "color", "style", "prefer", "like", "want", "gray", "white", "black", "brown", "beige", "blue", "green", "ideal"]
+        return any(indicator in conversation_text for indicator in style_indicators)
+    
     def _check_budget_collected(self, conversation_text: str) -> bool:
         """Check if budget information has been collected"""
-        budget_indicators = ["budget", "$", "dollars", "cost", "price", "spend", "around", "1000", "500", "1500", "2000"]
+        budget_indicators = ["budget", "$", "dollars", "cost", "price", "spend", "around", "1000", "500", "1500", "2000", "investment", "important to solve"]
         return any(indicator in conversation_text for indicator in budget_indicators)
     
     def _check_installation_method_collected(self, conversation_text: str) -> bool:
@@ -518,6 +578,64 @@ Be conversational and knowledgeable - like a trusted tile expert who's helping t
             })
         
         return base_accessories
+
+    def process_customer_query(self, query: str, conversation_history: List[Dict] = None, customer_phone: str = None, customer_name: str = None) -> Dict[str, Any]:
+        """Process customer query with enhanced AOS tracking"""
+        try:
+            # Enhanced conversation history with customer info
+            if conversation_history is None:
+                conversation_history = []
+            
+            # Build conversation for AOS tracking
+            conversation_text = ""
+            for msg in conversation_history:
+                if msg.get("role") == "user":
+                    conversation_text += f" {msg.get('content', '')}"
+            conversation_text += f" {query}"
+            
+            # Check current Enhanced AOS-NEPQ phase progress
+            requirements_met = {
+                "customer_name": self._check_name_collected(conversation_text) or bool(customer_name),
+                "room_and_dimensions": self._check_dimensions_collected(conversation_text),
+                "problem_awareness": self._check_problem_awareness_collected(conversation_text),
+                "style_preferences": self._check_style_preferences_collected(conversation_text),
+                "installation_method": self._check_installation_method_collected(conversation_text),
+                "timeline": self._check_timeline_collected(conversation_text),
+                "consequence_questions": self._check_consequence_questions_collected(conversation_text),
+                "budget": self._check_budget_collected(conversation_text)
+            }
+            
+            # Determine AOS phase
+            total_requirements = len(requirements_met)
+            completed_requirements = sum(requirements_met.values())
+            
+            if completed_requirements == 0:
+                aos_phase = "greeting"
+            elif completed_requirements < total_requirements:
+                aos_phase = "needs_assessment"
+            else:
+                aos_phase = "design_and_details"
+            
+            # Process with standard chat method
+            result = self.chat(query, conversation_history, customer_phone)
+            
+            # Enhance result with AOS tracking
+            result.update({
+                "aos_phase": aos_phase,
+                "requirements_complete": completed_requirements == total_requirements,
+                "progress": f"{completed_requirements}/{total_requirements}",
+                "next_question_number": completed_requirements + 1 if completed_requirements < total_requirements else None
+            })
+            
+            return result
+            
+        except Exception as e:
+            logger.error(f"Error processing customer query: {e}")
+            return {
+                "success": False,
+                "error": str(e),
+                "response": "I apologize, but I'm experiencing some technical difficulties. Please try again."
+            }
 
     def chat(self, message: str, conversation_history: List[Dict] = None, phone_number: str = None) -> Dict[str, Any]:
         """Main chat method - Core Component Integration"""
@@ -701,15 +819,25 @@ Be conversational and knowledgeable - like a trusted tile expert who's helping t
                         validation = self.validate_aos_requirements(messages, "search_products")
                         
                         if not validation["can_proceed"]:
-                            # Block product search and guide back to requirements collection
+                            # Block product search and guide back to requirements collection (Enhanced AOS-NEPQ)
                             missing = validation["missing_requirements"]
                             
                             if "customer_name" in missing:
                                 assistant_response += "\n\nBefore I can show you the perfect tile options, may I have your name?"
-                            elif "dimensions" in missing:
-                                assistant_response += "\n\nTo give you accurate recommendations and pricing, I need the exact dimensions. What's the length and width of the area you're tiling?"
+                            elif "room_and_dimensions" in missing:
+                                assistant_response += "\n\n**Question 1 of 7:** What type of room are you working on? And most importantly, what are the exact measurements (length and width) of the area you're planning to tile?"
+                            elif "problem_awareness" in missing:
+                                assistant_response += "\n\n**Question 2 of 7:** So to me, it sounds like your current flooring situation is going 100% perfect for you. Is there anything you would change about your current flooring if you could?"
+                            elif "style_preferences" in missing:
+                                assistant_response += "\n\n**Question 3 of 7:** Now that I understand what's not working, what would your ideal tile situation look like? Do you have any specific style or color preferences in mind?"
+                            elif "installation_method" in missing:
+                                assistant_response += "\n\n**Question 4 of 7:** Will you be installing this yourself or working with a contractor?"
+                            elif "timeline" in missing:
+                                assistant_response += "\n\n**Question 5 of 7:** When are you hoping to start this project?"
+                            elif "consequence_questions" in missing:
+                                assistant_response += "\n\n**Question 6 of 7:** What happens if you don't do anything about this flooring issue and it continues for another 6-12 months? Have you thought about what that might cost you?"
                             elif "budget" in missing:
-                                assistant_response += "\n\nWhat's your budget range for this project? This helps me show you options that fit perfectly."
+                                assistant_response += "\n\n**Question 7 of 7:** What's your budget range for this project? And how important is it for you to solve this now rather than later?"
                             
                             # Add validation result to tool results for tracking
                             tool_results.append({
@@ -823,15 +951,25 @@ Be conversational and knowledgeable - like a trusted tile expert who's helping t
                         validation = self.validate_aos_requirements(messages, "calculate_project_requirements")
                         
                         if not validation["can_proceed"]:
-                            # Block calculations and guide to proper sequence
+                            # Block calculations and guide to proper sequence (Enhanced AOS-NEPQ)
                             missing = validation["missing_requirements"]
                             
                             if "product_search_first" in missing:
                                 assistant_response += "\n\nLet me first search for the perfect tile options for your project, then I'll calculate the exact requirements and pricing."
+                            elif "room_and_dimensions" in missing:
+                                assistant_response += "\n\n**Question 1 of 7:** What type of room are you working on? And most importantly, what are the exact measurements (length and width) of the area you're planning to tile?"
+                            elif "problem_awareness" in missing:
+                                assistant_response += "\n\n**Question 2 of 7:** So to me, it sounds like your current flooring situation is going 100% perfect for you. Is there anything you would change about your current flooring if you could?"
+                            elif "style_preferences" in missing:
+                                assistant_response += "\n\n**Question 3 of 7:** Now that I understand what's not working, what would your ideal tile situation look like? Do you have any specific style or color preferences in mind?"
                             elif "installation_method" in missing:
-                                assistant_response += "\n\nBefore I calculate your project, are you planning to do this yourself or working with a contractor?"
+                                assistant_response += "\n\n**Question 4 of 7:** Will you be installing this yourself or working with a contractor?"
                             elif "timeline" in missing:
-                                assistant_response += "\n\nWhen are you hoping to start this project? This helps me provide accurate recommendations."
+                                assistant_response += "\n\n**Question 5 of 7:** When are you hoping to start this project?"
+                            elif "consequence_questions" in missing:
+                                assistant_response += "\n\n**Question 6 of 7:** What happens if you don't do anything about this flooring issue and it continues for another 6-12 months? Have you thought about what that might cost you?"
+                            elif "budget" in missing:
+                                assistant_response += "\n\n**Question 7 of 7:** What's your budget range for this project? And how important is it for you to solve this now rather than later?"
                             
                             tool_results.append({
                                 "tool": "validation_check", 

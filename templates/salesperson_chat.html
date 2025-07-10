@@ -1,0 +1,487 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Salesperson Tools - The Tile Shop</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/icon?family=Material+Icons" rel="stylesheet">
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/socket.io/4.7.2/socket.io.js"></script>
+    <style>
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%);
+            min-height: 100vh;
+        }
+        
+        .tool-card {
+            background: white;
+            border-radius: 1rem;
+            box-shadow: 0 10px 25px rgba(0, 0, 0, 0.1);
+            transition: transform 0.2s ease, box-shadow 0.2s ease;
+        }
+        
+        .tool-card:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 15px 35px rgba(0, 0, 0, 0.15);
+        }
+        
+        .result-card {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            border-radius: 0.75rem;
+            padding: 1rem;
+            margin-bottom: 1rem;
+        }
+        
+        .upsell-tag {
+            background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%);
+            color: white;
+            padding: 0.25rem 0.75rem;
+            border-radius: 9999px;
+            font-size: 0.75rem;
+            font-weight: 600;
+        }
+    </style>
+</head>
+<body>
+    <div class="min-h-screen p-4">
+        <!-- Header -->
+        <div class="mb-6">
+            <div class="bg-white rounded-lg shadow-lg p-6">
+                <div class="flex justify-between items-center">
+                    <div>
+                        <h1 class="text-3xl font-bold text-gray-800 flex items-center">
+                            <i class="fas fa-user-tie mr-3 text-pink-600"></i>
+                            Salesperson Tools
+                        </h1>
+                        <p class="text-gray-600 mt-1">SKU search, tile finder, project organization, and upsell management</p>
+                    </div>
+                    <div class="text-right">
+                        <div class="bg-gradient-to-r from-pink-500 to-red-500 text-white px-4 py-2 rounded-full">
+                            Port: 8082
+                        </div>
+                        <div class="text-sm text-gray-500 mt-1">Salesperson Mode</div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Main Tools Grid -->
+        <div class="grid grid-cols-1 lg:grid-cols-2 xl:grid-cols-3 gap-6 mb-6">
+            
+            <!-- SKU Search Tool -->
+            <div class="tool-card p-6">
+                <h2 class="text-xl font-bold text-gray-800 mb-4 flex items-center">
+                    <i class="fas fa-search mr-2 text-blue-600"></i>
+                    SKU Search
+                </h2>
+                <div class="space-y-3">
+                    <input type="text" id="sku-input" placeholder="Enter SKU number" 
+                           class="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500">
+                    <button onclick="searchSKU()" 
+                            class="w-full bg-blue-600 hover:bg-blue-700 text-white p-3 rounded-lg transition duration-200">
+                        <i class="fas fa-search mr-2"></i>Search Product
+                    </button>
+                </div>
+                <div id="sku-results" class="mt-4"></div>
+            </div>
+
+            <!-- Tile Finder Tool -->
+            <div class="tool-card p-6">
+                <h2 class="text-xl font-bold text-gray-800 mb-4 flex items-center">
+                    <i class="fas fa-th mr-2 text-green-600"></i>
+                    Tile Finder
+                </h2>
+                <div class="space-y-3">
+                    <select id="room-type" class="w-full p-3 border border-gray-300 rounded-lg">
+                        <option value="">Select Room Type</option>
+                        <option value="bathroom">Bathroom</option>
+                        <option value="kitchen">Kitchen</option>
+                        <option value="living room">Living Room</option>
+                        <option value="bedroom">Bedroom</option>
+                        <option value="outdoor">Outdoor</option>
+                    </select>
+                    <input type="text" id="tile-style" placeholder="Style (e.g., modern, rustic)" 
+                           class="w-full p-3 border border-gray-300 rounded-lg">
+                    <div class="grid grid-cols-2 gap-2">
+                        <input type="text" id="tile-color" placeholder="Color" 
+                               class="p-3 border border-gray-300 rounded-lg">
+                        <input type="text" id="tile-size" placeholder="Size" 
+                               class="p-3 border border-gray-300 rounded-lg">
+                    </div>
+                    <button onclick="findTiles()" 
+                            class="w-full bg-green-600 hover:bg-green-700 text-white p-3 rounded-lg transition duration-200">
+                        <i class="fas fa-search mr-2"></i>Find Tiles
+                    </button>
+                </div>
+                <div id="tile-results" class="mt-4"></div>
+            </div>
+
+            <!-- Material Calculator -->
+            <div class="tool-card p-6">
+                <h2 class="text-xl font-bold text-gray-800 mb-4 flex items-center">
+                    <i class="fas fa-calculator mr-2 text-purple-600"></i>
+                    Material Calculator
+                </h2>
+                <div class="space-y-3">
+                    <input type="text" id="calc-dimensions" placeholder="Dimensions (e.g., 10x12)" 
+                           class="w-full p-3 border border-gray-300 rounded-lg">
+                    <input type="text" id="calc-sku" placeholder="Tile SKU" 
+                           class="w-full p-3 border border-gray-300 rounded-lg">
+                    <select id="calc-pattern" class="w-full p-3 border border-gray-300 rounded-lg">
+                        <option value="straight">Straight Pattern</option>
+                        <option value="diagonal">Diagonal Pattern</option>
+                        <option value="herringbone">Herringbone Pattern</option>
+                        <option value="complex">Complex Pattern</option>
+                    </select>
+                    <button onclick="calculateMaterials()" 
+                            class="w-full bg-purple-600 hover:bg-purple-700 text-white p-3 rounded-lg transition duration-200">
+                        <i class="fas fa-calculator mr-2"></i>Calculate
+                    </button>
+                </div>
+                <div id="calc-results" class="mt-4"></div>
+            </div>
+        </div>
+
+        <!-- Customer Projects Section -->
+        <div class="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-6">
+            
+            <!-- Customer Project Lookup -->
+            <div class="tool-card p-6">
+                <h2 class="text-xl font-bold text-gray-800 mb-4 flex items-center">
+                    <i class="fas fa-folder-open mr-2 text-orange-600"></i>
+                    Customer Projects
+                </h2>
+                <div class="space-y-3">
+                    <input type="tel" id="customer-phone" placeholder="Customer phone number" 
+                           class="w-full p-3 border border-gray-300 rounded-lg">
+                    <button onclick="loadCustomerProjects()" 
+                            class="w-full bg-orange-600 hover:bg-orange-700 text-white p-3 rounded-lg transition duration-200">
+                        <i class="fas fa-folder-open mr-2"></i>Load Projects
+                    </button>
+                </div>
+                <div id="customer-projects" class="mt-4"></div>
+            </div>
+
+            <!-- Image Generator -->
+            <div class="tool-card p-6">
+                <h2 class="text-xl font-bold text-gray-800 mb-4 flex items-center">
+                    <i class="fas fa-image mr-2 text-indigo-600"></i>
+                    Tile Visualization
+                </h2>
+                <div class="space-y-3">
+                    <input type="text" id="viz-sku" placeholder="Tile SKU" 
+                           class="w-full p-3 border border-gray-300 rounded-lg">
+                    <select id="viz-room" class="w-full p-3 border border-gray-300 rounded-lg">
+                        <option value="bathroom">Bathroom</option>
+                        <option value="kitchen">Kitchen</option>
+                        <option value="living room">Living Room</option>
+                    </select>
+                    <select id="viz-style" class="w-full p-3 border border-gray-300 rounded-lg">
+                        <option value="modern">Modern</option>
+                        <option value="traditional">Traditional</option>
+                        <option value="rustic">Rustic</option>
+                    </select>
+                    <button onclick="generateVisualization()" 
+                            class="w-full bg-indigo-600 hover:bg-indigo-700 text-white p-3 rounded-lg transition duration-200">
+                        <i class="fas fa-image mr-2"></i>Generate Image
+                    </button>
+                </div>
+                <div id="viz-results" class="mt-4"></div>
+            </div>
+        </div>
+
+        <!-- Results Display Area -->
+        <div class="bg-white rounded-lg shadow-lg p-6">
+            <h2 class="text-xl font-bold text-gray-800 mb-4 flex items-center">
+                <i class="fas fa-chart-line mr-2 text-green-600"></i>
+                Results & Recommendations
+            </h2>
+            <div id="main-results" class="space-y-4">
+                <p class="text-gray-500 text-center py-8">Use the tools above to search products, calculate materials, and manage customer projects.</p>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        let socket = io();
+
+        // SKU Search
+        async function searchSKU() {
+            const sku = document.getElementById('sku-input').value.trim();
+            if (!sku) {
+                alert('Please enter a SKU');
+                return;
+            }
+
+            try {
+                const response = await fetch('/api/search/sku', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ sku: sku })
+                });
+
+                const data = await response.json();
+                displaySKUResults(data);
+            } catch (error) {
+                console.error('Error searching SKU:', error);
+                document.getElementById('sku-results').innerHTML = 
+                    '<div class="text-red-600">Error searching product</div>';
+            }
+        }
+
+        function displaySKUResults(data) {
+            const container = document.getElementById('sku-results');
+            
+            if (data.success) {
+                const product = data.product;
+                let html = `
+                    <div class="result-card">
+                        <h3 class="font-bold">${product.product_name || 'Unknown Product'}</h3>
+                        <p>SKU: ${product.sku || 'N/A'}</p>
+                        <p>Price: $${product.price_per_square_foot || 'N/A'}/sq ft</p>
+                    </div>
+                `;
+                
+                if (data.upsell_suggestions && data.upsell_suggestions.length > 0) {
+                    html += '<div class="space-y-2">';
+                    html += '<h4 class="font-semibold text-gray-700">Upsell Opportunities:</h4>';
+                    data.upsell_suggestions.forEach(upsell => {
+                        html += `<div class="upsell-tag">${upsell.item} - ${upsell.reason}</div>`;
+                    });
+                    html += '</div>';
+                }
+                
+                container.innerHTML = html;
+                updateMainResults('SKU Search', data);
+            } else {
+                container.innerHTML = `<div class="text-red-600">${data.error}</div>`;
+            }
+        }
+
+        // Tile Finder
+        async function findTiles() {
+            const roomType = document.getElementById('room-type').value;
+            const style = document.getElementById('tile-style').value.trim();
+            const color = document.getElementById('tile-color').value.trim();
+            const size = document.getElementById('tile-size').value.trim();
+
+            if (!roomType || !style) {
+                alert('Please select room type and enter style');
+                return;
+            }
+
+            try {
+                const response = await fetch('/api/tiles/find', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        room_type: roomType,
+                        style: style,
+                        color: color,
+                        size: size
+                    })
+                });
+
+                const data = await response.json();
+                displayTileResults(data);
+            } catch (error) {
+                console.error('Error finding tiles:', error);
+                document.getElementById('tile-results').innerHTML = 
+                    '<div class="text-red-600">Error finding tiles</div>';
+            }
+        }
+
+        function displayTileResults(data) {
+            const container = document.getElementById('tile-results');
+            
+            if (data.success) {
+                container.innerHTML = `
+                    <div class="result-card">
+                        <h3 class="font-bold">Found ${data.count} tiles</h3>
+                        <p>Search: ${data.search_query}</p>
+                    </div>
+                `;
+                updateMainResults('Tile Search', data);
+            } else {
+                container.innerHTML = `<div class="text-red-600">${data.error}</div>`;
+            }
+        }
+
+        // Material Calculator
+        async function calculateMaterials() {
+            const dimensions = document.getElementById('calc-dimensions').value.trim();
+            const sku = document.getElementById('calc-sku').value.trim();
+            const pattern = document.getElementById('calc-pattern').value;
+
+            if (!dimensions || !sku) {
+                alert('Please enter dimensions and SKU');
+                return;
+            }
+
+            try {
+                const response = await fetch('/api/materials/calculate', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        dimensions: dimensions,
+                        tile_sku: sku,
+                        pattern: pattern
+                    })
+                });
+
+                const data = await response.json();
+                displayCalculationResults(data);
+            } catch (error) {
+                console.error('Error calculating materials:', error);
+                document.getElementById('calc-results').innerHTML = 
+                    '<div class="text-red-600">Error calculating materials</div>';
+            }
+        }
+
+        function displayCalculationResults(data) {
+            const container = document.getElementById('calc-results');
+            
+            if (data.success) {
+                const materials = data.materials;
+                container.innerHTML = `
+                    <div class="result-card">
+                        <h3 class="font-bold">Materials Needed</h3>
+                        <p>Area: ${materials.tile_area_needed?.toFixed(2)} sq ft</p>
+                        <p>Pattern: ${materials.pattern}</p>
+                        <p>Waste Factor: ${(materials.waste_factor * 100)}%</p>
+                    </div>
+                `;
+                updateMainResults('Material Calculation', data);
+            } else {
+                container.innerHTML = `<div class="text-red-600">${data.error}</div>`;
+            }
+        }
+
+        // Customer Projects
+        async function loadCustomerProjects() {
+            const phone = document.getElementById('customer-phone').value.trim();
+            
+            if (!phone) {
+                alert('Please enter customer phone number');
+                return;
+            }
+
+            try {
+                const response = await fetch(`/api/customer/projects/${encodeURIComponent(phone)}`);
+                const data = await response.json();
+                displayCustomerProjects(data);
+            } catch (error) {
+                console.error('Error loading projects:', error);
+                document.getElementById('customer-projects').innerHTML = 
+                    '<div class="text-red-600">Error loading projects</div>';
+            }
+        }
+
+        function displayCustomerProjects(data) {
+            const container = document.getElementById('customer-projects');
+            
+            if (data.success) {
+                container.innerHTML = `
+                    <div class="result-card">
+                        <h3 class="font-bold">Customer Projects</h3>
+                        <p>Rooms: ${data.total_rooms}</p>
+                        <p>Conversations: ${data.total_conversations}</p>
+                    </div>
+                `;
+                updateMainResults('Customer Projects', data);
+            } else {
+                container.innerHTML = `<div class="text-red-600">${data.error}</div>`;
+            }
+        }
+
+        // Image Generation
+        async function generateVisualization() {
+            const sku = document.getElementById('viz-sku').value.trim();
+            const room = document.getElementById('viz-room').value;
+            const style = document.getElementById('viz-style').value;
+
+            if (!sku) {
+                alert('Please enter tile SKU');
+                return;
+            }
+
+            try {
+                const response = await fetch('/api/image/generate', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        tile_sku: sku,
+                        room_type: room,
+                        style: style
+                    })
+                });
+
+                const data = await response.json();
+                displayVisualization(data);
+            } catch (error) {
+                console.error('Error generating visualization:', error);
+                document.getElementById('viz-results').innerHTML = 
+                    '<div class="text-red-600">Error generating image</div>';
+            }
+        }
+
+        function displayVisualization(data) {
+            const container = document.getElementById('viz-results');
+            
+            if (data.success) {
+                container.innerHTML = `
+                    <div class="result-card">
+                        <h3 class="font-bold">Generated Image</h3>
+                        <img src="${data.image_url}" alt="Tile Visualization" class="w-full mt-2 rounded">
+                    </div>
+                `;
+                updateMainResults('Tile Visualization', data);
+            } else {
+                container.innerHTML = `<div class="text-red-600">${data.error}</div>`;
+            }
+        }
+
+        // Update main results area
+        function updateMainResults(title, data) {
+            const container = document.getElementById('main-results');
+            const resultDiv = document.createElement('div');
+            resultDiv.className = 'border border-gray-200 rounded-lg p-4';
+            resultDiv.innerHTML = `
+                <h3 class="font-bold text-lg mb-2">${title}</h3>
+                <pre class="text-sm text-gray-600 bg-gray-50 p-3 rounded overflow-auto">${JSON.stringify(data, null, 2)}</pre>
+            `;
+            
+            // Add to top of results
+            container.insertBefore(resultDiv, container.firstChild);
+            
+            // Keep only last 5 results
+            while (container.children.length > 5) {
+                container.removeChild(container.lastChild);
+            }
+        }
+
+        // Socket.io connection handlers
+        socket.on('connect', function() {
+            console.log('Connected to salesperson chat server');
+        });
+
+        socket.on('disconnect', function() {
+            console.log('Disconnected from salesperson chat server');
+        });
+
+        // Enter key support for inputs
+        document.addEventListener('DOMContentLoaded', function() {
+            document.getElementById('sku-input').addEventListener('keypress', function(e) {
+                if (e.key === 'Enter') searchSKU();
+            });
+            
+            document.getElementById('customer-phone').addEventListener('keypress', function(e) {
+                if (e.key === 'Enter') loadCustomerProjects();
+            });
+        });
+    </script>
+</body>
+</html>

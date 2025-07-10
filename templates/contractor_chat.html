@@ -1,0 +1,525 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Contractor Tools - The Tile Shop</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/icon?family=Material+Icons" rel="stylesheet">
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/socket.io/4.7.2/socket.io.js"></script>
+    <style>
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            background: linear-gradient(135deg, #1e3a8a 0%, #059669 100%);
+            min-height: 100vh;
+        }
+        
+        .tool-card {
+            background: white;
+            border-radius: 1rem;
+            box-shadow: 0 10px 25px rgba(0, 0, 0, 0.1);
+            transition: transform 0.2s ease, box-shadow 0.2s ease;
+        }
+        
+        .tool-card:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 15px 35px rgba(0, 0, 0, 0.15);
+        }
+        
+        .result-card {
+            background: linear-gradient(135deg, #1e3a8a 0%, #059669 100%);
+            color: white;
+            border-radius: 0.75rem;
+            padding: 1rem;
+            margin-bottom: 1rem;
+        }
+        
+        .spec-tag {
+            background: linear-gradient(135deg, #059669 0%, #1e3a8a 100%);
+            color: white;
+            padding: 0.25rem 0.75rem;
+            border-radius: 9999px;
+            font-size: 0.75rem;
+            font-weight: 600;
+        }
+        
+        .materials-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 1rem;
+        }
+        
+        .material-item {
+            background: rgba(255, 255, 255, 0.1);
+            border-radius: 0.5rem;
+            padding: 0.75rem;
+            border: 1px solid rgba(255, 255, 255, 0.2);
+        }
+    </style>
+</head>
+<body>
+    <div class="min-h-screen p-4">
+        <!-- Header -->
+        <div class="mb-6">
+            <div class="bg-white rounded-lg shadow-lg p-6">
+                <div class="flex justify-between items-center">
+                    <div>
+                        <h1 class="text-3xl font-bold text-gray-800 flex items-center">
+                            <i class="fas fa-hard-hat mr-3 text-blue-800"></i>
+                            Contractor Tools
+                        </h1>
+                        <p class="text-gray-600 mt-1">Installation guides, technical specs, material calculations, and job estimates</p>
+                    </div>
+                    <div class="text-right">
+                        <div class="bg-gradient-to-r from-blue-800 to-green-600 text-white px-4 py-2 rounded-full">
+                            Port: 8083
+                        </div>
+                        <div class="text-sm text-gray-500 mt-1">Contractor Mode</div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Main Tools Grid -->
+        <div class="grid grid-cols-1 lg:grid-cols-2 xl:grid-cols-3 gap-6 mb-6">
+            
+            <!-- Installation Guide Tool -->
+            <div class="tool-card p-6">
+                <h2 class="text-xl font-bold text-gray-800 mb-4 flex items-center">
+                    <i class="fas fa-book-open mr-2 text-blue-600"></i>
+                    Installation Guide
+                </h2>
+                <div class="space-y-3">
+                    <input type="text" id="guide-sku" placeholder="Product SKU" 
+                           class="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500">
+                    <button onclick="getInstallationGuide()" 
+                            class="w-full bg-blue-600 hover:bg-blue-700 text-white p-3 rounded-lg transition duration-200">
+                        <i class="fas fa-search mr-2"></i>Get Installation Guide
+                    </button>
+                </div>
+                <div id="guide-results" class="mt-4"></div>
+            </div>
+
+            <!-- Technical Specifications Tool -->
+            <div class="tool-card p-6">
+                <h2 class="text-xl font-bold text-gray-800 mb-4 flex items-center">
+                    <i class="fas fa-cogs mr-2 text-green-600"></i>
+                    Technical Specs
+                </h2>
+                <div class="space-y-3">
+                    <input type="text" id="spec-sku" placeholder="Product SKU" 
+                           class="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500">
+                    <button onclick="getTechnicalSpecs()" 
+                            class="w-full bg-green-600 hover:bg-green-700 text-white p-3 rounded-lg transition duration-200">
+                        <i class="fas fa-clipboard-list mr-2"></i>Get Technical Specs
+                    </button>
+                </div>
+                <div id="spec-results" class="mt-4"></div>
+            </div>
+
+            <!-- Advanced Material Calculator -->
+            <div class="tool-card p-6">
+                <h2 class="text-xl font-bold text-gray-800 mb-4 flex items-center">
+                    <i class="fas fa-calculator mr-2 text-purple-600"></i>
+                    Advanced Calculator
+                </h2>
+                <div class="space-y-3">
+                    <input type="text" id="adv-dimensions" placeholder="Dimensions (e.g., 10x12)" 
+                           class="w-full p-3 border border-gray-300 rounded-lg">
+                    <input type="text" id="adv-sku" placeholder="Tile SKU" 
+                           class="w-full p-3 border border-gray-300 rounded-lg">
+                    <div class="grid grid-cols-2 gap-2">
+                        <select id="adv-pattern" class="p-3 border border-gray-300 rounded-lg">
+                            <option value="straight">Straight</option>
+                            <option value="diagonal">Diagonal</option>
+                            <option value="herringbone">Herringbone</option>
+                            <option value="complex">Complex</option>
+                        </select>
+                        <select id="adv-substrate" class="p-3 border border-gray-300 rounded-lg">
+                            <option value="concrete">Concrete</option>
+                            <option value="wood">Wood</option>
+                            <option value="existing_tile">Existing Tile</option>
+                            <option value="uneven">Uneven</option>
+                        </select>
+                    </div>
+                    <button onclick="calculateAdvancedMaterials()" 
+                            class="w-full bg-purple-600 hover:bg-purple-700 text-white p-3 rounded-lg transition duration-200">
+                        <i class="fas fa-calculator mr-2"></i>Calculate Materials
+                    </button>
+                </div>
+                <div id="adv-calc-results" class="mt-4"></div>
+            </div>
+        </div>
+
+        <!-- Job Estimation Section -->
+        <div class="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-6">
+            
+            <!-- Job Estimate Calculator -->
+            <div class="tool-card p-6">
+                <h2 class="text-xl font-bold text-gray-800 mb-4 flex items-center">
+                    <i class="fas fa-file-invoice-dollar mr-2 text-orange-600"></i>
+                    Job Estimate
+                </h2>
+                <div class="space-y-3">
+                    <input type="number" id="job-area" placeholder="Total area (sq ft)" 
+                           class="w-full p-3 border border-gray-300 rounded-lg">
+                    <div class="grid grid-cols-2 gap-2">
+                        <select id="job-complexity" class="p-3 border border-gray-300 rounded-lg">
+                            <option value="simple">Simple</option>
+                            <option value="standard">Standard</option>
+                            <option value="complex">Complex</option>
+                        </select>
+                        <select id="job-location" class="p-3 border border-gray-300 rounded-lg">
+                            <option value="residential">Residential</option>
+                            <option value="commercial">Commercial</option>
+                        </select>
+                    </div>
+                    <select id="job-timeline" class="w-full p-3 border border-gray-300 rounded-lg">
+                        <option value="standard">Standard Timeline</option>
+                        <option value="rush">Rush Job</option>
+                        <option value="flexible">Flexible Timeline</option>
+                    </select>
+                    <button onclick="calculateJobEstimate()" 
+                            class="w-full bg-orange-600 hover:bg-orange-700 text-white p-3 rounded-lg transition duration-200">
+                        <i class="fas fa-calculator mr-2"></i>Calculate Estimate
+                    </button>
+                </div>
+                <div id="job-estimate-results" class="mt-4"></div>
+            </div>
+
+            <!-- Quick Tools -->
+            <div class="tool-card p-6">
+                <h2 class="text-xl font-bold text-gray-800 mb-4 flex items-center">
+                    <i class="fas fa-tools mr-2 text-indigo-600"></i>
+                    Quick Tools
+                </h2>
+                <div class="space-y-3">
+                    <button onclick="showWastageTable()" 
+                            class="w-full bg-indigo-600 hover:bg-indigo-700 text-white p-3 rounded-lg transition duration-200">
+                        <i class="fas fa-table mr-2"></i>Wastage Reference
+                    </button>
+                    <button onclick="showToolsList()" 
+                            class="w-full bg-indigo-600 hover:bg-indigo-700 text-white p-3 rounded-lg transition duration-200">
+                        <i class="fas fa-wrench mr-2"></i>Required Tools
+                    </button>
+                    <button onclick="showComplianceCodes()" 
+                            class="w-full bg-indigo-600 hover:bg-indigo-700 text-white p-3 rounded-lg transition duration-200">
+                        <i class="fas fa-shield-alt mr-2"></i>Compliance Codes
+                    </button>
+                </div>
+                <div id="quick-tools-results" class="mt-4"></div>
+            </div>
+        </div>
+
+        <!-- Results Display Area -->
+        <div class="bg-white rounded-lg shadow-lg p-6">
+            <h2 class="text-xl font-bold text-gray-800 mb-4 flex items-center">
+                <i class="fas fa-chart-bar mr-2 text-blue-600"></i>
+                Installation Data & Analysis
+            </h2>
+            <div id="main-results" class="space-y-4">
+                <p class="text-gray-500 text-center py-8">Use the contractor tools above to get installation guides, technical specifications, and project estimates.</p>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        let socket = io();
+
+        // Installation Guide
+        async function getInstallationGuide() {
+            const sku = document.getElementById('guide-sku').value.trim();
+            if (!sku) {
+                alert('Please enter a product SKU');
+                return;
+            }
+
+            try {
+                const response = await fetch('/api/installation/guide', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ product_sku: sku })
+                });
+
+                const data = await response.json();
+                displayInstallationGuide(data);
+            } catch (error) {
+                console.error('Error getting installation guide:', error);
+                document.getElementById('guide-results').innerHTML = 
+                    '<div class="text-red-600">Error retrieving installation guide</div>';
+            }
+        }
+
+        function displayInstallationGuide(data) {
+            const container = document.getElementById('guide-results');
+            
+            if (data.success) {
+                let html = `
+                    <div class="result-card">
+                        <h3 class="font-bold">Installation Guide</h3>
+                        <p>Product: ${data.product_sku}</p>
+                        <p>Guides Found: ${data.installation_guides?.length || 0}</p>
+                    </div>
+                `;
+                
+                if (data.required_tools && data.required_tools.length > 0) {
+                    html += '<div class="space-y-1">';
+                    html += '<h4 class="font-semibold text-gray-700 text-sm">Required Tools:</h4>';
+                    data.required_tools.slice(0, 3).forEach(tool => {
+                        html += `<div class="spec-tag">${tool.tool}</div>`;
+                    });
+                    html += '</div>';
+                }
+                
+                container.innerHTML = html;
+                updateMainResults('Installation Guide', data);
+            } else {
+                container.innerHTML = `<div class="text-red-600">${data.error}</div>`;
+            }
+        }
+
+        // Technical Specifications
+        async function getTechnicalSpecs() {
+            const sku = document.getElementById('spec-sku').value.trim();
+            if (!sku) {
+                alert('Please enter a product SKU');
+                return;
+            }
+
+            try {
+                const response = await fetch('/api/specs/technical', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ product_sku: sku })
+                });
+
+                const data = await response.json();
+                displayTechnicalSpecs(data);
+            } catch (error) {
+                console.error('Error getting technical specs:', error);
+                document.getElementById('spec-results').innerHTML = 
+                    '<div class="text-red-600">Error retrieving technical specs</div>';
+            }
+        }
+
+        function displayTechnicalSpecs(data) {
+            const container = document.getElementById('spec-results');
+            
+            if (data.success) {
+                const specs = data.specifications;
+                container.innerHTML = `
+                    <div class="result-card">
+                        <h3 class="font-bold">Technical Specs</h3>
+                        <p>Product: ${specs.basic_specs?.product_name || 'Unknown'}</p>
+                        <p>Material: ${specs.basic_specs?.material || 'N/A'}</p>
+                        <p>Size: ${specs.basic_specs?.size || 'N/A'}</p>
+                        <p>DCOF: ${specs.performance_specs?.dcof_rating || 'N/A'}</p>
+                    </div>
+                `;
+                updateMainResults('Technical Specifications', data);
+            } else {
+                container.innerHTML = `<div class="text-red-600">${data.error}</div>`;
+            }
+        }
+
+        // Advanced Material Calculator
+        async function calculateAdvancedMaterials() {
+            const dimensions = document.getElementById('adv-dimensions').value.trim();
+            const sku = document.getElementById('adv-sku').value.trim();
+            const pattern = document.getElementById('adv-pattern').value;
+            const substrate = document.getElementById('adv-substrate').value;
+
+            if (!dimensions || !sku) {
+                alert('Please enter dimensions and SKU');
+                return;
+            }
+
+            try {
+                const response = await fetch('/api/materials/advanced', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        dimensions: dimensions,
+                        tile_sku: sku,
+                        pattern: pattern,
+                        substrate: substrate
+                    })
+                });
+
+                const data = await response.json();
+                displayAdvancedMaterials(data);
+            } catch (error) {
+                console.error('Error calculating advanced materials:', error);
+                document.getElementById('adv-calc-results').innerHTML = 
+                    '<div class="text-red-600">Error calculating advanced materials</div>';
+            }
+        }
+
+        function displayAdvancedMaterials(data) {
+            const container = document.getElementById('adv-calc-results');
+            
+            if (data.success) {
+                const materials = data.materials;
+                container.innerHTML = `
+                    <div class="result-card">
+                        <h3 class="font-bold">Advanced Materials</h3>
+                        <p>Total Area: ${data.total_area_with_waste?.toFixed(2)} sq ft</p>
+                        <p>Waste Factor: ${(data.waste_factors?.total_waste * 100)?.toFixed(1)}%</p>
+                        <p>Adhesive: ${materials.adhesive?.bags_needed || 0} bags</p>
+                        <p>Timeline: ${data.timeline?.total_project || 'N/A'}</p>
+                    </div>
+                `;
+                updateMainResults('Advanced Material Calculation', data);
+            } else {
+                container.innerHTML = `<div class="text-red-600">${data.error}</div>`;
+            }
+        }
+
+        // Job Estimate Calculator
+        async function calculateJobEstimate() {
+            const area = document.getElementById('job-area').value.trim();
+            const complexity = document.getElementById('job-complexity').value;
+            const location = document.getElementById('job-location').value;
+            const timeline = document.getElementById('job-timeline').value;
+
+            if (!area || area <= 0) {
+                alert('Please enter a valid area');
+                return;
+            }
+
+            try {
+                const response = await fetch('/api/estimate/job', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        area: parseFloat(area),
+                        complexity: complexity,
+                        location: location,
+                        timeline: timeline
+                    })
+                });
+
+                const data = await response.json();
+                displayJobEstimate(data);
+            } catch (error) {
+                console.error('Error calculating job estimate:', error);
+                document.getElementById('job-estimate-results').innerHTML = 
+                    '<div class="text-red-600">Error calculating job estimate</div>';
+            }
+        }
+
+        function displayJobEstimate(data) {
+            const container = document.getElementById('job-estimate-results');
+            
+            if (data.success) {
+                const estimates = data.estimates;
+                container.innerHTML = `
+                    <div class="result-card">
+                        <h3 class="font-bold">Job Estimate</h3>
+                        <p>Area: ${data.area} sq ft</p>
+                        <p>Labor Cost: $${estimates.labor_cost}</p>
+                        <p>Subtotal: $${estimates.subtotal}</p>
+                        <p>Range: $${estimates.estimated_total_range?.low} - $${estimates.estimated_total_range?.high}</p>
+                        <p>Timeline: ${data.timeline_estimate?.total_project || 'N/A'}</p>
+                    </div>
+                `;
+                updateMainResults('Job Estimate', data);
+            } else {
+                container.innerHTML = `<div class="text-red-600">${data.error}</div>`;
+            }
+        }
+
+        // Quick Tools
+        function showWastageTable() {
+            const container = document.getElementById('quick-tools-results');
+            container.innerHTML = `
+                <div class="result-card">
+                    <h3 class="font-bold">Wastage Reference</h3>
+                    <div class="space-y-2 text-sm">
+                        <div>Straight Pattern: 10%</div>
+                        <div>Diagonal Pattern: 15%</div>
+                        <div>Herringbone Pattern: 20%</div>
+                        <div>Complex Pattern: 25%</div>
+                    </div>
+                </div>
+            `;
+        }
+
+        function showToolsList() {
+            const container = document.getElementById('quick-tools-results');
+            container.innerHTML = `
+                <div class="result-card">
+                    <h3 class="font-bold">Essential Tools</h3>
+                    <div class="space-y-1 text-sm">
+                        <div>• Wet tile saw</div>
+                        <div>• Trowel (notched)</div>
+                        <div>• Level (4-foot)</div>
+                        <div>• Rubber mallet</div>
+                        <div>• Tile spacers</div>
+                        <div>• Grout float</div>
+                    </div>
+                </div>
+            `;
+        }
+
+        function showComplianceCodes() {
+            const container = document.getElementById('quick-tools-results');
+            container.innerHTML = `
+                <div class="result-card">
+                    <h3 class="font-bold">Compliance Codes</h3>
+                    <div class="space-y-1 text-sm">
+                        <div>• ANSI A137.1</div>
+                        <div>• TCNA Handbook</div>
+                        <div>• ADA Compliance</div>
+                        <div>• Local Building Codes</div>
+                    </div>
+                </div>
+            `;
+        }
+
+        // Update main results area
+        function updateMainResults(title, data) {
+            const container = document.getElementById('main-results');
+            const resultDiv = document.createElement('div');
+            resultDiv.className = 'border border-gray-200 rounded-lg p-4';
+            resultDiv.innerHTML = `
+                <h3 class="font-bold text-lg mb-2">${title}</h3>
+                <pre class="text-sm text-gray-600 bg-gray-50 p-3 rounded overflow-auto max-h-64">${JSON.stringify(data, null, 2)}</pre>
+            `;
+            
+            // Add to top of results
+            container.insertBefore(resultDiv, container.firstChild);
+            
+            // Keep only last 5 results
+            while (container.children.length > 5) {
+                container.removeChild(container.lastChild);
+            }
+        }
+
+        // Socket.io connection handlers
+        socket.on('connect', function() {
+            console.log('Connected to contractor chat server');
+        });
+
+        socket.on('disconnect', function() {
+            console.log('Disconnected from contractor chat server');
+        });
+
+        // Enter key support for inputs
+        document.addEventListener('DOMContentLoaded', function() {
+            document.getElementById('guide-sku').addEventListener('keypress', function(e) {
+                if (e.key === 'Enter') getInstallationGuide();
+            });
+            
+            document.getElementById('spec-sku').addEventListener('keypress', function(e) {
+                if (e.key === 'Enter') getTechnicalSpecs();
+            });
+            
+            document.getElementById('job-area').addEventListener('keypress', function(e) {
+                if (e.key === 'Enter') calculateJobEstimate();
+            });
+        });
+    </script>
+</body>
+</html>
