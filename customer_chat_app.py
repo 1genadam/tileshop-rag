@@ -19,6 +19,8 @@ load_dotenv()
 from modules.db_manager import DatabaseManager
 from modules.rag_manager import RAGManager
 from modules.simple_tile_agent import SimpleTileAgent
+from modules.clip_tile_vision import CLIPTileVision
+from modules.store_inventory import StoreInventoryManager
 
 # Configure logging
 logging.basicConfig(
@@ -36,11 +38,21 @@ socketio = SocketIO(app, cors_allowed_origins="*")
 try:
     db_manager = DatabaseManager()
     rag_manager = RAGManager()
+    clip_vision = CLIPTileVision(db_manager)
+    store_inventory = StoreInventoryManager(db_manager)
     logger.info("Customer chat components initialized successfully")
+    
+    # Build tile embeddings in background
+    logger.info("Building CLIP tile database embeddings...")
+    clip_vision.build_tile_database_embeddings()
+    logger.info("CLIP tile vision system ready")
+    
 except Exception as e:
     logger.error(f"Failed to initialize components: {e}")
     db_manager = None
     rag_manager = None
+    clip_vision = None
+    store_inventory = None
 
 @app.route('/')
 def index():
@@ -209,6 +221,147 @@ def list_nepq_reports():
             'success': False,
             'error': str(e)
         })
+
+@app.route('/api/vision/analyze-tile', methods=['POST'])
+def analyze_tile_image():
+    """Analyze uploaded tile image using CLIP vision"""
+    try:
+        if not clip_vision:
+            return jsonify({'success': False, 'error': 'Vision system not available'})
+        
+        data = request.get_json()
+        
+        if not data or 'image' not in data:
+            return jsonify({'success': False, 'error': 'No image data provided'})
+        
+        image_data = data['image']
+        
+        # Analyze the tile image
+        result = clip_vision.analyze_tile_image(image_data)
+        
+        return jsonify(result)
+        
+    except Exception as e:
+        logger.error(f"Error analyzing tile image: {e}")
+        return jsonify({'success': False, 'error': str(e)})
+
+@app.route('/api/vision/rebuild-database', methods=['POST'])
+def rebuild_vision_database():
+    """Rebuild CLIP embeddings database"""
+    try:
+        if not clip_vision:
+            return jsonify({'success': False, 'error': 'Vision system not available'})
+        
+        success = clip_vision.build_tile_database_embeddings(force_rebuild=True)
+        
+        if success:
+            stats = clip_vision.get_database_stats()
+            return jsonify({
+                'success': True,
+                'message': 'Vision database rebuilt successfully',
+                'stats': stats
+            })
+        else:
+            return jsonify({
+                'success': False,
+                'error': 'Failed to rebuild vision database'
+            })
+        
+    except Exception as e:
+        logger.error(f"Error rebuilding vision database: {e}")
+        return jsonify({'success': False, 'error': str(e)})
+
+@app.route('/api/vision/stats')
+def get_vision_stats():
+    """Get vision system statistics"""
+    try:
+        if not clip_vision:
+            return jsonify({'success': False, 'error': 'Vision system not available'})
+        
+        stats = clip_vision.get_database_stats()
+        return jsonify({
+            'success': True,
+            'stats': stats
+        })
+        
+    except Exception as e:
+        logger.error(f"Error getting vision stats: {e}")
+        return jsonify({'success': False, 'error': str(e)})
+
+@app.route('/api/vision/find-in-store', methods=['POST'])
+def find_tile_in_store():
+    """Find tile location and inventory in store"""
+    try:
+        if not clip_vision or not store_inventory:
+            return jsonify({'success': False, 'error': 'Vision or inventory system not available'})
+        
+        data = request.get_json()
+        
+        if not data or 'image' not in data:
+            return jsonify({'success': False, 'error': 'No image data provided'})
+        
+        image_data = data['image']
+        
+        # First, identify the tile using CLIP
+        vision_result = clip_vision.analyze_tile_image(image_data)
+        
+        if not vision_result.get('success') or not vision_result.get('best_match'):
+            return jsonify({
+                'success': False,
+                'message': 'Could not identify tile from image',
+                'error': 'No matching tiles found'
+            })
+        
+        best_match = vision_result['best_match']
+        sku = best_match['sku']
+        
+        # Get store location and inventory
+        store_info = store_inventory.find_in_store(sku)
+        
+        if store_info['success']:
+            # Combine vision results with store information
+            result = {
+                'success': True,
+                'tile_identification': {
+                    'sku': sku,
+                    'name': best_match['name'],
+                    'confidence': best_match['confidence'],
+                    'similarity': best_match['similarity']
+                },
+                'store_location': store_info['location'],
+                'inventory': store_info['inventory'],
+                'store_info': store_info['store_info']
+            }
+        else:
+            result = {
+                'success': False,
+                'tile_identification': {
+                    'sku': sku,
+                    'name': best_match['name'],
+                    'confidence': best_match['confidence']
+                },
+                'message': store_info.get('message', 'Store information not available')
+            }
+        
+        return jsonify(result)
+        
+    except Exception as e:
+        logger.error(f"Error finding tile in store: {e}")
+        return jsonify({'success': False, 'error': str(e)})
+
+@app.route('/api/store/location/<sku>')
+def get_store_location(sku):
+    """Get store location for a specific SKU"""
+    try:
+        if not store_inventory:
+            return jsonify({'success': False, 'error': 'Store inventory system not available'})
+        
+        store_info = store_inventory.find_in_store(sku)
+        return jsonify(store_info)
+        
+    except Exception as e:
+        logger.error(f"Error getting store location for SKU {sku}: {e}")
+        return jsonify({'success': False, 'error': str(e)})
 
 @app.route('/api/system/health')
 def system_health():

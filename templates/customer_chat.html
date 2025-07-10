@@ -219,6 +219,94 @@
                 </div>
             </div>
 
+            <!-- Vision Mode Selection (Hidden by default) -->
+            <div class="hidden p-6 border-t border-gray-200 bg-purple-50" id="vision-mode-selector">
+                <div class="text-center">
+                    <h3 class="text-lg font-medium text-purple-800 mb-4">📸 How can I help with your tile?</h3>
+                    
+                    <div class="flex justify-center space-x-4 mb-4">
+                        <button class="bg-blue-600 hover:bg-blue-700 text-white px-6 py-3 rounded-lg flex items-center" 
+                                onclick="selectVisionMode('similarity')">
+                            <i class="fas fa-search mr-2"></i>
+                            <div class="text-left">
+                                <div class="font-medium">Find Similar Tiles</div>
+                                <div class="text-xs opacity-90">Match against our database</div>
+                            </div>
+                        </button>
+                        <button class="bg-green-600 hover:bg-green-700 text-white px-6 py-3 rounded-lg flex items-center" 
+                                onclick="selectVisionMode('store')">
+                            <i class="fas fa-map-marker-alt mr-2"></i>
+                            <div class="text-left">
+                                <div class="font-medium">Find in Store</div>
+                                <div class="text-xs opacity-90">Get aisle location & inventory</div>
+                            </div>
+                        </button>
+                    </div>
+                    
+                    <button class="text-gray-600 hover:text-gray-800 text-sm" onclick="closeVisionSystem()">
+                        <i class="fas fa-times mr-1"></i>Cancel
+                    </button>
+                </div>
+            </div>
+
+            <!-- Tile Vision Scanner (Hidden by default) -->
+            <div class="hidden p-6 border-t border-gray-200 bg-purple-50" id="vision-scanner">
+                <div class="text-center">
+                    <div class="flex justify-between items-center mb-4">
+                        <h3 class="text-lg font-medium text-purple-800">📸 <span id="vision-mode-title">Scan Your Tile</span></h3>
+                        <div class="text-sm text-purple-600 font-medium" id="vision-mode-badge">Similarity Mode</div>
+                    </div>
+                    
+                    <!-- Camera Controls -->
+                    <div class="mb-4 space-x-3">
+                        <button class="bg-purple-600 hover:bg-purple-700 text-white px-4 py-2 rounded-lg" 
+                                onclick="startCamera()" id="start-camera-btn">
+                            <i class="fas fa-camera mr-2"></i>Start Camera
+                        </button>
+                        <button class="bg-green-600 hover:bg-green-700 text-white px-4 py-2 rounded-lg hidden" 
+                                onclick="captureImage()" id="capture-btn">
+                            <i class="fas fa-capture mr-2"></i>Capture Tile
+                        </button>
+                        <button class="bg-red-600 hover:bg-red-700 text-white px-4 py-2 rounded-lg hidden" 
+                                onclick="stopCamera()" id="stop-camera-btn">
+                            <i class="fas fa-stop mr-2"></i>Stop
+                        </button>
+                    </div>
+                    
+                    <!-- Video Preview -->
+                    <div class="relative inline-block">
+                        <video id="camera-video" width="320" height="240" autoplay class="hidden border-2 border-purple-300 rounded-lg"></video>
+                        <canvas id="capture-canvas" width="320" height="240" class="hidden"></canvas>
+                        
+                        <!-- Capture Preview -->
+                        <div class="hidden mt-4" id="captured-preview">
+                            <img id="captured-image" class="border-2 border-green-300 rounded-lg mx-auto" width="320" height="240" />
+                            <div class="mt-2 space-x-3">
+                                <button class="bg-green-600 hover:bg-green-700 text-white px-4 py-2 rounded-lg" 
+                                        onclick="analyzeCapturedTile()">
+                                    <i class="fas fa-search mr-2"></i>Find This Tile
+                                </button>
+                                <button class="bg-gray-600 hover:bg-gray-700 text-white px-4 py-2 rounded-lg" 
+                                        onclick="retakePhoto()">
+                                    <i class="fas fa-redo mr-2"></i>Retake
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <!-- Analysis Results -->
+                    <div class="hidden mt-4 p-4 bg-white rounded-lg border" id="vision-results">
+                        <h4 class="font-medium text-gray-800 mb-2">🎯 Tile Matches Found:</h4>
+                        <div id="tile-matches"></div>
+                    </div>
+                    
+                    <!-- Instructions -->
+                    <div class="mt-4 text-sm text-purple-600">
+                        💡 <strong>Tips:</strong> Hold tile flat, ensure good lighting, fill frame with tile for best results
+                    </div>
+                </div>
+            </div>
+
             <!-- Chat Input -->
             <div class="p-6 border-t border-gray-200 bg-gray-50 rounded-b-lg">
                 <div class="flex items-center space-x-3">
@@ -227,6 +315,10 @@
                         <input class="w-full border border-gray-300 rounded-lg py-3 pl-10 pr-4 focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none" 
                                id="chat-input" placeholder="Tell me about your tile project..." type="text" maxlength="500">
                     </div>
+                    <button class="bg-purple-600 hover:bg-purple-700 text-white font-medium py-3 px-4 rounded-lg flex items-center transition duration-200" 
+                            onclick="toggleVisionScanner()" id="vision-toggle-btn">
+                        <i class="fas fa-camera mr-2"></i>Scan Tile
+                    </button>
                     <button class="bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700 text-white font-medium py-3 px-6 rounded-lg flex items-center transition duration-200" 
                             id="send-button" onclick="sendMessage()">
                         <i class="fas fa-paper-plane mr-2"></i>Send
@@ -293,6 +385,9 @@
                     if (data.nepq_analysis) {
                         updateNEPQScoring(data.nepq_analysis);
                     }
+                    
+                    // Check for vision suggestions in LLM response
+                    checkForVisionSuggestion(data.response);
                     
                     // Update conversation history
                     conversation_history.push(
@@ -415,6 +510,399 @@
             } else {
                 details.classList.add('hidden');
             }
+        }
+
+        // Tile Vision Scanner Functions
+        let cameraStream = null;
+        let capturedImageData = null;
+        let currentVisionMode = 'similarity'; // 'similarity' or 'store'
+
+        function toggleVisionScanner() {
+            const modeSelector = document.getElementById('vision-mode-selector');
+            const toggleBtn = document.getElementById('vision-toggle-btn');
+            
+            if (modeSelector.classList.contains('hidden')) {
+                // Show mode selection
+                modeSelector.classList.remove('hidden');
+                toggleBtn.innerHTML = '<i class="fas fa-times mr-2"></i>Close Scanner';
+                toggleBtn.className = toggleBtn.className.replace('bg-purple-600', 'bg-red-600').replace('hover:bg-purple-700', 'hover:bg-red-700');
+            } else {
+                // Close everything
+                closeVisionSystem();
+            }
+        }
+
+        function selectVisionMode(mode) {
+            currentVisionMode = mode;
+            
+            // Hide mode selector, show scanner
+            document.getElementById('vision-mode-selector').classList.add('hidden');
+            document.getElementById('vision-scanner').classList.remove('hidden');
+            
+            // Update UI based on mode
+            const modeTitle = document.getElementById('vision-mode-title');
+            const modeBadge = document.getElementById('vision-mode-badge');
+            
+            if (mode === 'similarity') {
+                modeTitle.textContent = 'Find Similar Tiles';
+                modeBadge.textContent = '🔍 Similarity Mode';
+                modeBadge.className = 'text-sm text-blue-600 font-medium';
+            } else if (mode === 'store') {
+                modeTitle.textContent = 'Find in Store';
+                modeBadge.textContent = '📍 Store Location Mode';
+                modeBadge.className = 'text-sm text-green-600 font-medium';
+            }
+        }
+
+        function closeVisionSystem() {
+            // Hide all vision components
+            document.getElementById('vision-mode-selector').classList.add('hidden');
+            document.getElementById('vision-scanner').classList.add('hidden');
+            
+            // Reset toggle button
+            const toggleBtn = document.getElementById('vision-toggle-btn');
+            toggleBtn.innerHTML = '<i class="fas fa-camera mr-2"></i>Scan Tile';
+            toggleBtn.className = toggleBtn.className.replace('bg-red-600', 'bg-purple-600').replace('hover:bg-red-700', 'hover:bg-purple-700');
+            
+            // Stop camera
+            stopCamera();
+        }
+
+        async function startCamera() {
+            try {
+                const video = document.getElementById('camera-video');
+                const startBtn = document.getElementById('start-camera-btn');
+                const captureBtn = document.getElementById('capture-btn');
+                const stopBtn = document.getElementById('stop-camera-btn');
+
+                // Request camera access
+                cameraStream = await navigator.mediaDevices.getUserMedia({ 
+                    video: { 
+                        width: 640, 
+                        height: 480,
+                        facingMode: 'environment' // Use back camera on mobile
+                    } 
+                });
+
+                video.srcObject = cameraStream;
+                video.classList.remove('hidden');
+                
+                // Update button visibility
+                startBtn.classList.add('hidden');
+                captureBtn.classList.remove('hidden');
+                stopBtn.classList.remove('hidden');
+
+                console.log('Camera started successfully');
+                
+            } catch (error) {
+                console.error('Error accessing camera:', error);
+                alert('Could not access camera. Please check permissions and try again.');
+            }
+        }
+
+        function captureImage() {
+            try {
+                const video = document.getElementById('camera-video');
+                const canvas = document.getElementById('capture-canvas');
+                const ctx = canvas.getContext('2d');
+                const capturedImg = document.getElementById('captured-image');
+                const preview = document.getElementById('captured-preview');
+
+                // Draw video frame to canvas
+                ctx.drawImage(video, 0, 0, canvas.width, canvas.height);
+                
+                // Get image data as base64
+                capturedImageData = canvas.toDataURL('image/jpeg', 0.8);
+                
+                // Show preview
+                capturedImg.src = capturedImageData;
+                preview.classList.remove('hidden');
+                video.classList.add('hidden');
+
+                // Update buttons
+                document.getElementById('capture-btn').classList.add('hidden');
+                
+                console.log('Image captured successfully');
+                
+            } catch (error) {
+                console.error('Error capturing image:', error);
+                alert('Error capturing image. Please try again.');
+            }
+        }
+
+        function retakePhoto() {
+            const video = document.getElementById('camera-video');
+            const preview = document.getElementById('captured-preview');
+            const captureBtn = document.getElementById('capture-btn');
+            const results = document.getElementById('vision-results');
+
+            // Hide preview and results
+            preview.classList.add('hidden');
+            results.classList.add('hidden');
+            
+            // Show video and capture button
+            video.classList.remove('hidden');
+            captureBtn.classList.remove('hidden');
+            
+            capturedImageData = null;
+        }
+
+        function stopCamera() {
+            if (cameraStream) {
+                cameraStream.getTracks().forEach(track => track.stop());
+                cameraStream = null;
+            }
+
+            // Reset UI
+            const video = document.getElementById('camera-video');
+            const preview = document.getElementById('captured-preview');
+            const results = document.getElementById('vision-results');
+            
+            video.classList.add('hidden');
+            preview.classList.add('hidden');
+            results.classList.add('hidden');
+            
+            // Reset buttons
+            document.getElementById('start-camera-btn').classList.remove('hidden');
+            document.getElementById('capture-btn').classList.add('hidden');
+            document.getElementById('stop-camera-btn').classList.add('hidden');
+            
+            capturedImageData = null;
+            console.log('Camera stopped');
+        }
+
+        async function analyzeCapturedTile() {
+            if (!capturedImageData) {
+                alert('No image captured. Please capture an image first.');
+                return;
+            }
+
+            try {
+                // Show loading state
+                const resultsDiv = document.getElementById('vision-results');
+                const matchesDiv = document.getElementById('tile-matches');
+                
+                resultsDiv.classList.remove('hidden');
+                
+                if (currentVisionMode === 'similarity') {
+                    matchesDiv.innerHTML = '<div class="text-center"><i class="fas fa-spinner fa-spin mr-2"></i>Finding similar tiles...</div>';
+                } else {
+                    matchesDiv.innerHTML = '<div class="text-center"><i class="fas fa-spinner fa-spin mr-2"></i>Locating tile in store...</div>';
+                }
+
+                // Choose API endpoint based on mode
+                const apiEndpoint = currentVisionMode === 'similarity' ? '/api/vision/analyze-tile' : '/api/vision/find-in-store';
+                
+                // Send image to vision API
+                const response = await fetch(apiEndpoint, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify({
+                        image: capturedImageData
+                    })
+                });
+
+                const result = await response.json();
+
+                if (currentVisionMode === 'similarity') {
+                    handleSimilarityResults(result, matchesDiv);
+                } else {
+                    handleStoreLocationResults(result, matchesDiv);
+                }
+
+            } catch (error) {
+                console.error('Error analyzing tile:', error);
+                document.getElementById('tile-matches').innerHTML = `
+                    <div class="text-center text-red-600">
+                        <i class="fas fa-exclamation-triangle text-2xl mb-2"></i>
+                        <p>Error analyzing tile. Please try again.</p>
+                    </div>
+                `;
+            }
+        }
+
+        function handleSimilarityResults(result, matchesDiv) {
+            if (result.success && result.matches && result.matches.length > 0) {
+                // Display similarity matches
+                let matchesHtml = '';
+                
+                result.matches.forEach((match, index) => {
+                    const confidenceColor = match.confidence === 'High' ? 'text-green-600' : 
+                                          match.confidence === 'Medium' ? 'text-yellow-600' : 'text-red-600';
+                    
+                    matchesHtml += `
+                        <div class="border-l-4 border-blue-400 pl-4 py-2 mb-3 bg-gray-50 rounded">
+                            <div class="flex justify-between items-start">
+                                <div>
+                                    <h5 class="font-medium text-gray-900">${match.name}</h5>
+                                    <p class="text-sm text-gray-600">SKU: ${match.sku}</p>
+                                    <p class="text-sm text-gray-600">Category: ${match.category}</p>
+                                    <p class="text-sm ${confidenceColor} font-medium">${match.confidence} Confidence (${match.similarity}%)</p>
+                                </div>
+                                <div class="text-right">
+                                    <p class="font-bold text-lg text-blue-600">$${match.price}</p>
+                                    <button class="mt-1 bg-blue-600 hover:bg-blue-700 text-white text-xs px-3 py-1 rounded" 
+                                            onclick="selectTileMatch('${match.sku}', '${match.name}', 'similarity')">
+                                        Select This Tile
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+                    `;
+                });
+
+                matchesDiv.innerHTML = matchesHtml;
+                
+            } else {
+                matchesDiv.innerHTML = `
+                    <div class="text-center text-gray-600">
+                        <i class="fas fa-search-minus text-2xl mb-2"></i>
+                        <p>No similar tiles found in our database.</p>
+                        <p class="text-sm">Try a different angle or lighting.</p>
+                    </div>
+                `;
+            }
+        }
+
+        function handleStoreLocationResults(result, matchesDiv) {
+            if (result.success) {
+                const tile = result.tile_identification;
+                const location = result.store_location;
+                const inventory = result.inventory;
+                const storeInfo = result.store_info;
+                
+                const availabilityColor = inventory.availability_color === 'green' ? 'text-green-600' :
+                                        inventory.availability_color === 'yellow' ? 'text-yellow-600' :
+                                        inventory.availability_color === 'orange' ? 'text-orange-600' : 'text-red-600';
+                
+                matchesDiv.innerHTML = `
+                    <div class="bg-white rounded-lg p-4 border-2 border-green-400">
+                        <!-- Tile Identification -->
+                        <div class="border-b pb-3 mb-3">
+                            <h5 class="font-bold text-lg text-gray-900">${tile.name}</h5>
+                            <p class="text-sm text-gray-600">SKU: ${tile.sku}</p>
+                            <p class="text-sm text-blue-600">Identified with ${tile.confidence} confidence</p>
+                        </div>
+                        
+                        <!-- Store Location -->
+                        <div class="border-b pb-3 mb-3">
+                            <h6 class="font-medium text-gray-800 mb-2">📍 Store Location:</h6>
+                            <div class="bg-blue-50 p-3 rounded">
+                                <p class="font-medium">Aisle ${location.aisle}, Bay ${location.bay}, Shelf ${location.shelf}</p>
+                                ${location.display_board ? `<p class="text-sm text-blue-600">Display Board: ${location.display_board}</p>` : ''}
+                                <p class="text-sm text-gray-600 mt-1">${storeInfo.department}</p>
+                                <p class="text-xs text-gray-500">${storeInfo.category_description}</p>
+                            </div>
+                        </div>
+                        
+                        <!-- Inventory -->
+                        <div class="mb-3">
+                            <h6 class="font-medium text-gray-800 mb-2">📦 Inventory:</h6>
+                            <div class="flex justify-between items-center">
+                                <div>
+                                    <p class="font-medium ${availabilityColor}">${inventory.availability}</p>
+                                    <p class="text-sm text-gray-600">Quantity: ${inventory.quantity} units</p>
+                                    <p class="text-xs text-gray-500">Last updated: ${inventory.last_updated}</p>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <!-- Actions -->
+                        <div class="flex space-x-2 pt-3 border-t">
+                            <button class="bg-green-600 hover:bg-green-700 text-white text-sm px-4 py-2 rounded flex-1" 
+                                    onclick="selectTileMatch('${tile.sku}', '${tile.name}', 'store')">
+                                <i class="fas fa-map-marker-alt mr-1"></i>Get Directions
+                            </button>
+                            <button class="bg-blue-600 hover:bg-blue-700 text-white text-sm px-4 py-2 rounded flex-1" 
+                                    onclick="selectTileMatch('${tile.sku}', '${tile.name}', 'info')">
+                                <i class="fas fa-info-circle mr-1"></i>Product Info
+                            </button>
+                        </div>
+                    </div>
+                `;
+                
+            } else {
+                matchesDiv.innerHTML = `
+                    <div class="text-center text-gray-600">
+                        <i class="fas fa-search-minus text-2xl mb-2"></i>
+                        <p>Could not locate this tile in our store.</p>
+                        <p class="text-sm">${result.message || 'Try a different angle or lighting.'}</p>
+                    </div>
+                `;
+            }
+        }
+
+        function selectTileMatch(sku, name, action) {
+            let message = '';
+            
+            if (action === 'similarity') {
+                message = `I found this tile: ${name} (SKU: ${sku}). Can you show me similar options and help me with pricing?`;
+            } else if (action === 'store') {
+                message = `I need directions to find ${name} (SKU: ${sku}) in your store. Can you guide me to Aisle location?`;
+            } else if (action === 'info') {
+                message = `I'm interested in ${name} (SKU: ${sku}). Can you tell me more about this tile and help me calculate what I need?`;
+            } else {
+                message = `I found this tile: ${name} (SKU: ${sku}). Can you help me with this product?`;
+            }
+            
+            // Add to chat input
+            document.getElementById('chat-input').value = message;
+            
+            // Close vision scanner
+            closeVisionSystem();
+            
+            // Auto-send the message
+            sendMessage();
+        }
+
+        function checkForVisionSuggestion(response) {
+            // Check if LLM suggests using camera
+            const visionTriggers = [
+                'scan that tile with your camera',
+                'camera scanning',
+                'would you like to scan',
+                'I can help you scan',
+                'use the camera to identify'
+            ];
+            
+            const responseLower = response.toLowerCase();
+            const shouldSuggestVision = visionTriggers.some(trigger => responseLower.includes(trigger));
+            
+            if (shouldSuggestVision) {
+                // Add visual suggestion prompt
+                setTimeout(() => {
+                    addVisionSuggestionPrompt();
+                }, 1000);
+            }
+        }
+
+        function addVisionSuggestionPrompt() {
+            const messagesContainer = document.getElementById('chat-messages');
+            const suggestionDiv = document.createElement('div');
+            suggestionDiv.className = 'flex justify-center my-4';
+            
+            suggestionDiv.innerHTML = `
+                <div class="bg-purple-100 border border-purple-300 rounded-lg p-4 max-w-md text-center">
+                    <div class="text-purple-800 font-medium mb-2">
+                        <i class="fas fa-camera mr-2"></i>Ready to scan your tile?
+                    </div>
+                    <div class="space-x-2">
+                        <button class="bg-purple-600 hover:bg-purple-700 text-white px-4 py-2 rounded text-sm" 
+                                onclick="toggleVisionScanner(); this.parentElement.parentElement.parentElement.remove();">
+                            <i class="fas fa-camera mr-1"></i>Start Scanning
+                        </button>
+                        <button class="bg-gray-500 hover:bg-gray-600 text-white px-4 py-2 rounded text-sm" 
+                                onclick="this.parentElement.parentElement.parentElement.remove();">
+                            <i class="fas fa-times mr-1"></i>Not Now
+                        </button>
+                    </div>
+                </div>
+            `;
+            
+            messagesContainer.querySelector('.space-y-4').appendChild(suggestionDiv);
+            messagesContainer.scrollTop = messagesContainer.scrollHeight;
         }
 
         // Socket.io connection handlers
