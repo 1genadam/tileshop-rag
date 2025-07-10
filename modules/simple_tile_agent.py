@@ -294,7 +294,7 @@ Be conversational and knowledgeable - like a trusted tile expert who's helping t
                 }
         
         if intended_action == "calculate_project_requirements":
-            # Block calculations until WHO and WHEN questions are answered
+            # Block calculations until WHO and WHEN questions are answered AND products have been searched
             calculation_requirements = ["customer_name", "dimensions", "installation_method", "timeline"]
             missing_calc = [req for req in calculation_requirements if not requirements_met[req]]
             
@@ -305,6 +305,15 @@ Be conversational and knowledgeable - like a trusted tile expert who's helping t
                     "missing_requirements": missing_calc,
                     "message": f"Cannot calculate requirements until {', '.join(missing_calc)} collected"
                 }
+            
+            # Additional check: Enforce mandatory sequence - products BEFORE calculations
+            # This ensures proper AOS flow: search_products → calculate_project_requirements → attempt_close
+            return {
+                "can_proceed": False,
+                "blocking_error": True,
+                "missing_requirements": ["product_search_first"],
+                "message": "Must search products before calculating requirements - follow AOS sequence"
+            }
         
         return {
             "can_proceed": True,
@@ -739,10 +748,12 @@ Be conversational and knowledgeable - like a trusted tile expert who's helping t
                         validation = self.validate_aos_requirements(messages, "calculate_project_requirements")
                         
                         if not validation["can_proceed"]:
-                            # Block calculations and guide back to requirements collection
+                            # Block calculations and guide to proper sequence
                             missing = validation["missing_requirements"]
                             
-                            if "installation_method" in missing:
+                            if "product_search_first" in missing:
+                                assistant_response += "\n\nLet me first search for the perfect tile options for your project, then I'll calculate the exact requirements and pricing."
+                            elif "installation_method" in missing:
                                 assistant_response += "\n\nBefore I calculate your project, are you planning to do this yourself or working with a contractor?"
                             elif "timeline" in missing:
                                 assistant_response += "\n\nWhen are you hoping to start this project? This helps me provide accurate recommendations."
