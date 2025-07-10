@@ -49,6 +49,7 @@ This index provides a comprehensive overview of all documentation files in the `
 | **[URL_FILTER_MAINTENANCE.md](URL_FILTER_MAINTENANCE.md)** | URL filtering system maintenance guide | Filter criteria management, multi-file updates, error prevention procedures |
 | **[CONVERSATION_FLOW_ENHANCEMENT.md](CONVERSATION_FLOW_ENHANCEMENT.md)** | RAG chat system conversation flow improvements | Persistent conversation state, dynamic content saving, natural conversation maintenance, phase detection enhancements |
 | **[PURCHASE_VERIFICATION_SYSTEM.md](PURCHASE_VERIFICATION_SYSTEM.md)** | Purchase verification and smart product matching | Customer purchase history verification, intelligent product matching, installation guidance based on verified purchases |
+| **[SIMPLE_TILE_AGENT.md](SIMPLE_TILE_AGENT.md)** | Natural LLM-based customer assistant | AI agent with proper components (System Prompt + Message History + User Input + Tools), replaces complex rule-based systems |
 
 ---
 
@@ -211,10 +212,11 @@ This index provides a comprehensive overview of all documentation files in the `
 ---
 
 *Last Updated: 2025-07-10*
-*Total Documentation Files: 39*
+*Total Documentation Files: 40*
 *Deployment Method: **Automated GitHub Actions → Fly.io deployment***
 
 ### **✅ LATEST UPDATES**
+- **[SIMPLE_TILE_AGENT.md](SIMPLE_TILE_AGENT.md)** - Natural LLM-based customer assistant with proper AI agent architecture (July 10, 2025)
 - **[PURCHASE_VERIFICATION_SYSTEM.md](PURCHASE_VERIFICATION_SYSTEM.md)** - Purchase verification and smart product matching system (July 10, 2025)
 - **[CONVERSATION_FLOW_ENHANCEMENT.md](CONVERSATION_FLOW_ENHANCEMENT.md)** - RAG chat system conversation flow improvements (July 10, 2025)
 - **[DEPLOYMENT_STATUS_UPDATE.md](DEPLOYMENT_STATUS_UPDATE.md)** - Production deployment status and metrics (July 9, 2025)

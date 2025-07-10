@@ -38,6 +38,7 @@ The Tileshop RAG Production System is a comprehensive intelligence platform feat
 - **Unified diagnostic framework** with standardized health checks
 - **Real-time web scraping** with Crawl4AI integration
 - **RAG (Retrieval-Augmented Generation)** with Claude API
+- **Natural AI Agent** - see [SIMPLE_TILE_AGENT.md](SIMPLE_TILE_AGENT.md)
 - **Dual database architecture** (Relational + Vector)
 - **Comprehensive monitoring** and management dashboard
 

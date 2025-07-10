@@ -137,7 +137,6 @@ Be conversational and natural - like talking to a knowledgeable friend who works
             # If phone number is provided, enhance the user message
             if phone_number:
                 user_message += f"\n\nMy phone number is: {phone_number}"
-                logger.info(f"Enhanced user message with phone number: {user_message}")
             
             # Build conversation for Claude
             messages = []
