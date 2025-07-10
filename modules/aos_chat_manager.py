@@ -447,19 +447,45 @@ Should we move forward with calculating the exact quantities you'll need and get
         # **NEW: Extract purchase indicators and product mentions**
         # Detect if customer mentions they bought something
         purchase_indicators = ['bought', 'purchased', 'got from you', 'ordered', 'i have', 'already have']
-        if any(indicator in query_lower for indicator in purchase_indicators):
-            extracted['mentions_purchase'] = True
-            
-            # Extract specific product mentions
-            product_keywords = ['permat', 'backer-lite', 'heat mat', 'thinset', 'grout', 'tile', 'adhesive', 'mortar']
-            for keyword in product_keywords:
-                if keyword in query_lower:
-                    extracted['mentioned_product'] = keyword
-                    break
+        explicit_purchase_mention = any(indicator in query_lower for indicator in purchase_indicators)
         
         # Detect if customer is asking for installation help
         installation_help_indicators = ['how to install', 'installation', 'how do i', 'instructions', 'help with']
-        if any(indicator in query_lower for indicator in installation_help_indicators):
+        needs_installation_help = any(indicator in query_lower for indicator in installation_help_indicators)
+        
+        # Extract specific product mentions
+        # Prioritize specific products over generic ones
+        specific_products = ['permat', 'backer-lite', 'heat mat', 'thinset', 'grout', 'adhesive', 'mortar']
+        generic_products = ['tile']
+        
+        mentioned_product = None
+        
+        # Check specific products first
+        for keyword in specific_products:
+            if keyword in query_lower:
+                mentioned_product = keyword
+                break
+        
+        # If no specific product found, check generic products only if installation help is requested
+        if not mentioned_product and needs_installation_help:
+            for keyword in generic_products:
+                if keyword in query_lower:
+                    mentioned_product = keyword
+                    break
+        
+        # Set purchase verification flags
+        if explicit_purchase_mention:
+            extracted['mentions_purchase'] = True
+            if mentioned_product:
+                extracted['mentioned_product'] = mentioned_product
+        elif needs_installation_help and mentioned_product and mentioned_product in specific_products:
+            # If asking for installation help with a specific product (not generic), assume they own it
+            extracted['mentions_purchase'] = True
+            extracted['mentioned_product'] = mentioned_product
+            extracted['installation_inquiry'] = True  # Flag to indicate this came from installation request
+        
+        # Set installation help flag
+        if needs_installation_help:
             extracted['needs_installation_help'] = True
         
         return extracted
@@ -650,7 +676,12 @@ Should we move forward with calculating the exact quantities you'll need and get
         # If customer mentions purchase but no customer info, request phone number
         if extracted_info.get('mentions_purchase') and not customer:
             result['needs_phone_number'] = True
-            result['response'] = """I'd be happy to help you with your installation! To provide you with the most accurate guidance, could you please provide your phone number so I can look up your purchase history and make sure I'm giving you the right instructions for the specific product you bought?"""
+            
+            # Customize message based on whether this is an installation inquiry
+            if extracted_info.get('installation_inquiry'):
+                result['response'] = f"""I'd be happy to help you with installing {extracted_info.get('mentioned_product', 'your product')}! To provide you with the most accurate installation instructions, could you please provide your phone number so I can look up your purchase history and make sure I'm giving you the right guidance for the specific product you bought?"""
+            else:
+                result['response'] = """I'd be happy to help you with your installation! To provide you with the most accurate guidance, could you please provide your phone number so I can look up your purchase history and make sure I'm giving you the right instructions for the specific product you bought?"""
             return result
         
         # If we have customer info and they mentioned a purchase, verify it
@@ -669,7 +700,15 @@ Should we move forward with calculating the exact quantities you'll need and get
                 # Customer bought exactly what they mentioned
                 purchased_product = product_match['exact_match']
                 result['purchase_verified'] = True
-                result['response'] = f"""Perfect! I can see you purchased {purchased_product['product_name']} on {purchased_product['order_date']}. I'll provide you with the specific installation instructions for this product."""
+                
+                # Add installation guidance if this is an installation inquiry
+                if extracted_info.get('installation_inquiry'):
+                    installation_guidance = self._get_installation_guidance(product_match)
+                    result['response'] = f"""Perfect! I can see you purchased {purchased_product['product_name']} on {purchased_product['order_date']}. Here are the specific installation instructions for your product:
+
+{installation_guidance}"""
+                else:
+                    result['response'] = f"""Perfect! I can see you purchased {purchased_product['product_name']} on {purchased_product['order_date']}. I'll provide you with the specific installation instructions for this product."""
                 
             elif product_match['customer_has_related']:
                 # Customer bought related products
@@ -678,7 +717,15 @@ Should we move forward with calculating the exact quantities you'll need and get
                 category = related_purchase['category']
                 
                 result['purchase_verified'] = True
-                result['response'] = f"""I see you mentioned "{mentioned_product}", but I found that you actually purchased {purchased_product['product_name']} on {purchased_product['order_date']}, which is a {category} product - very similar to what you mentioned! Let me provide you with the correct installation instructions for the {purchased_product['product_name']} that you actually bought."""
+                
+                # Add installation guidance if this is an installation inquiry
+                if extracted_info.get('installation_inquiry'):
+                    installation_guidance = self._get_installation_guidance(product_match)
+                    result['response'] = f"""I see you mentioned "{mentioned_product}", but I found that you actually purchased {purchased_product['product_name']} on {purchased_product['order_date']}, which is a {category} product - very similar to what you mentioned! Here are the correct installation instructions for the {purchased_product['product_name']} that you actually bought:
+
+{installation_guidance}"""
+                else:
+                    result['response'] = f"""I see you mentioned "{mentioned_product}", but I found that you actually purchased {purchased_product['product_name']} on {purchased_product['order_date']}, which is a {category} product - very similar to what you mentioned! Let me provide you with the correct installation instructions for the {purchased_product['product_name']} that you actually bought."""
                 
             else:
                 # No matching purchase found
@@ -727,11 +774,11 @@ Should we move forward with calculating the exact quantities you'll need and get
                         # Add verification info to session
                         session['purchase_verification'] = verification_result['verification_result']
                         
-                        # For installation help, provide specific guidance
+                        # For installation help, the guidance is already included in verification_result['response']
                         if extracted_info.get('needs_installation_help'):
                             return {
                                 'success': True,
-                                'response': verification_result['response'] + self._get_installation_guidance(verification_result['verification_result']),
+                                'response': verification_result['response'],
                                 'purchase_verified': True,
                                 'verification_result': verification_result['verification_result'],
                                 'phase': 'installation_support'
@@ -766,8 +813,16 @@ Should we move forward with calculating the exact quantities you'll need and get
     
     def _get_installation_guidance(self, verification_result: Dict) -> str:
         """Get specific installation guidance based on verified purchase"""
+        product = None
+        
+        # Check exact match first
         if verification_result.get('exact_match'):
             product = verification_result['exact_match']
+        # Check related products
+        elif verification_result.get('customer_has_related'):
+            product = verification_result['customer_has_related'][0]['purchased_product']
+        
+        if product:
             product_name = product['product_name'].upper()
             
             if 'ANTI-FRACTURE' in product_name or 'BACKER-LITE' in product_name or 'PERMAT' in product_name:
