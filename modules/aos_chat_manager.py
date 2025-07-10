@@ -135,18 +135,125 @@ class AOSChatManager:
         
         # Conversation state tracking
         self.current_sessions = {}  # In-memory session state
+        
+        # Initialize LLM for conversational responses
+        self.llm_client = None
+        self._initialize_llm()
+    
+    def _initialize_llm(self):
+        """Initialize LLM client for conversational responses"""
+        try:
+            import anthropic
+            import os
+            
+            api_key = os.getenv('ANTHROPIC_API_KEY')
+            if api_key:
+                self.llm_client = anthropic.Anthropic(api_key=api_key)
+                logger.info("LLM client initialized for conversational AOS responses")
+        except Exception as e:
+            logger.warning(f"Could not initialize LLM client: {e}")
+            self.llm_client = None
+    
+    def generate_conversational_response(self, aos_response: str, query: str, aos_phase: str, customer_info: Dict = None) -> str:
+        """Generate a more conversational version of the AOS response using LLM"""
+        if not self.llm_client:
+            return aos_response
+            
+        try:
+            customer_name = customer_info.get('first_name', '') if customer_info else ''
+            
+            prompt = f"""You are a friendly, conversational tile expert at The Tile Shop. Transform the following structured AOS response into a more natural, conversational response that maintains the same information and sales process but sounds more human and engaging.
+
+Customer Query: "{query}"
+AOS Phase: {aos_phase}
+Customer Name: {customer_name or 'Unknown'}
+
+Original AOS Response:
+{aos_response}
+
+Transform this into a conversational response that:
+1. Sounds natural and friendly
+2. Maintains all the essential information and questions
+3. Uses a warm, helpful tone
+4. Guides the customer naturally through the sales process
+5. Includes the customer's name if available
+6. Feels like talking to a knowledgeable friend, not a script
+
+Keep the response concise but warm. If there are specific questions or next steps, make them feel like natural conversation rather than a checklist."""
+
+            response = self.llm_client.messages.create(
+                model="claude-3-haiku-20240307",
+                max_tokens=400,
+                messages=[{"role": "user", "content": prompt}]
+            )
+            
+            conversational_response = response.content[0].text
+            logger.info(f"Generated conversational response for {aos_phase} phase")
+            return conversational_response
+            
+        except Exception as e:
+            logger.error(f"Error generating conversational response: {e}")
+            return aos_response
     
     def detect_aos_phase(self, query: str, conversation_context: Dict = None) -> str:
-        """Detect which AOS phase we're in based on query and context"""
+        """Detect which AOS phase we're in based on query and conversation history"""
         query_lower = query.lower().strip()
         
+        # If we have conversation context, use it to make smarter decisions
+        if conversation_context:
+            current_phase = conversation_context.get('current_phase', 'greeting')
+            collected_info = conversation_context.get('collected_info', {})
+            conversation_history = conversation_context.get('conversation_history', [])
+            
+            # Check if customer has provided their name and we're past greeting
+            if (current_phase == 'greeting' and 
+                conversation_context.get('customer', {}).get('first_name') and
+                len(conversation_history) > 0):
+                # If customer is providing project details, move to needs assessment
+                if any(pattern in query_lower for pattern in ['looking for', 'need', 'want', 'floor', 'bathroom', 'kitchen', 'tile', 'diy', 'contractor']):
+                    return 'needs_assessment'
+                # If customer is providing name/phone info, stay in greeting
+                elif any(pattern in query_lower for pattern in ['847', '302', '2594', 'robert']) and len(query_lower.split()) <= 3:
+                    return 'greeting'
+            
+            # If we're in needs assessment and have some info, check for progression
+            if current_phase == 'needs_assessment':
+                # Count how much info we have collected
+                info_fields = ['project_type', 'installation_method', 'project_timeline', 'budget_range', 'surface_area_sf']
+                collected_count = sum(1 for field in info_fields if collected_info.get(field))
+                
+                # If we have most info and customer is asking about products, move to design
+                if collected_count >= 2 and any(pattern in query_lower for pattern in ['show me', 'options', 'styles', 'colors', 'which tile', 'recommend']):
+                    return 'design_details'
+                # If customer is asking about pricing, move to close
+                elif any(pattern in query_lower for pattern in ['price', 'cost', 'how much', 'quote']):
+                    return 'close'
+                # Otherwise stay in needs assessment
+                else:
+                    return 'needs_assessment'
+            
+            # If we're in design phase and customer is asking about pricing/ordering
+            if current_phase == 'design_details':
+                if any(pattern in query_lower for pattern in ['price', 'cost', 'order', 'buy', 'purchase', 'how much', 'quote']):
+                    return 'close'
+                else:
+                    return 'design_details'
+            
+            # If we're in close phase, stay there unless customer has new questions
+            if current_phase == 'close':
+                if any(pattern in query_lower for pattern in ['show me', 'options', 'different', 'other']):
+                    return 'design_details'
+                else:
+                    return 'close'
+        
+        # Fallback to pattern matching for new conversations
         # Greeting indicators
         greeting_patterns = ['hello', 'hi', 'hey', 'good morning', 'good afternoon', 'welcome']
         if any(pattern in query_lower for pattern in greeting_patterns):
             return 'greeting'
         
         # Needs assessment indicators
-        needs_patterns = ['looking for', 'need', 'want', 'project', 'renovating', 'redoing', 'installing']
+        needs_patterns = ['looking for', 'need', 'want', 'project', 'renovating', 'redoing', 'installing', 'floor', 'bathroom', 'kitchen']
         if any(pattern in query_lower for pattern in needs_patterns):
             return 'needs_assessment'
         
@@ -160,17 +267,19 @@ class AOSChatManager:
         if any(pattern in query_lower for pattern in close_patterns):
             return 'close'
         
-        # Default based on conversation context
-        if conversation_context:
-            return conversation_context.get('current_phase', 'greeting')
-        
+        # Default to greeting for new conversations
         return 'greeting'
     
-    def handle_greeting_phase(self, query: str, customer: Dict = None) -> str:
+    def handle_greeting_phase(self, query: str, customer: Dict = None, conversation_context: Dict = None) -> str:
         """Handle AOS greeting phase"""
-        if customer:
-            customer_name = customer['first_name'] if customer else "Welcome"
-            return f"Welcome back, {customer_name}! I'm excited to help you with your tile project today. What brings you back to The Tile Shop?"
+        # Check if this is a returning customer or if we already have their info
+        if customer and customer.get('first_name'):
+            customer_name = customer['first_name']
+            # Check if this is truly a greeting or if customer is providing project info
+            if any(pattern in query.lower() for pattern in ['looking for', 'need', 'want', 'floor', 'bathroom', 'kitchen', 'tile']):
+                return f"Perfect, {customer_name}! I can see you're interested in tiles for your project. Let me help you find exactly what you need. What type of space are you working on?"
+            else:
+                return f"Welcome back, {customer_name}! I'm excited to help you with your tile project today. What brings you back to The Tile Shop?"
         else:
             return """Hello! Welcome to The Tile Shop. I'm here to help you find the perfect tile solution for your project. 
 
@@ -206,7 +315,7 @@ May I have your name and phone number so I can provide you with personalized ass
             
             elif first_missing == 'WHO':
                 customer_name = customer['first_name'] if customer else "Great"
-                return f"""Great information, {customer_name}! 
+                return f"""Excellent, {customer_name}! 
 
 **WHO**: Are you planning to install this yourself, or will you be working with a contractor? If DIY, have you done tile work before?"""
             
@@ -365,7 +474,7 @@ Should we move forward with calculating the exact quantities you'll need and get
         )
     
     def get_or_create_customer_session(self, phone_number: str, first_name: str = None) -> Dict:
-        """Get or create customer and return session data"""
+        """Get or create customer and return session data with persistent conversation state"""
         try:
             # Get or create customer
             customer = self.db.get_or_create_customer(phone_number, first_name)
@@ -379,11 +488,16 @@ Should we move forward with calculating the exact quantities you'll need and get
                 {'project_name': 'AI Chat Session'}
             )
             
-            return {
-                'customer': customer,
-                'project_id': project_id,
-                'collected_info': {},
-                'conversation_data': {
+            # Get or create conversation session with persistent state
+            conversation_session = self.db.get_or_create_conversation_session(project_id)
+            
+            if not conversation_session:
+                logger.error("Failed to create conversation session")
+                return None
+            
+            # Initialize conversation_data if not present or if new session
+            if conversation_session.get('is_new_session', False) or not conversation_session.get('conversation_data'):
+                conversation_session['conversation_data'] = {
                     'customer_name': customer['first_name'] if customer else None,
                     'name_usage_count': 0,
                     'project_inquiry_made': False,
@@ -392,10 +506,115 @@ Should we move forward with calculating the exact quantities you'll need and get
                     'benefits_explained': 0,
                     'concerns_addressed': 0,
                     'selection_made': False
-                },
-                'current_phase': 'greeting'
+                }
+            
+            # Merge customer and session data
+            session_data = {
+                'customer': customer,
+                'project_id': project_id,
+                'session_id': conversation_session['session_id'],
+                'current_phase': conversation_session['current_phase'],
+                'collected_info': conversation_session['collected_info'],
+                'conversation_data': conversation_session['conversation_data'],
+                'conversation_history': conversation_session['conversation_history'],
+                'is_new_session': conversation_session.get('is_new_session', False)
             }
+            
+            return session_data
             
         except Exception as e:
             logger.error(f"Error creating customer session: {e}")
             return None
+    
+    def process_chat_message(self, query: str, phone_number: str, first_name: str = None) -> Dict[str, Any]:
+        """Process a chat message with full conversation context and state persistence"""
+        try:
+            # Get or create customer session with persistent state
+            session = self.get_or_create_customer_session(phone_number, first_name)
+            if not session:
+                return {
+                    'success': False,
+                    'error': 'Failed to create customer session',
+                    'response': 'I apologize, but I\'m having trouble accessing our system. Please try again.'
+                }
+            
+            # Extract information from current query
+            extracted_info = self.extract_information_from_query(query)
+            
+            # Update collected info with newly extracted information
+            collected_info = session.get('collected_info', {})
+            collected_info.update(extracted_info)
+            
+            # Add current exchange to conversation history
+            conversation_history = session.get('conversation_history', [])
+            conversation_history.append({
+                'user_input': query,
+                'timestamp': datetime.now().isoformat(),
+                'extracted_info': extracted_info
+            })
+            
+            # Detect the appropriate phase using full conversation context
+            phase_before = session.get('current_phase', 'greeting')
+            current_phase = self.detect_aos_phase(query, session)
+            
+            # Generate response based on phase
+            if current_phase == 'greeting':
+                response = self.handle_greeting_phase(query, session.get('customer'), session)
+            elif current_phase == 'needs_assessment':
+                response = self.handle_needs_assessment(query, session.get('customer'), collected_info)
+            elif current_phase == 'design_details':
+                response = self.handle_design_phase(query, session.get('customer'), None)
+            elif current_phase == 'close':
+                response = self.handle_close_phase(query, session.get('customer'), None)
+            else:
+                response = self.handle_greeting_phase(query, session.get('customer'), session)
+            
+            # Update conversation data
+            conversation_data = session.get('conversation_data', {})
+            conversation_data['name_usage_count'] = conversation_data.get('name_usage_count', 0) + (1 if session.get('customer', {}).get('first_name') in response else 0)
+            conversation_data['project_inquiry_made'] = True if any(word in query.lower() for word in ['project', 'tile', 'floor', 'kitchen', 'bathroom']) else conversation_data.get('project_inquiry_made', False)
+            
+            # Add AI response to conversation history
+            conversation_history.append({
+                'ai_response': response,
+                'timestamp': datetime.now().isoformat(),
+                'phase': current_phase
+            })
+            
+            # Update session state in database
+            self.db.update_conversation_session(
+                session['session_id'],
+                current_phase,
+                collected_info,
+                conversation_data,
+                conversation_history
+            )
+            
+            # Add conversation turn to database
+            self.db.add_conversation_turn(
+                session['session_id'],
+                len(conversation_history) // 2,  # Each turn has user input + AI response
+                query,
+                response,
+                extracted_info,
+                phase_before,
+                current_phase
+            )
+            
+            return {
+                'success': True,
+                'response': response,
+                'session_id': session['session_id'],
+                'current_phase': current_phase,
+                'collected_info': collected_info,
+                'conversation_data': conversation_data,
+                'phase_changed': phase_before != current_phase
+            }
+            
+        except Exception as e:
+            logger.error(f"Error processing chat message: {e}")
+            return {
+                'success': False,
+                'error': str(e),
+                'response': 'I apologize, but I\'m experiencing some technical difficulties. Please try again.'
+            }

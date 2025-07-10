@@ -1305,3 +1305,152 @@ class DatabaseManager:
                 'error': str(e),
                 'found': False
             }
+    
+    # Conversation Session Management Methods
+    def get_or_create_conversation_session(self, project_id: str) -> Dict[str, Any]:
+        """Get or create a conversation session for a project"""
+        try:
+            conn = self.get_connection()
+            cursor = conn.cursor()
+            
+            # First, try to get existing active session
+            cursor.execute("""
+                SELECT session_id, current_phase, collected_info, conversation_data, 
+                       conversation_history, last_interaction
+                FROM conversation_sessions
+                WHERE project_id = %s AND session_status = 'active'
+                ORDER BY last_interaction DESC
+                LIMIT 1
+            """, (project_id,))
+            
+            result = cursor.fetchone()
+            
+            if result:
+                # Return existing session
+                session_data = {
+                    'session_id': str(result[0]),
+                    'project_id': project_id,
+                    'current_phase': result[1],
+                    'collected_info': result[2] if result[2] else {},
+                    'conversation_data': result[3] if result[3] else {},
+                    'conversation_history': result[4] if result[4] else [],
+                    'last_interaction': result[5],
+                    'is_new_session': False
+                }
+                
+                cursor.close()
+                conn.close()
+                return session_data
+            
+            else:
+                # Create new session
+                cursor.execute("""
+                    INSERT INTO conversation_sessions (project_id, current_phase, collected_info, 
+                                                     conversation_data, conversation_history)
+                    VALUES (%s, %s, %s, %s, %s)
+                    RETURNING session_id
+                """, (project_id, 'greeting', json.dumps({}), json.dumps({}), json.dumps([])))
+                
+                session_id = cursor.fetchone()[0]
+                conn.commit()
+                cursor.close()
+                conn.close()
+                
+                return {
+                    'session_id': str(session_id),
+                    'project_id': project_id,
+                    'current_phase': 'greeting',
+                    'collected_info': {},
+                    'conversation_data': {},
+                    'conversation_history': [],
+                    'is_new_session': True
+                }
+                
+        except Exception as e:
+            logger.error(f"Error getting/creating conversation session: {e}")
+            return None
+    
+    def update_conversation_session(self, session_id: str, current_phase: str, 
+                                  collected_info: Dict, conversation_data: Dict,
+                                  conversation_history: List) -> bool:
+        """Update conversation session state"""
+        try:
+            conn = self.get_connection()
+            cursor = conn.cursor()
+            
+            cursor.execute("""
+                UPDATE conversation_sessions
+                SET current_phase = %s, collected_info = %s, conversation_data = %s,
+                    conversation_history = %s, last_interaction = CURRENT_TIMESTAMP
+                WHERE session_id = %s
+            """, (current_phase, json.dumps(collected_info), json.dumps(conversation_data),
+                  json.dumps(conversation_history), session_id))
+            
+            conn.commit()
+            cursor.close()
+            conn.close()
+            
+            return True
+            
+        except Exception as e:
+            logger.error(f"Error updating conversation session: {e}")
+            return False
+    
+    def add_conversation_turn(self, session_id: str, turn_number: int, user_input: str,
+                            ai_response: str, extracted_info: Dict, phase_before: str,
+                            phase_after: str) -> bool:
+        """Add a conversation turn to the database"""
+        try:
+            conn = self.get_connection()
+            cursor = conn.cursor()
+            
+            cursor.execute("""
+                INSERT INTO conversation_turns (session_id, turn_number, user_input, ai_response,
+                                              extracted_info, phase_before, phase_after)
+                VALUES (%s, %s, %s, %s, %s, %s, %s)
+            """, (session_id, turn_number, user_input, ai_response, json.dumps(extracted_info),
+                  phase_before, phase_after))
+            
+            conn.commit()
+            cursor.close()
+            conn.close()
+            
+            return True
+            
+        except Exception as e:
+            logger.error(f"Error adding conversation turn: {e}")
+            return False
+    
+    def get_conversation_session(self, session_id: str) -> Dict[str, Any]:
+        """Get a specific conversation session"""
+        try:
+            conn = self.get_connection()
+            cursor = conn.cursor()
+            
+            cursor.execute("""
+                SELECT session_id, project_id, current_phase, collected_info, 
+                       conversation_data, conversation_history, last_interaction
+                FROM conversation_sessions
+                WHERE session_id = %s
+            """, (session_id,))
+            
+            result = cursor.fetchone()
+            cursor.close()
+            conn.close()
+            
+            if result:
+                return {
+                    'session_id': str(result[0]),
+                    'project_id': str(result[1]),
+                    'current_phase': result[2],
+                    'collected_info': result[3] if result[3] else {},
+                    'conversation_data': result[4] if result[4] else {},
+                    'conversation_history': result[5] if result[5] else [],
+                    'last_interaction': result[6]
+                }
+            else:
+                return None
+                
+        except Exception as e:
+            logger.error(f"Error getting conversation session: {e}")
+            return None

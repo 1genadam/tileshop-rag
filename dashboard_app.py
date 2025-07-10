@@ -1092,13 +1092,32 @@ def unified_chat_api():
         # Initialize AOS chat manager
         aos_chat = AOSChatManager(db_manager)
         
-        # Handle customer session
+        # Use the new conversation processing method if phone number provided
         if phone_number:
-            customer_session = aos_chat.get_or_create_customer_session(phone_number, first_name)
-            if not customer_session:
-                return jsonify({'success': False, 'error': 'Could not create customer session'})
+            # Use the enhanced conversation processing method
+            chat_result = aos_chat.process_chat_message(query, phone_number, first_name)
+            
+            if not chat_result['success']:
+                return jsonify(chat_result)
+            
+            # Check if we need RAG knowledge system for product recommendations
+            if any(keyword in query.lower() for keyword in [
+                'show me', 'find', 'search', 'sku', 'price', 'cost', 'specifications', 
+                'dcof', 'slip resistant', 'calculate', 'how much', 'what tile',
+                'recommend', 'similar', 'compare', 'alternatives'
+            ]):
+                # Get RAG response for product information
+                rag_response = simple_rag.search_and_respond(query, user_id)
+                
+                # If we have products in RAG response, integrate them
+                if rag_response and 'products' in rag_response:
+                    chat_result['products'] = rag_response['products']
+                    chat_result['rag_response'] = rag_response.get('response', '')
+            
+            return jsonify(chat_result)
+        
         else:
-            # Anonymous session
+            # Anonymous session - use original logic
             customer_session = {
                 'customer': None,
                 'project_id': None,
@@ -1137,35 +1156,43 @@ def unified_chat_api():
             if use_rag_knowledge and rag_response:
                 # Blend greeting with product knowledge
                 aos_greeting = aos_chat.handle_greeting_phase(query, customer_session['customer'])
-                response = f"{aos_greeting}\n\n{rag_response}"
+                combined_response = f"{aos_greeting}\n\n{rag_response}"
+                response = aos_chat.generate_conversational_response(combined_response, query, aos_phase, customer_session['customer'])
             else:
-                response = aos_chat.handle_greeting_phase(query, customer_session['customer'])
+                aos_greeting = aos_chat.handle_greeting_phase(query, customer_session['customer'])
+                response = aos_chat.generate_conversational_response(aos_greeting, query, aos_phase, customer_session['customer'])
                 
         elif aos_phase == 'needs_assessment':
             if use_rag_knowledge and rag_response:
                 # Use RAG knowledge to enhance needs assessment
                 needs_response = aos_chat.handle_needs_assessment(query, customer_session['customer'], customer_session['collected_info'])
-                response = f"{needs_response}\n\n**Product Information:**\n{rag_response}"
+                combined_response = f"{needs_response}\n\n**Product Information:**\n{rag_response}"
+                response = aos_chat.generate_conversational_response(combined_response, query, aos_phase, customer_session['customer'])
             else:
-                response = aos_chat.handle_needs_assessment(query, customer_session['customer'], customer_session['collected_info'])
+                needs_response = aos_chat.handle_needs_assessment(query, customer_session['customer'], customer_session['collected_info'])
+                response = aos_chat.generate_conversational_response(needs_response, query, aos_phase, customer_session['customer'])
                 
         elif aos_phase == 'design_details':
             if use_rag_knowledge and rag_response:
                 # RAG system handles product details, AOS structures the sales approach
                 design_intro = f"Perfect! Based on your {customer_session['collected_info'].get('project_type', 'project')}, here are some excellent options:"
-                response = f"{design_intro}\n\n{rag_response}"
+                combined_response = f"{design_intro}\n\n{rag_response}"
+                response = aos_chat.generate_conversational_response(combined_response, query, aos_phase, customer_session['customer'])
             else:
                 # Fallback to basic product search
                 products = rag_manager.search_products(query, limit=3)
-                response = aos_chat.handle_design_phase(query, customer_session['customer'], products)
+                design_response = aos_chat.handle_design_phase(query, customer_session['customer'], products)
+                response = aos_chat.generate_conversational_response(design_response, query, aos_phase, customer_session['customer'])
                 
         elif aos_phase == 'close':
             if use_rag_knowledge and rag_response:
                 # Use RAG for pricing/calculations, AOS for closing
                 close_response = aos_chat.handle_close_phase(query, customer_session['customer'])
-                response = f"{rag_response}\n\n{close_response}"
+                combined_response = f"{rag_response}\n\n{close_response}"
+                response = aos_chat.generate_conversational_response(combined_response, query, aos_phase, customer_session['customer'])
             else:
-                response = aos_chat.handle_close_phase(query, customer_session['customer'])
+                close_response = aos_chat.handle_close_phase(query, customer_session['customer'])
+                response = aos_chat.generate_conversational_response(close_response, query, aos_phase, customer_session['customer'])
         else:
             # Default: Use full RAG system with AOS context
             if rag_response:
