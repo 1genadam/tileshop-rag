@@ -11,6 +11,7 @@ from typing import Dict, List, Any, Optional
 from datetime import datetime, date
 import anthropic
 from .aos_conversation_engine import AOSConversationEngine, ConversationContext
+from .nepq_scoring_system import NEPQScoringSystem, ConversationAnalysis
 
 logger = logging.getLogger(__name__)
 
@@ -30,6 +31,7 @@ class SimpleTileAgent:
         self.rag = rag_manager
         self.client = anthropic.Anthropic()
         self.aos_engine = AOSConversationEngine()
+        self.nepq_scorer = NEPQScoringSystem()
         
         # Core Component 1: System Prompt
         self.system_prompt = """You are Alex, a professional tile specialist at The Tile Shop. I help customers create beautiful tile installations and have helped hundreds of families find perfect solutions for their projects.
@@ -1035,11 +1037,15 @@ Be conversational and knowledgeable - like a trusted tile expert who's helping t
 {result['urgency_close']}"""
                             assistant_response += close_response
             
+            # Generate NEPQ conversation analysis and scoring
+            nepq_analysis = self._generate_nepq_analysis(messages, phone_number)
+            
             return {
                 "success": True,
                 "response": assistant_response,
                 "tool_calls": tool_results,
-                "conversation_updated": True
+                "conversation_updated": True,
+                "nepq_analysis": nepq_analysis
             }
             
         except Exception as e:
@@ -1049,3 +1055,174 @@ Be conversational and knowledgeable - like a trusted tile expert who's helping t
                 "error": str(e),
                 "response": "I apologize, but I'm experiencing some technical difficulties. Please try again."
             }
+
+    def _generate_nepq_analysis(self, conversation_history: List[Dict], phone_number: str = None) -> Dict[str, Any]:
+        """Generate NEPQ conversation analysis and scoring"""
+        try:
+            # Extract customer info
+            customer_info = {
+                'phone': phone_number or 'unknown',
+                'name': self._extract_customer_name(conversation_history),
+                'mode': 'customer'  # Default mode, can be enhanced later
+            }
+            
+            # Generate comprehensive NEPQ analysis
+            analysis = self.nepq_scorer.analyze_conversation(conversation_history, customer_info)
+            
+            # Generate performance report
+            report = self.nepq_scorer.generate_report(analysis)
+            
+            # Save analysis to file for tracking (optional)
+            try:
+                file_path = f"reports/nepq_analysis_{analysis.conversation_id}.json"
+                self.nepq_scorer.save_analysis(analysis, file_path)
+            except Exception as e:
+                logger.warning(f"Could not save NEPQ analysis: {e}")
+            
+            # Return analysis summary for immediate use
+            return {
+                "conversation_id": analysis.conversation_id,
+                "overall_score": analysis.overall_score,
+                "stage_scores": {
+                    "connection": analysis.connection_score.score,
+                    "problem_awareness": analysis.problem_awareness_score.score,
+                    "consequence_discovery": analysis.consequence_discovery_score.score,
+                    "solution_awareness": analysis.solution_awareness_score.score,
+                    "qualifying_questions": analysis.qualifying_questions_score.score,
+                    "objection_handling": analysis.objection_handling_score.score,
+                    "commitment_stage": analysis.commitment_stage_score.score
+                },
+                "performance_grade": self._calculate_performance_grade(analysis.overall_score),
+                "top_strengths": analysis.strengths[:3],  # Top 3 strengths
+                "improvement_focus": analysis.next_conversation_focus[:2],  # Top 2 focus areas
+                "detailed_report": report,
+                "metrics": {
+                    "questions_asked": analysis.questions_asked,
+                    "objections_encountered": analysis.objections_encountered,
+                    "objections_resolved": analysis.objections_resolved,
+                    "conversation_length": analysis.conversation_length
+                }
+            }
+            
+        except Exception as e:
+            logger.error(f"Error generating NEPQ analysis: {e}")
+            return {
+                "error": str(e),
+                "overall_score": 0,
+                "performance_grade": "Error",
+                "stage_scores": {},
+                "improvement_focus": ["Fix analysis system"]
+            }
+    
+    def _extract_customer_name(self, conversation_history: List[Dict]) -> str:
+        """Extract customer name from conversation"""
+        import re
+        
+        for message in conversation_history:
+            if message.get('role') == 'user':
+                content = message.get('content', '').lower()
+                
+                # Look for name patterns
+                name_patterns = [
+                    r"my name is (\w+)",
+                    r"i'm (\w+)",
+                    r"call me (\w+)",
+                    r"this is (\w+)"
+                ]
+                
+                for pattern in name_patterns:
+                    match = re.search(pattern, content)
+                    if match:
+                        return match.group(1).title()
+        
+        return "Unknown"
+    
+    def _calculate_performance_grade(self, overall_score: float) -> str:
+        """Calculate letter grade based on overall score"""
+        if overall_score >= 90:
+            return "A+ (Excellent)"
+        elif overall_score >= 80:
+            return "A (Very Good)"
+        elif overall_score >= 70:
+            return "B (Good)"
+        elif overall_score >= 60:
+            return "C (Acceptable)"
+        elif overall_score >= 50:
+            return "D (Needs Improvement)"
+        else:
+            return "F (Poor)"
+    
+    def generate_self_analysis_report(self, conversation_history: List[Dict], phone_number: str = None) -> str:
+        """Generate comprehensive self-analysis report for agent improvement"""
+        try:
+            nepq_analysis = self._generate_nepq_analysis(conversation_history, phone_number)
+            
+            report = f"""
+# 🤖 AI Agent Self-Analysis Report
+
+**Conversation ID:** {nepq_analysis.get('conversation_id', 'N/A')}
+**Timestamp:** {datetime.now().strftime('%Y-%m-%d %H:%M:%S')}
+**Overall Performance:** {nepq_analysis.get('overall_score', 0):.1f}/100 ({nepq_analysis.get('performance_grade', 'N/A')})
+
+## 📊 NEPQ Stage Performance (7-Point Scale)
+
+| Stage | Score | Performance |
+|-------|-------|-------------|
+| Connection & Status | {nepq_analysis['stage_scores'].get('connection', 0)}/10 | {'🟢' if nepq_analysis['stage_scores'].get('connection', 0) >= 8 else '🟡' if nepq_analysis['stage_scores'].get('connection', 0) >= 6 else '🔴'} |
+| Problem Awareness | {nepq_analysis['stage_scores'].get('problem_awareness', 0)}/10 | {'🟢' if nepq_analysis['stage_scores'].get('problem_awareness', 0) >= 8 else '🟡' if nepq_analysis['stage_scores'].get('problem_awareness', 0) >= 6 else '🔴'} |
+| Consequence Discovery | {nepq_analysis['stage_scores'].get('consequence_discovery', 0)}/10 | {'🟢' if nepq_analysis['stage_scores'].get('consequence_discovery', 0) >= 8 else '🟡' if nepq_analysis['stage_scores'].get('consequence_discovery', 0) >= 6 else '🔴'} |
+| Solution Awareness | {nepq_analysis['stage_scores'].get('solution_awareness', 0)}/10 | {'🟢' if nepq_analysis['stage_scores'].get('solution_awareness', 0) >= 8 else '🟡' if nepq_analysis['stage_scores'].get('solution_awareness', 0) >= 6 else '🔴'} |
+| Qualifying Questions | {nepq_analysis['stage_scores'].get('qualifying_questions', 0)}/10 | {'🟢' if nepq_analysis['stage_scores'].get('qualifying_questions', 0) >= 8 else '🟡' if nepq_analysis['stage_scores'].get('qualifying_questions', 0) >= 6 else '🔴'} |
+| Objection Handling | {nepq_analysis['stage_scores'].get('objection_handling', 0)}/10 | {'🟢' if nepq_analysis['stage_scores'].get('objection_handling', 0) >= 8 else '🟡' if nepq_analysis['stage_scores'].get('objection_handling', 0) >= 6 else '🔴'} |
+| Commitment Stage | {nepq_analysis['stage_scores'].get('commitment_stage', 0)}/10 | {'🟢' if nepq_analysis['stage_scores'].get('commitment_stage', 0) >= 8 else '🟡' if nepq_analysis['stage_scores'].get('commitment_stage', 0) >= 6 else '🔴'} |
+
+## 📈 Conversation Metrics
+
+- **Questions Asked:** {nepq_analysis['metrics'].get('questions_asked', 0)}
+- **Objections Encountered:** {nepq_analysis['metrics'].get('objections_encountered', 0)}
+- **Objections Resolved:** {nepq_analysis['metrics'].get('objections_resolved', 0)}
+- **Resolution Rate:** {(nepq_analysis['metrics'].get('objections_resolved', 0) / max(1, nepq_analysis['metrics'].get('objections_encountered', 1))) * 100:.1f}%
+- **Total Exchanges:** {nepq_analysis['metrics'].get('conversation_length', 0)}
+
+## 🎯 Performance Strengths
+
+{chr(10).join(f"• {strength}" for strength in nepq_analysis.get('top_strengths', ['No strengths identified']))}
+
+## 🔧 Priority Improvement Areas
+
+{chr(10).join(f"• {focus}" for focus in nepq_analysis.get('improvement_focus', ['No focus areas identified']))}
+
+## 🎓 Learning Recommendations
+
+### Immediate Actions:
+1. **Focus on lowest-scoring NEPQ stage** - Prioritize improvement in weakest area
+2. **Practice emotional engagement** - Use more "feel" vs "think" language
+3. **Improve question ratio** - Aim for 70% prospect talking, 30% agent
+
+### Next Conversation Goals:
+- Increase overall score by 10-15 points
+- Focus specifically on: {', '.join(nepq_analysis.get('improvement_focus', ['general improvement']))}
+- Maintain strengths in: {', '.join(nepq_analysis.get('top_strengths', ['identified strengths']))}
+
+### Training Focus:
+- Review NEPQ methodology for weak stages
+- Practice objection handling using 3-step formula (Clarify → Discuss → Diffuse)
+- Strengthen emotional positioning and internal tension creation
+
+---
+
+## 📋 Detailed Performance Report
+
+{nepq_analysis.get('detailed_report', 'Detailed report not available')}
+
+---
+
+*Self-analysis generated by NEPQ Scoring System v1.0*
+*Report ID: {nepq_analysis.get('conversation_id', 'N/A')}*
+"""
+            
+            return report
+            
+        except Exception as e:
+            logger.error(f"Error generating self-analysis report: {e}")
+            return f"Error generating self-analysis report: {str(e)}"

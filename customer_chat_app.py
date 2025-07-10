@@ -84,13 +84,26 @@ def customer_chat_api():
             customer_name=customer_name
         )
         
+        # Generate self-analysis report if conversation is substantial
+        self_analysis = None
+        if len(conversation_history) >= 3:  # Only analyze substantial conversations
+            try:
+                self_analysis = agent.generate_self_analysis_report(
+                    conversation_history + [{'role': 'user', 'content': query}],
+                    customer_phone
+                )
+            except Exception as e:
+                logger.warning(f"Could not generate self-analysis: {e}")
+        
         return jsonify({
             'success': True,
             'response': result.get('response', ''),
             'tool_calls': result.get('tool_calls', []),
             'mode': 'customer',
             'aos_phase': result.get('aos_phase', 'discovery'),
-            'requirements_complete': result.get('requirements_complete', False)
+            'requirements_complete': result.get('requirements_complete', False),
+            'nepq_analysis': result.get('nepq_analysis', {}),
+            'self_analysis': self_analysis
         })
         
     except Exception as e:
@@ -134,6 +147,68 @@ def get_conversation_detail(phone_number, date):
     except Exception as e:
         logger.error(f"Error getting conversation detail: {e}")
         return jsonify({'success': False, 'error': str(e)})
+
+@app.route('/api/nepq/analysis/<conversation_id>')
+def get_nepq_analysis(conversation_id):
+    """Get NEPQ analysis report for a specific conversation"""
+    try:
+        import os
+        report_file = f"reports/nepq_analysis_{conversation_id}.json"
+        
+        if os.path.exists(report_file):
+            with open(report_file, 'r') as f:
+                analysis_data = json.load(f)
+            return jsonify({
+                'success': True,
+                'analysis': analysis_data
+            })
+        else:
+            return jsonify({
+                'success': False,
+                'error': 'Analysis report not found'
+            })
+            
+    except Exception as e:
+        return jsonify({
+            'success': False,
+            'error': str(e)
+        })
+
+@app.route('/api/nepq/reports')
+def list_nepq_reports():
+    """List all available NEPQ analysis reports"""
+    try:
+        import os
+        import glob
+        
+        report_files = glob.glob("reports/nepq_analysis_*.json")
+        reports = []
+        
+        for file_path in report_files:
+            try:
+                with open(file_path, 'r') as f:
+                    data = json.load(f)
+                reports.append({
+                    'conversation_id': data.get('conversation_id'),
+                    'timestamp': data.get('timestamp'),
+                    'overall_score': data.get('overall_score'),
+                    'customer_name': data.get('customer_name'),
+                    'customer_phone': data.get('customer_phone'),
+                    'file_path': file_path
+                })
+            except Exception as e:
+                logger.warning(f"Could not read report {file_path}: {e}")
+        
+        return jsonify({
+            'success': True,
+            'reports': sorted(reports, key=lambda x: x.get('timestamp', ''), reverse=True)
+        })
+        
+    except Exception as e:
+        return jsonify({
+            'success': False,
+            'error': str(e)
+        })
 
 @app.route('/api/system/health')
 def system_health():

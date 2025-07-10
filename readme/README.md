@@ -14,6 +14,23 @@ This directory contains all system documentation and guides:
 | **ARCHITECTURE.md** | Complete system architecture | Understanding system design and components |
 | **TROUBLESHOOTING.md** | Phase 2 diagnostic troubleshooting | Resolving service issues and errors |
 
+## 🤖 AI Agent & Chat Systems
+
+### Enhanced AOS-NEPQ Hybrid Agent
+- **NEPQ_Objection_Handling_Guide.md** - Comprehensive objection handling reference (52 objections converted to structured markdown)
+- **7-Question Framework**: Name → Room/Dimensions → Problem Awareness → Style → Installation → Timeline → Consequences → Budget
+- **Emotional Discovery**: NEPQ problem awareness and consequence questions for internal tension creation
+- **Facts vs Meanings**: Advanced objection handling using NEPQ methodology
+
+### 3-Mode Chat Applications
+- **Customer Mode** (`customer_chat_app.py`) - Port 8081: `/customer-chat` - Enhanced AOS-NEPQ customer consultation
+- **Salesperson Mode** (`salesperson_chat_app.py`) - Port 8082: `/sales-chat` - SKU search, project organization, upsell management
+- **Contractor Mode** (`contractor_chat_app.py`) - Port 8083: `/pro-chat` - Technical specs, advanced calculations, installation guides
+
+### NEPQ Knowledge Base
+- **knowledge_base/NEPQ/** - Complete NEPQ methodology documents and objection frameworks
+- **Structured for AI Reference** - All 52 objection responses converted from RTF to searchable markdown
+
 ## 🚀 Production Quick Start
 
 ```bash
@@ -30,15 +47,32 @@ http://localhost:8080
 Click "Health Check All (17 Services)" button
 ```
 
+### 🤖 Start Enhanced AI Chat Systems
+
+```bash
+# Start Customer Chat (Enhanced AOS-NEPQ)
+python customer_chat_app.py
+# Access: http://localhost:8081/customer-chat
+
+# Start Salesperson Tools
+python salesperson_chat_app.py  
+# Access: http://localhost:8082/sales-chat
+
+# Start Contractor Tools
+python contractor_chat_app.py
+# Access: http://localhost:8083/pro-chat
+```
+
 ## 🎯 Production System Overview
 
 The Tileshop RAG Production System is a comprehensive intelligence platform featuring:
 
 - **17 monitored services** across 3 categories (Microservices, Runtime, Pre-warming)
-- **Unified diagnostic framework** with standardized health checks
+- **Enhanced AOS-NEPQ Hybrid AI Agent** with 7-question framework and emotional engagement
+- **3-Mode Chat System**: Customer (8081), Salesperson (8082), Contractor (8083)
+- **NEPQ Objection Handling** with structured markdown reference guide
 - **Real-time web scraping** with Crawl4AI integration
 - **RAG (Retrieval-Augmented Generation)** with Claude API
-- **Natural AI Agent** - see [SIMPLE_TILE_AGENT.md](SIMPLE_TILE_AGENT.md)
 - **Dual database architecture** (Relational + Vector)
 - **Comprehensive monitoring** and management dashboard
 
@@ -289,11 +323,14 @@ docker ps --format "table {{.Names}}\t{{.Status}}"
 
 ### Key Modules
 - `modules/service_diagnostic.py` - Diagnostic framework classes
+- `modules/simple_tile_agent.py` - Enhanced AOS-NEPQ hybrid AI agent with 7-question framework
 - `modules/rag_manager.py` - RAG system and Claude API integration
 - `modules/db_manager.py` - Database connection and query management
 - `modules/intelligence_manager.py` - Web scraping and content processing
+- `knowledge_base/NEPQ_Objection_Handling_Guide.md` - Comprehensive objection handling reference
 - `reboot_dashboard.py` - Main dashboard application
 - `templates/dashboard.html` - Web interface
+- Chat Applications: `customer_chat_app.py`, `salesperson_chat_app.py`, `contractor_chat_app.py`
 
 ### Support and Maintenance
 - All services monitored through unified dashboard

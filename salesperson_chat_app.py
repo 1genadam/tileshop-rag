@@ -18,6 +18,7 @@ load_dotenv()
 # Import our modules
 from modules.db_manager import DatabaseManager
 from modules.rag_manager import RAGManager
+from modules.simple_tile_agent import SimpleTileAgent
 
 # Configure logging
 logging.basicConfig(
@@ -248,6 +249,59 @@ def sales_chat():
 def chat():
     """Legacy chat route - redirect to sales-chat"""
     return render_template('salesperson_chat.html')
+
+@app.route('/api/chat', methods=['POST'])
+def salesperson_chat_api():
+    """Salesperson-focused chat endpoint with NEPQ scoring"""
+    try:
+        if not db_manager or not rag_manager:
+            return jsonify({'success': False, 'error': 'System components not available'})
+            
+        data = request.get_json()
+        query = data.get('query', '')
+        conversation_history = data.get('conversation_history', [])
+        customer_phone = data.get('customer_phone', '')
+        customer_name = data.get('customer_name', '')
+        
+        if not query.strip():
+            return jsonify({'success': False, 'error': 'Query cannot be empty'})
+        
+        # Initialize Simple Tile Agent with NEPQ scoring
+        agent = SimpleTileAgent(db_manager, rag_manager)
+        
+        # Process with NEPQ scoring
+        result = agent.process_customer_query(
+            query, 
+            conversation_history,
+            customer_phone=customer_phone,
+            customer_name=customer_name
+        )
+        
+        # Generate self-analysis report if conversation is substantial
+        self_analysis = None
+        if len(conversation_history) >= 3:
+            try:
+                self_analysis = agent.generate_self_analysis_report(
+                    conversation_history + [{'role': 'user', 'content': query}],
+                    customer_phone
+                )
+            except Exception as e:
+                logger.warning(f"Could not generate self-analysis: {e}")
+        
+        return jsonify({
+            'success': True,
+            'response': result.get('response', ''),
+            'tool_calls': result.get('tool_calls', []),
+            'mode': 'salesperson',
+            'aos_phase': result.get('aos_phase', 'discovery'),
+            'requirements_complete': result.get('requirements_complete', False),
+            'nepq_analysis': result.get('nepq_analysis', {}),
+            'self_analysis': self_analysis
+        })
+        
+    except Exception as e:
+        logger.error(f"Error in salesperson chat: {e}")
+        return jsonify({'success': False, 'error': str(e)})
 
 @app.route('/api/search/sku', methods=['POST'])
 def search_sku():
