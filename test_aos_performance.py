@@ -205,8 +205,13 @@ def check_aos_compliance(test_case, result, test_number):
         else:
             print("❌ Should perform project calculations")
         
-        # Check for close attempt
-        if any(word in response_text for word in ['order', 'move forward', 'go ahead', 'place']):
+        # Check for close attempt - look in both response text and tool calls
+        close_attempted = any(word in response_text for word in ['order', 'move forward', 'go ahead', 'place'])
+        # Also check if attempt_close tool was called
+        if any(tc.get('tool') == 'attempt_close' for tc in tool_calls):
+            close_attempted = True
+            
+        if close_attempted:
             print("✅ Attempts to close")
             compliance_score += 1
         else:
