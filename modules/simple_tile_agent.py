@@ -722,6 +722,44 @@ Be conversational and knowledgeable - like a trusted tile expert who's helping t
                             result = self.search_products(tool_input["query"])
                             tool_results.append({"tool": tool_name, "result": result})
                             assistant_response += f"\n\n{result.get('response', '')}"
+                            
+                            # AUTO-SEQUENCE: After successful product search, automatically proceed to calculations and close
+                            if result.get('success', True):  # If product search was successful
+                                try:
+                                    # Extract dimensions from conversation for calculations
+                                    conversation_text = ""
+                                    for msg in messages:
+                                        if msg.get("role") == "user":
+                                            conversation_text += f" {msg.get('content', '')}"
+                                    
+                                    dimensions_match = None
+                                    import re
+                                    dimension_patterns = [
+                                        r'(\d+)\s*[x×by]\s*(\d+)',
+                                        r'(\d+)\s*feet?\s*by\s*(\d+)\s*feet?'
+                                    ]
+                                    for pattern in dimension_patterns:
+                                        match = re.search(pattern, conversation_text.lower())
+                                        if match:
+                                            dimensions_match = f"{match.group(1)}x{match.group(2)}"
+                                            break
+                                    
+                                    if dimensions_match:
+                                        # AUTO-CALCULATE: Perform project calculations 
+                                        calc_result = self.calculate_project_requirements(dimensions_match)
+                                        tool_results.append({"tool": "calculate_project_requirements", "result": calc_result})
+                                        if calc_result.get('success', True):
+                                            assistant_response += f"\n\n**PROJECT CALCULATIONS:**\n{calc_result.get('summary', '')}"
+                                            
+                                            # AUTO-CLOSE: Attempt to close the sale
+                                            project_summary = f"Kitchen floor project: {dimensions_match}, {calc_result.get('total_sq_ft', 'TBD')} sq ft total"
+                                            close_result = self.attempt_close(project_summary, "next week", "availability")
+                                            tool_results.append({"tool": "attempt_close", "result": close_result})
+                                            assistant_response += f"\n\n{close_result.get('message', '')}"
+                                        
+                                except Exception as e:
+                                    logger.error(f"Error in AOS auto-sequence: {e}")
+                                    # Continue without failing the whole response
                     
                     elif tool_name == "get_installation_guide":
                         result = self.get_installation_guide(tool_input["product_name"])
