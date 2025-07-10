@@ -294,8 +294,9 @@ Be conversational and knowledgeable - like a trusted tile expert who's helping t
         import re
         # Look for dimension patterns like "8x10", "8 by 10", "8 feet by 10 feet", "80 square feet"
         dimension_patterns = [
-            r'\d+\s*[x×by]\s*\d+',
-            r'\d+\s*feet?\s*[x×by]\s*\d+\s*feet?',
+            r'\d+\s*[x×]\s*\d+',
+            r'\d+\s*by\s*\d+',
+            r'\d+\s*feet?\s*by\s*\d+\s*feet?',
             r'\d+\s*sq\s*ft',
             r'\d+\s*square\s*feet?'
         ]
