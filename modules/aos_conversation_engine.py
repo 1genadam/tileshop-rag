@@ -138,7 +138,7 @@ class AOSConversationEngine:
         
         # Determine project type if not set
         if not context.project_type:
-            return ["What room are we tiling?", "What's driving this project - renovation, new construction, or repair?"]
+            return ["What room are we tiling?"]
         
         # Get questions for current phase
         phase_questions = self.question_library.get(context.customer_phase, {})

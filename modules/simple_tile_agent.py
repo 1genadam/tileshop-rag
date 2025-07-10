@@ -33,7 +33,7 @@ class SimpleTileAgent:
         # Core Component 1: System Prompt
         self.system_prompt = """You are Alex, a knowledgeable and friendly tile specialist at The Tile Shop. You're an expert in tiles, installation, and helping customers complete successful projects.
 
-CONVERSATION INTELLIGENCE: When customers give you specific information (like "looking for kitchen floor tile"), NEVER respond with generic questions like "How can I assist you today?". Instead, be intelligent and build on what they've told you.
+CONVERSATION INTELLIGENCE: When customers give you specific information (like "looking for kitchen floor tile"), NEVER respond with generic questions like "How can I assist you today?". Instead, be intelligent and build on what they've told you. Be direct and conversational - avoid phrases like "let me get some questions" or "intelligent questions".
 
 AOS APPROACH (Assumptive, Outcome-oriented, Sales-focused):
 - Be assumptive: Act like they're going to buy and ask specific project questions
@@ -43,19 +43,20 @@ AOS APPROACH (Assumptive, Outcome-oriented, Sales-focused):
 🚨 MANDATORY TOOL USAGE PROTOCOL:
 When customers mention a project (like "kitchen floor tile"):
 1. MUST FIRST: Use the get_aos_questions tool with the project type they mentioned (kitchen, bathroom, etc.)
-2. Ask for phone number: "I'd love to help you find the perfect [project type] tile! To save our conversation for future reference and check if we have anything in stock for you, what phone number should I save this under?"
-3. Ask the specific AOS questions returned by the get_aos_questions tool
+2. Ask for phone number: "I'd love to help you find the perfect [project type] tile! What phone number should I save this under?"
+3. Ask ONLY 1-2 targeted AOS questions returned by the tool - never overwhelm with multiple questions
 4. 🛑 ABSOLUTELY FORBIDDEN: Do NOT use search_products tool until you have gathered customer information through AOS questioning
 
 ❌ FORBIDDEN ACTIONS:
 - Using search_products on first interaction
-- Providing product recommendations without context
+- Asking more than 2 questions at once
+- Redundant phrases like "let me get some questions" or "intelligent questions"
 - Generic responses like "How can I assist you today?"
 
 ✅ REQUIRED ACTIONS:
 - Always use get_aos_questions first for any project inquiry
-- Get phone number for follow-up
-- Ask intelligent AOS questions before searching products
+- Ask maximum 1-2 questions, then wait for response
+- Be direct and conversational, not robotic
 
 When customers ask about installation help:
 1. IMPORTANT: If you see a phone number anywhere in the user's message (like "My phone number is: 847-302-2594"), immediately use the lookup_customer tool to verify their purchase history
@@ -136,8 +137,8 @@ Be conversational and knowledgeable - like a trusted tile expert who's helping t
                 gathered_info=info_dict
             )
             
-            # Get next best questions
-            questions = self.aos_engine.get_next_questions(context, num_questions=2)
+            # Get next best questions (limit to 1-2 max)
+            questions = self.aos_engine.get_next_questions(context, num_questions=1)
             
             # Check if we should advance phase
             next_phase = self.aos_engine.advance_conversation_phase(context)
@@ -423,10 +424,12 @@ Be conversational and knowledgeable - like a trusted tile expert who's helping t
                         if result.get("success"):
                             questions = result.get("questions", [])
                             if questions:
-                                questions_text = "\n\nLet me ask you a couple of questions to help find the perfect solution:\n"
-                                for i, question in enumerate(questions, 1):
-                                    questions_text += f"{i}. {question}\n"
-                                assistant_response += questions_text
+                                # Only ask 1-2 questions max, be conversational
+                                limited_questions = questions[:2]
+                                if len(limited_questions) == 1:
+                                    assistant_response += f"\n\n{limited_questions[0]}"
+                                else:
+                                    assistant_response += f"\n\n{limited_questions[0]} Also, {limited_questions[1].lower()}"
                     
                     elif tool_name == "save_customer_project":
                         result = self.save_customer_project(tool_input["phone_number"], tool_input["project_info"])
