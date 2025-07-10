@@ -84,6 +84,13 @@ WHEN ALL FOUR QUESTION TYPES ARE COMPLETED:
 MANDATORY SEQUENCE FOR COMPLETE REQUIREMENTS:
 - search_products → calculate_project_requirements → attempt_close
 
+🎯 CRITICAL: When ALL FOUR question types are answered (name, dimensions, budget, installation, timeline), you MUST immediately execute the complete professional sequence in a SINGLE RESPONSE:
+1. FIRST: Use search_products to find perfect options
+2. SECOND: Use calculate_project_requirements for exact quantities and pricing  
+3. THIRD: Use attempt_close to ask for business directly
+
+IMPORTANT: You can call multiple tools in the same response. When requirements are complete, call ALL THREE tools (search_products, then calculate_project_requirements, then attempt_close) in sequence.
+
 4️⃣ THE CLOSE - DIRECT ASK FOR BUSINESS (Target: 4/4):
 ALWAYS attempt to close after presenting products and calculations:
 - Use attempt_close tool with project summary
@@ -271,6 +278,11 @@ Be conversational and knowledgeable - like a trusted tile expert who's helping t
         
         conversation_text = conversation_text.lower()
         
+        # Debug logging
+        logger.info(f"AOS Validation - Action: {intended_action}")
+        logger.info(f"AOS Validation - Conversation text: {conversation_text}")
+        logger.info(f"AOS Validation - Full history: {conversation_history}")
+        
         # Check mandatory requirements
         requirements_met = {
             "customer_name": self._check_name_collected(conversation_text),
@@ -279,6 +291,9 @@ Be conversational and knowledgeable - like a trusted tile expert who's helping t
             "installation_method": self._check_installation_method_collected(conversation_text),
             "timeline": self._check_timeline_collected(conversation_text)
         }
+        
+        # Check if products have been searched in this conversation
+        product_search_completed = self._check_product_search_completed(conversation_history)
         
         # Determine if action can proceed
         if intended_action == "search_products":
@@ -308,12 +323,13 @@ Be conversational and knowledgeable - like a trusted tile expert who's helping t
             
             # Additional check: Enforce mandatory sequence - products BEFORE calculations
             # This ensures proper AOS flow: search_products → calculate_project_requirements → attempt_close
-            return {
-                "can_proceed": False,
-                "blocking_error": True,
-                "missing_requirements": ["product_search_first"],
-                "message": "Must search products before calculating requirements - follow AOS sequence"
-            }
+            if not product_search_completed:
+                return {
+                    "can_proceed": False,
+                    "blocking_error": True,
+                    "missing_requirements": ["product_search_first"],
+                    "message": "Must search products before calculating requirements - follow AOS sequence"
+                }
         
         return {
             "can_proceed": True,
@@ -354,6 +370,27 @@ Be conversational and knowledgeable - like a trusted tile expert who's helping t
         """Check if timeline has been discussed"""
         timeline_indicators = ["start", "begin", "timeline", "when", "next week", "month", "soon"]
         return any(indicator in conversation_text for indicator in timeline_indicators)
+    
+    def _check_product_search_completed(self, conversation_history: List[Dict]) -> bool:
+        """Check if products have been searched in this conversation"""
+        # Look for assistant messages that contain product search results
+        for msg in conversation_history:
+            if msg.get("role") == "assistant":
+                content = msg.get("content", "").lower()
+                # Check for product search indicators in assistant responses
+                search_indicators = [
+                    "here are some great options",
+                    "i found these",
+                    "these tiles would be perfect",
+                    "sku",
+                    "product name",
+                    "per square foot",
+                    "tile options",
+                    "recommendations"
+                ]
+                if any(indicator in content for indicator in search_indicators):
+                    return True
+        return False
 
     def calculate_project_requirements(self, dimensions: str, tile_size: str = "12x12", tile_price: float = 4.99, pattern: str = "straight") -> Dict[str, Any]:
         """Tool: Calculate professional project requirements with waste factors"""
