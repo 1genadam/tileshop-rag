@@ -6,6 +6,7 @@ Core Components: System Prompt + Message History + User Input + Tools
 
 import json
 import logging
+import math
 from typing import Dict, List, Any, Optional
 from datetime import datetime, date
 import anthropic
@@ -31,32 +32,75 @@ class SimpleTileAgent:
         self.aos_engine = AOSConversationEngine()
         
         # Core Component 1: System Prompt
-        self.system_prompt = """You are Alex, a knowledgeable and friendly tile specialist at The Tile Shop. You're an expert in tiles, installation, and helping customers complete successful projects.
+        self.system_prompt = """You are Alex, a professional tile specialist at The Tile Shop. I've been helping customers create beautiful tile installations for over 8 years and have helped hundreds of families find perfect solutions for their projects.
 
-CONVERSATION INTELLIGENCE: When customers give you specific information (like "looking for kitchen floor tile"), NEVER respond with generic questions like "How can I assist you today?". Instead, be intelligent and build on what they've told you. Be direct and conversational - avoid phrases like "let me get some questions" or "intelligent questions".
+🎯 PROFESSIONAL AOS (APPROACH OF SALE) METHODOLOGY - TARGET: 4/4 ON EVERY STEP
 
-AOS APPROACH (Assumptive, Outcome-oriented, Sales-focused):
-- Be assumptive: Act like they're going to buy and ask specific project questions
-- Be outcome-oriented: Focus on getting them to the right tile for their project
-- Be sales-focused: Gather information to make the best recommendation
+MANDATORY CONVERSATION FLOW - MUST FOLLOW THIS EXACT SEQUENCE:
 
-🚨 MANDATORY TOOL USAGE PROTOCOL:
-When customers mention a project (like "kitchen floor tile"):
-1. MUST FIRST: Use the get_aos_questions tool with the project type they mentioned (kitchen, bathroom, etc.)
-2. Ask for phone number: "I'd love to help you find the perfect [project type] tile! What phone number should I save this under?"
-3. Ask ONLY 1-2 targeted AOS questions returned by the tool - never overwhelm with multiple questions
-4. 🛑 ABSOLUTELY FORBIDDEN: Do NOT use search_products tool until you have gathered customer information through AOS questioning
+1️⃣ GREETING & CREDIBILITY (Target: 4/4):
+- Get customer name IMMEDIATELY: "Hi! I'm Alex from The Tile Shop. May I have your name?"
+- Build credibility: Share experience and establish expertise
+- Explain process: "I'll walk you through our proven process to find your perfect solution"
 
-❌ FORBIDDEN ACTIONS:
-- Using search_products on first interaction
-- Asking more than 2 questions at once
-- Redundant phrases like "let me get some questions" or "intelligent questions"
+2️⃣ NEEDS ASSESSMENT - THE FOUR MANDATORY QUESTIONS (Target: 4/4):
+🚨 CRITICAL: You MUST collect ALL FOUR before proceeding to product search:
+
+WHAT Questions (Project Understanding):
+- EXACT DIMENSIONS (CRITICAL!): "What are the exact measurements? I need length and width to calculate accurately."
+- Surface details and complexity factors
+- Style preferences and aesthetic goals
+
+WHO Questions (Installation & Decision Making):
+- Installation method: "Are you doing this yourself or working with a contractor?"
+- Decision makers: "Are you the final decision maker, or does anyone else need to approve this?"
+
+WHEN Questions (Timeline & Urgency):
+- Start date: "When are you hoping to start this project?"
+- Completion target and scheduling constraints
+
+HOW MUCH Questions (Budget & Investment):
+- Budget range: "What's your budget range for this project? This helps me show you appropriate options."
+- Value priorities and investment comfort
+
+3️⃣ DESIGN & DETAILS - PROFESSIONAL CONSULTATION (Target: 4/4):
+- Create "tile bomb": Present 2-4 curated options with specific SKUs
+- Features + Benefits explanation for each option
+- Professional calculations with waste factors
+- Emotional connection and visualization
+
+4️⃣ THE CLOSE - DIRECT ASK FOR BUSINESS (Target: 4/4):
+- Direct close: "Should we go ahead and get your order placed today?"
+- Create urgency: "I can have these materials ready for pickup this weekend"
+- Summarize value proposition
+
+5️⃣ OBJECTION HANDLING - 4-STEP PROCESS (Target: 4/4):
+If customer hesitates:
+1. CLARIFY: "Help me understand - is there a specific aspect you'd like to think about?"
+2. EMPATHIZE: "I completely understand - this is an important decision"
+3. PROVIDE SOLUTION: Address concern with new information
+4. RE-ASK: "If [solution], can we move forward with this?"
+
+🛑 ABSOLUTELY FORBIDDEN ACTIONS:
+- Using search_products before collecting customer name, dimensions, and budget
+- Skipping any of the four mandatory questions (WHAT/WHO/WHEN/HOW MUCH)
+- Providing product recommendations without exact dimensions
 - Generic responses like "How can I assist you today?"
+- Failing to attempt a close
 
-✅ REQUIRED ACTIONS:
-- Always use get_aos_questions first for any project inquiry
-- Ask maximum 1-2 questions, then wait for response
-- Be direct and conversational, not robotic
+✅ MANDATORY REQUIREMENTS CHECKLIST:
+Before using search_products tool, you MUST have:
+- Customer name ✓
+- Exact dimensions (length × width) ✓ 
+- Budget range ✓
+- Installation method ✓
+- Timeline ✓
+
+🎯 PROFESSIONAL LANGUAGE EXAMPLES:
+Opening: "Hi! I'm Alex from The Tile Shop. I've been helping customers create beautiful tile installations for over 8 years. May I have your name?"
+Dimensions: "To give you accurate recommendations and pricing, I need the exact dimensions. What's the length and width of the area?"
+Budget: "What's your budget range for this project? This helps me show you options that fit perfectly."
+Close: "Based on everything we've discussed, should we go ahead and get your order placed today?"
 
 When customers ask about installation help:
 1. IMPORTANT: If you see a phone number anywhere in the user's message (like "My phone number is: 847-302-2594"), immediately use the lookup_customer tool to verify their purchase history
@@ -199,6 +243,143 @@ Be conversational and knowledgeable - like a trusted tile expert who's helping t
             logger.error(f"Error saving customer project: {e}")
             return {"success": False, "error": str(e)}
 
+    def validate_aos_requirements(self, conversation_history: List[Dict], intended_action: str) -> Dict[str, Any]:
+        """Validate that mandatory AOS requirements are met before proceeding"""
+        
+        # Extract conversation data to check requirements
+        conversation_text = ""
+        for msg in conversation_history:
+            if msg.get("role") == "user":
+                conversation_text += f" {msg.get('content', '')}"
+        
+        conversation_text = conversation_text.lower()
+        
+        # Check mandatory requirements
+        requirements_met = {
+            "customer_name": self._check_name_collected(conversation_text),
+            "dimensions": self._check_dimensions_collected(conversation_text),
+            "budget": self._check_budget_collected(conversation_text),
+            "installation_method": self._check_installation_method_collected(conversation_text),
+            "timeline": self._check_timeline_collected(conversation_text)
+        }
+        
+        # Determine if action can proceed
+        if intended_action == "search_products":
+            critical_requirements = ["customer_name", "dimensions", "budget"]
+            missing_critical = [req for req in critical_requirements if not requirements_met[req]]
+            
+            if missing_critical:
+                return {
+                    "can_proceed": False,
+                    "blocking_error": True,
+                    "missing_requirements": missing_critical,
+                    "message": f"Cannot search products until {', '.join(missing_critical)} collected"
+                }
+        
+        return {
+            "can_proceed": True,
+            "blocking_error": False,
+            "requirements_met": requirements_met,
+            "message": "Requirements satisfied"
+        }
+    
+    def _check_name_collected(self, conversation_text: str) -> bool:
+        """Check if customer name has been collected"""
+        name_indicators = ["my name is", "i'm", "call me", "this is"]
+        return any(indicator in conversation_text for indicator in name_indicators)
+    
+    def _check_dimensions_collected(self, conversation_text: str) -> bool:
+        """Check if dimensions have been collected"""
+        import re
+        # Look for dimension patterns like "8x10", "8 by 10", "8 feet by 10 feet", "80 square feet"
+        dimension_patterns = [
+            r'\d+\s*[x×by]\s*\d+',
+            r'\d+\s*feet?\s*[x×by]\s*\d+\s*feet?',
+            r'\d+\s*sq\s*ft',
+            r'\d+\s*square\s*feet?'
+        ]
+        return any(re.search(pattern, conversation_text) for pattern in dimension_patterns)
+    
+    def _check_budget_collected(self, conversation_text: str) -> bool:
+        """Check if budget information has been collected"""
+        budget_indicators = ["budget", "$", "dollars", "cost", "price", "spend"]
+        return any(indicator in conversation_text for indicator in budget_indicators)
+    
+    def _check_installation_method_collected(self, conversation_text: str) -> bool:
+        """Check if installation method has been discussed"""
+        installation_indicators = ["contractor", "diy", "myself", "professional", "install"]
+        return any(indicator in conversation_text for indicator in installation_indicators)
+    
+    def _check_timeline_collected(self, conversation_text: str) -> bool:
+        """Check if timeline has been discussed"""
+        timeline_indicators = ["start", "begin", "timeline", "when", "next week", "month", "soon"]
+        return any(indicator in conversation_text for indicator in timeline_indicators)
+
+    def calculate_project_requirements(self, dimensions: str, tile_size: str = "12x12", tile_price: float = 4.99, pattern: str = "straight") -> Dict[str, Any]:
+        """Tool: Calculate professional project requirements with waste factors"""
+        try:
+            import re
+            
+            # Parse dimensions
+            dimension_match = re.search(r'(\d+\.?\d*)\s*[x×by]\s*(\d+\.?\d*)', dimensions.lower())
+            if not dimension_match:
+                return {"success": False, "error": "Could not parse dimensions. Please provide in format '8x10' or '8 by 10'"}
+            
+            length = float(dimension_match.group(1))
+            width = float(dimension_match.group(2))
+            base_sq_ft = length * width
+            
+            # Determine waste factor based on pattern complexity
+            waste_factors = {
+                "straight": 0.10,      # 10% for straight lay, brick pattern
+                "diagonal": 0.15,      # 15% for diagonal
+                "herringbone": 0.20,   # 20% for herringbone, basket weave
+                "complex": 0.20        # 20% for very complex patterns
+            }
+            
+            waste_factor = waste_factors.get(pattern, 0.10)
+            total_sq_ft = base_sq_ft * (1 + waste_factor)
+            
+            # Calculate box requirements (assume 10 sq ft per box typical)
+            sq_ft_per_box = 10.0
+            boxes_needed = math.ceil(total_sq_ft / sq_ft_per_box)
+            total_coverage = boxes_needed * sq_ft_per_box
+            
+            # Calculate costs
+            tile_cost = total_sq_ft * tile_price
+            
+            # Essential materials costs
+            materials = {
+                "premium_thinset": {"quantity": max(1, math.ceil(total_sq_ft / 50)), "unit_price": 35.00},
+                "grout": {"quantity": max(1, math.ceil(total_sq_ft / 100)), "unit_price": 32.00},
+                "grout_sealer": {"quantity": 1, "unit_price": 28.00},
+                "tile_spacers": {"quantity": 1, "unit_price": 18.00},
+                "leveling_system": {"quantity": 1, "unit_price": 45.00}
+            }
+            
+            materials_cost = sum(item["quantity"] * item["unit_price"] for item in materials.values())
+            total_project_cost = tile_cost + materials_cost
+            
+            return {
+                "success": True,
+                "dimensions": f"{length} x {width} feet",
+                "base_square_footage": round(base_sq_ft, 1),
+                "waste_factor_percent": int(waste_factor * 100),
+                "total_square_footage_needed": round(total_sq_ft, 1),
+                "boxes_needed": boxes_needed,
+                "total_coverage": round(total_coverage, 1),
+                "tile_price_per_sq_ft": tile_price,
+                "tile_cost": round(tile_cost, 2),
+                "materials_breakdown": materials,
+                "materials_cost": round(materials_cost, 2),
+                "total_project_cost": round(total_project_cost, 2),
+                "pattern_type": pattern
+            }
+            
+        except Exception as e:
+            logger.error(f"Error calculating project requirements: {e}")
+            return {"success": False, "error": str(e)}
+
     def get_installation_accessories(self, product_type: str = None) -> List[Dict[str, Any]]:
         """Tool: Get recommended installation accessories"""
         base_accessories = [
@@ -320,6 +501,20 @@ Be conversational and knowledgeable - like a trusted tile expert who's helping t
                         },
                         "required": ["phone_number", "project_info"]
                     }
+                },
+                {
+                    "name": "calculate_project_requirements",
+                    "description": "Calculate professional project requirements including quantities, waste factors, and total costs",
+                    "input_schema": {
+                        "type": "object",
+                        "properties": {
+                            "dimensions": {"type": "string", "description": "Room dimensions (e.g., '8x10' or '8 by 10')"},
+                            "tile_size": {"type": "string", "description": "Tile size (optional, defaults to 12x12)"},
+                            "tile_price": {"type": "number", "description": "Price per square foot (optional, defaults to 4.99)"},
+                            "pattern": {"type": "string", "description": "Installation pattern: straight, diagonal, herringbone, complex (optional, defaults to straight)"}
+                        },
+                        "required": ["dimensions"]
+                    }
                 }
             ]
             
@@ -375,9 +570,31 @@ Be conversational and knowledgeable - like a trusted tile expert who's helping t
                                 assistant_response += follow_content.text
                     
                     elif tool_name == "search_products":
-                        result = self.search_products(tool_input["query"])
-                        tool_results.append({"tool": tool_name, "result": result})
-                        assistant_response += f"\n\n{result.get('response', '')}"
+                        # Validate AOS requirements before product search
+                        validation = self.validate_aos_requirements(messages, "search_products")
+                        
+                        if not validation["can_proceed"]:
+                            # Block product search and guide back to requirements collection
+                            missing = validation["missing_requirements"]
+                            
+                            if "customer_name" in missing:
+                                assistant_response += "\n\nBefore I can show you the perfect tile options, may I have your name?"
+                            elif "dimensions" in missing:
+                                assistant_response += "\n\nTo give you accurate recommendations and pricing, I need the exact dimensions. What's the length and width of the area you're tiling?"
+                            elif "budget" in missing:
+                                assistant_response += "\n\nWhat's your budget range for this project? This helps me show you options that fit perfectly."
+                            
+                            # Add validation result to tool results for tracking
+                            tool_results.append({
+                                "tool": "validation_check", 
+                                "result": validation,
+                                "blocked_action": "search_products"
+                            })
+                        else:
+                            # Requirements met - proceed with product search
+                            result = self.search_products(tool_input["query"])
+                            tool_results.append({"tool": tool_name, "result": result})
+                            assistant_response += f"\n\n{result.get('response', '')}"
                     
                     elif tool_name == "get_installation_guide":
                         result = self.get_installation_guide(tool_input["product_name"])
@@ -435,6 +652,44 @@ Be conversational and knowledgeable - like a trusted tile expert who's helping t
                         result = self.save_customer_project(tool_input["phone_number"], tool_input["project_info"])
                         tool_results.append({"tool": tool_name, "result": result})
                         # Note: Don't add to assistant_response as this is a background action
+                    
+                    elif tool_name == "calculate_project_requirements":
+                        result = self.calculate_project_requirements(
+                            tool_input["dimensions"],
+                            tool_input.get("tile_size", "12x12"),
+                            tool_input.get("tile_price", 4.99),
+                            tool_input.get("pattern", "straight")
+                        )
+                        tool_results.append({"tool": tool_name, "result": result})
+                        
+                        if result.get("success"):
+                            calc_data = result
+                            calc_response = f"""
+**Professional Project Calculation:**
+
+📐 **Project Dimensions:** {calc_data['dimensions']}
+• Base area: {calc_data['base_square_footage']} sq ft
+• Waste factor: {calc_data['waste_factor_percent']}% (for {calc_data['pattern_type']} pattern)
+• Total tile needed: {calc_data['total_square_footage_needed']} sq ft
+
+📦 **Tile Requirements:**
+• Boxes needed: {calc_data['boxes_needed']} boxes
+• Total coverage: {calc_data['total_coverage']} sq ft
+• Tile cost: ${calc_data['tile_cost']:.2f}
+
+🔧 **Essential Materials:**
+• Premium Thinset: {calc_data['materials_breakdown']['premium_thinset']['quantity']} bags - ${calc_data['materials_breakdown']['premium_thinset']['quantity'] * calc_data['materials_breakdown']['premium_thinset']['unit_price']:.2f}
+• Grout: {calc_data['materials_breakdown']['grout']['quantity']} bags - ${calc_data['materials_breakdown']['grout']['quantity'] * calc_data['materials_breakdown']['grout']['unit_price']:.2f}
+• Grout Sealer: ${calc_data['materials_breakdown']['grout_sealer']['unit_price']:.2f}
+• Tile Spacers: ${calc_data['materials_breakdown']['tile_spacers']['unit_price']:.2f}
+• Leveling System: ${calc_data['materials_breakdown']['leveling_system']['unit_price']:.2f}
+
+💰 **Total Investment:**
+• Tiles: ${calc_data['tile_cost']:.2f}
+• Materials: ${calc_data['materials_cost']:.2f}
+• **Complete Project Total: ${calc_data['total_project_cost']:.2f}**
+"""
+                            assistant_response += calc_response
             
             return {
                 "success": True,
