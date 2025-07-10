@@ -1108,7 +1108,7 @@ def unified_chat_api():
             # Get additional installation information from RAG system
             installation_keywords = ['install', 'installation', 'how to', 'instructions', 'steps']
             if any(keyword in query.lower() for keyword in installation_keywords):
-                rag_response = simple_rag.search_and_respond(f"installation instructions {chat_result.get('verification_result', {}).get('exact_match', {}).get('product_name', '')}", user_id)
+                rag_response = rag_manager.enhanced_chat(f"installation instructions {chat_result.get('verification_result', {}).get('exact_match', {}).get('product_name', '')}", user_id)
                 
                 if rag_response and rag_response.get('response'):
                     chat_result['additional_info'] = rag_response['response']
@@ -1120,7 +1120,7 @@ def unified_chat_api():
             'recommend', 'similar', 'compare', 'alternatives'
         ]):
             # Get RAG response for product information
-            rag_response = simple_rag.search_and_respond(query, user_id)
+            rag_response = rag_manager.enhanced_chat(query, user_id)
             
             # If we have products in RAG response, integrate them
             if rag_response and 'products' in rag_response:
