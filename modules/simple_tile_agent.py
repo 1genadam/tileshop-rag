@@ -64,6 +64,16 @@ STEP 4 - HOW MUCH Questions (Budget & Investment):
 
 🛑 NEVER SKIP TO CALCULATIONS OR PRODUCT SEARCH UNTIL ALL FOUR QUESTION TYPES ARE ANSWERED!
 
+MANDATORY SEQUENCE ENFORCEMENT:
+1. Get customer name FIRST
+2. Ask WHAT questions (dimensions + style) 
+3. Ask WHO questions (installation method + decision makers)
+4. Ask WHEN questions (timeline + urgency)
+5. Ask HOW MUCH questions (budget + value priorities)
+6. ONLY THEN proceed to product search and calculations
+
+DO NOT use calculate_project_requirements tool until ALL FOUR question types are completed!
+
 3️⃣ DESIGN & DETAILS - PROFESSIONAL CONSULTATION (Target: 4/4):
 - Create "tile bomb": Present 2-4 curated options with specific SKUs
 - Features + Benefits explanation for each option
@@ -266,7 +276,7 @@ Be conversational and knowledgeable - like a trusted tile expert who's helping t
         
         # Determine if action can proceed
         if intended_action == "search_products":
-            critical_requirements = ["customer_name", "dimensions", "budget"]
+            critical_requirements = ["customer_name", "dimensions", "budget", "installation_method", "timeline"]
             missing_critical = [req for req in critical_requirements if not requirements_met[req]]
             
             if missing_critical:
@@ -275,6 +285,19 @@ Be conversational and knowledgeable - like a trusted tile expert who's helping t
                     "blocking_error": True,
                     "missing_requirements": missing_critical,
                     "message": f"Cannot search products until {', '.join(missing_critical)} collected"
+                }
+        
+        if intended_action == "calculate_project_requirements":
+            # Block calculations until WHO and WHEN questions are answered
+            calculation_requirements = ["customer_name", "dimensions", "installation_method", "timeline"]
+            missing_calc = [req for req in calculation_requirements if not requirements_met[req]]
+            
+            if missing_calc:
+                return {
+                    "can_proceed": False,
+                    "blocking_error": True,
+                    "missing_requirements": missing_calc,
+                    "message": f"Cannot calculate requirements until {', '.join(missing_calc)} collected"
                 }
         
         return {
@@ -380,6 +403,43 @@ Be conversational and knowledgeable - like a trusted tile expert who's helping t
             
         except Exception as e:
             logger.error(f"Error calculating project requirements: {e}")
+            return {"success": False, "error": str(e)}
+
+    def attempt_close(self, project_summary: str, timeline: str = "soon", urgency_reason: str = "availability") -> Dict[str, Any]:
+        """Tool: Attempt to close the sale with professional techniques"""
+        try:
+            closing_techniques = {
+                "direct": f"Should we go ahead and get your order placed today?",
+                "assumed": f"I'll get these materials ready for you. When would you like to pick them up?",
+                "urgency": f"I can reserve these tiles for you while you finalize your decision. These are popular and I'd recommend securing your quantity soon.",
+                "alternative": f"Would you prefer pickup or delivery for your {timeline} start date?"
+            }
+            
+            # Create urgency based on timeline
+            urgency_messages = {
+                "soon": "Since you're starting soon, I can have everything ready this week.",
+                "next week": "Perfect timing - I can have all materials ready for your contractor by early next week.",
+                "this week": "Excellent! I can expedite this order to have everything ready in just a few days."
+            }
+            
+            urgency_message = urgency_messages.get(timeline.lower(), "I can coordinate the timing to match your project schedule.")
+            
+            return {
+                "success": True,
+                "direct_close": closing_techniques["direct"],
+                "assumed_close": closing_techniques["assumed"],
+                "urgency_close": closing_techniques["urgency"],
+                "urgency_message": urgency_message,
+                "next_steps": [
+                    "Finalize quantities and selections",
+                    "Arrange pickup or delivery timing",
+                    "Coordinate with contractor if applicable",
+                    "Process payment and order"
+                ],
+                "project_summary": project_summary
+            }
+        except Exception as e:
+            logger.error(f"Error in close attempt: {e}")
             return {"success": False, "error": str(e)}
 
     def get_installation_accessories(self, product_type: str = None) -> List[Dict[str, Any]]:
@@ -516,6 +576,19 @@ Be conversational and knowledgeable - like a trusted tile expert who's helping t
                             "pattern": {"type": "string", "description": "Installation pattern: straight, diagonal, herringbone, complex (optional, defaults to straight)"}
                         },
                         "required": ["dimensions"]
+                    }
+                },
+                {
+                    "name": "attempt_close",
+                    "description": "Attempt to close the sale with professional techniques after presenting products and calculations",
+                    "input_schema": {
+                        "type": "object",
+                        "properties": {
+                            "project_summary": {"type": "string", "description": "Brief summary of the project and recommendations"},
+                            "timeline": {"type": "string", "description": "Customer's project timeline (optional)"},
+                            "urgency_reason": {"type": "string", "description": "Reason for urgency (optional)"}
+                        },
+                        "required": ["project_summary"]
                     }
                 }
             ]
@@ -656,17 +729,37 @@ Be conversational and knowledgeable - like a trusted tile expert who's helping t
                         # Note: Don't add to assistant_response as this is a background action
                     
                     elif tool_name == "calculate_project_requirements":
-                        result = self.calculate_project_requirements(
-                            tool_input["dimensions"],
-                            tool_input.get("tile_size", "12x12"),
-                            tool_input.get("tile_price", 4.99),
-                            tool_input.get("pattern", "straight")
-                        )
-                        tool_results.append({"tool": tool_name, "result": result})
+                        # Validate AOS requirements before calculations
+                        validation = self.validate_aos_requirements(messages, "calculate_project_requirements")
                         
-                        if result.get("success"):
-                            calc_data = result
-                            calc_response = f"""
+                        if not validation["can_proceed"]:
+                            # Block calculations and guide back to requirements collection
+                            missing = validation["missing_requirements"]
+                            
+                            if "installation_method" in missing:
+                                assistant_response += "\n\nBefore I calculate your project, are you planning to do this yourself or working with a contractor?"
+                            elif "timeline" in missing:
+                                assistant_response += "\n\nWhen are you hoping to start this project? This helps me provide accurate recommendations."
+                            
+                            tool_results.append({
+                                "tool": "validation_check", 
+                                "result": validation,
+                                "blocked_action": "calculate_project_requirements"
+                            })
+                        else:
+                            # Requirements met - proceed with calculations
+                            result = self.calculate_project_requirements(
+                                tool_input["dimensions"],
+                                tool_input.get("tile_size", "12x12"),
+                                tool_input.get("tile_price", 4.99),
+                                tool_input.get("pattern", "straight")
+                            )
+                            tool_results.append({"tool": tool_name, "result": result})
+                            
+                            # Only show calculation results if successful
+                            if result.get("success"):
+                                calc_data = result
+                                calc_response = f"""
 **Professional Project Calculation:**
 
 📐 **Project Dimensions:** {calc_data['dimensions']}
@@ -691,7 +784,26 @@ Be conversational and knowledgeable - like a trusted tile expert who's helping t
 • Materials: ${calc_data['materials_cost']:.2f}
 • **Complete Project Total: ${calc_data['total_project_cost']:.2f}**
 """
-                            assistant_response += calc_response
+                                assistant_response += calc_response
+                    
+                    elif tool_name == "attempt_close":
+                        result = self.attempt_close(
+                            tool_input["project_summary"],
+                            tool_input.get("timeline", "soon"),
+                            tool_input.get("urgency_reason", "availability")
+                        )
+                        tool_results.append({"tool": tool_name, "result": result})
+                        
+                        if result.get("success"):
+                            close_response = f"""
+
+{result['urgency_message']} {result['direct_close']}
+
+**Next Steps:**
+• {' • '.join(result['next_steps'])}
+
+{result['urgency_close']}"""
+                            assistant_response += close_response
             
             return {
                 "success": True,
