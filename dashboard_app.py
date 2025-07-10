@@ -1150,6 +1150,33 @@ def unified_chat_api():
         return jsonify({'success': False, 'error': str(e)})
 
 
+@app.route('/api/chat/simple', methods=['POST'])
+def simple_chat_api():
+    """Simple AI agent chat endpoint - Natural LLM approach"""
+    try:
+        from modules.simple_tile_agent import SimpleTileAgent
+        
+        data = request.get_json()
+        query = data.get('query', '')
+        conversation_history = data.get('conversation_history', [])
+        phone_number = data.get('phone_number', '')
+        
+        if not query:
+            return jsonify({'success': False, 'error': 'Query is required'})
+        
+        # Initialize simple tile agent
+        agent = SimpleTileAgent(db_manager, rag_manager)
+        
+        # Let the agent handle the conversation naturally
+        result = agent.chat(query, conversation_history, phone_number)
+        
+        return jsonify(result)
+        
+    except Exception as e:
+        logger.error(f"Error in simple chat: {e}")
+        return jsonify({'success': False, 'error': str(e)})
+
+
 # Keep original endpoints for backward compatibility
 @app.route('/api/rag/chat', methods=['POST'])
 def rag_chat():
