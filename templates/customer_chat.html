@@ -219,6 +219,132 @@
                 </div>
             </div>
 
+            <!-- Area-Based Project Organization -->
+            <div class="px-6 py-3 bg-blue-50 border-t border-blue-200" id="project-organizer" style="display: none;">
+                <div class="flex justify-between items-center mb-3">
+                    <h3 class="text-lg font-medium text-blue-800">🏠 Project Organization</h3>
+                    <button class="text-blue-600 hover:text-blue-800 text-sm" onclick="toggleProjectOrganizer()">
+                        <i class="fas fa-plus mr-1"></i>Add Area
+                    </button>
+                </div>
+                
+                <!-- Project Areas -->
+                <div class="space-y-3" id="project-areas">
+                    <!-- Areas will be dynamically added here -->
+                </div>
+                
+                <!-- Project Summary -->
+                <div class="mt-4 p-3 bg-white rounded-lg border border-blue-200" id="project-summary" style="display: none;">
+                    <div class="flex justify-between items-center">
+                        <div>
+                            <span class="font-medium text-blue-800">Total Project Cost:</span>
+                            <span class="text-xl font-bold text-green-600 ml-2" id="total-project-cost">$0.00</span>
+                        </div>
+                        <div class="text-sm text-blue-600">
+                            <span id="total-areas">0</span> areas • <span id="total-surfaces">0</span> surfaces • <span id="total-sq-ft">0</span> sq ft
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Surface Selection Modal (Hidden by default) -->
+            <div class="hidden fixed inset-0 bg-black bg-opacity-50 z-50" id="surface-modal">
+                <div class="flex items-center justify-center min-h-screen p-4">
+                    <div class="bg-white rounded-lg max-w-4xl w-full max-h-[90vh] overflow-y-auto">
+                        <div class="p-6 border-b border-gray-200">
+                            <div class="flex justify-between items-center">
+                                <h3 class="text-xl font-bold text-gray-800">Select Surface Type</h3>
+                                <button onclick="closeSurfaceModal()" class="text-gray-400 hover:text-gray-600">
+                                    <i class="fas fa-times text-xl"></i>
+                                </button>
+                            </div>
+                            <p class="text-gray-600 mt-1">Choose the surface you want to tile in <span id="current-area-name" class="font-medium">this area</span></p>
+                        </div>
+                        
+                        <div class="p-6">
+                            <!-- Surface Categories -->
+                            <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+                                <!-- Bathroom Surfaces -->
+                                <div class="space-y-3">
+                                    <h4 class="font-medium text-blue-800 border-b border-blue-200 pb-2">🚿 Bathroom</h4>
+                                    <div class="space-y-2">
+                                        <button class="surface-option w-full text-left p-3 border border-gray-200 rounded-lg hover:border-blue-500 hover:bg-blue-50" 
+                                                data-surface="shower-walls" data-category="bathroom">
+                                            <div class="font-medium">Shower Walls</div>
+                                            <div class="text-sm text-gray-600">Interior shower surfaces</div>
+                                        </button>
+                                        <button class="surface-option w-full text-left p-3 border border-gray-200 rounded-lg hover:border-blue-500 hover:bg-blue-50" 
+                                                data-surface="bathroom-floor" data-category="bathroom">
+                                            <div class="font-medium">Bathroom Floor</div>
+                                            <div class="text-sm text-gray-600">Floor surface, slip-resistant</div>
+                                        </button>
+                                        <button class="surface-option w-full text-left p-3 border border-gray-200 rounded-lg hover:border-blue-500 hover:bg-blue-50" 
+                                                data-surface="vanity-backsplash" data-category="bathroom">
+                                            <div class="font-medium">Vanity Backsplash</div>
+                                            <div class="text-sm text-gray-600">Behind sink area</div>
+                                        </button>
+                                        <button class="surface-option w-full text-left p-3 border border-gray-200 rounded-lg hover:border-blue-500 hover:bg-blue-50" 
+                                                data-surface="tub-surround" data-category="bathroom">
+                                            <div class="font-medium">Tub Surround</div>
+                                            <div class="text-sm text-gray-600">Around bathtub area</div>
+                                        </button>
+                                    </div>
+                                </div>
+                                
+                                <!-- Kitchen Surfaces -->
+                                <div class="space-y-3">
+                                    <h4 class="font-medium text-green-800 border-b border-green-200 pb-2">🍽️ Kitchen</h4>
+                                    <div class="space-y-2">
+                                        <button class="surface-option w-full text-left p-3 border border-gray-200 rounded-lg hover:border-green-500 hover:bg-green-50" 
+                                                data-surface="kitchen-backsplash" data-category="kitchen">
+                                            <div class="font-medium">Kitchen Backsplash</div>
+                                            <div class="text-sm text-gray-600">Behind counters & stove</div>
+                                        </button>
+                                        <button class="surface-option w-full text-left p-3 border border-gray-200 rounded-lg hover:border-green-500 hover:bg-green-50" 
+                                                data-surface="kitchen-floor" data-category="kitchen">
+                                            <div class="font-medium">Kitchen Floor</div>
+                                            <div class="text-sm text-gray-600">High-traffic floor area</div>
+                                        </button>
+                                        <button class="surface-option w-full text-left p-3 border border-gray-200 rounded-lg hover:border-green-500 hover:bg-green-50" 
+                                                data-surface="island-backsplash" data-category="kitchen">
+                                            <div class="font-medium">Island Backsplash</div>
+                                            <div class="text-sm text-gray-600">Kitchen island sides</div>
+                                        </button>
+                                    </div>
+                                </div>
+                                
+                                <!-- Living Area Surfaces -->
+                                <div class="space-y-3">
+                                    <h4 class="font-medium text-purple-800 border-b border-purple-200 pb-2">🏡 Living Areas</h4>
+                                    <div class="space-y-2">
+                                        <button class="surface-option w-full text-left p-3 border border-gray-200 rounded-lg hover:border-purple-500 hover:bg-purple-50" 
+                                                data-surface="entryway-floor" data-category="living">
+                                            <div class="font-medium">Entryway Floor</div>
+                                            <div class="text-sm text-gray-600">Entry & foyer areas</div>
+                                        </button>
+                                        <button class="surface-option w-full text-left p-3 border border-gray-200 rounded-lg hover:border-purple-500 hover:bg-purple-50" 
+                                                data-surface="fireplace-surround" data-category="living">
+                                            <div class="font-medium">Fireplace Surround</div>
+                                            <div class="text-sm text-gray-600">Around fireplace</div>
+                                        </button>
+                                        <button class="surface-option w-full text-left p-3 border border-gray-200 rounded-lg hover:border-purple-500 hover:bg-purple-50" 
+                                                data-surface="accent-wall" data-category="living">
+                                            <div class="font-medium">Accent Wall</div>
+                                            <div class="text-sm text-gray-600">Decorative wall surface</div>
+                                        </button>
+                                        <button class="surface-option w-full text-left p-3 border border-gray-200 rounded-lg hover:border-purple-500 hover:bg-purple-50" 
+                                                data-surface="laundry-room" data-category="living">
+                                            <div class="font-medium">Laundry Room</div>
+                                            <div class="text-sm text-gray-600">Utility room surfaces</div>
+                                        </button>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
             <!-- Vision Mode Selection (Hidden by default) -->
             <div class="hidden p-6 border-t border-gray-200 bg-purple-50" id="vision-mode-selector">
                 <div class="text-center">
