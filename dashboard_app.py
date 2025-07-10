@@ -1161,6 +1161,8 @@ def simple_chat_api():
         conversation_history = data.get('conversation_history', [])
         phone_number = data.get('phone_number', '')
         
+        logger.info(f"Simple chat API received: query='{query}', phone_number='{phone_number}'")
+        
         if not query:
             return jsonify({'success': False, 'error': 'Query is required'})
         

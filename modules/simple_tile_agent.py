@@ -7,10 +7,18 @@ Core Components: System Prompt + Message History + User Input + Tools
 import json
 import logging
 from typing import Dict, List, Any, Optional
-from datetime import datetime
+from datetime import datetime, date
 import anthropic
 
 logger = logging.getLogger(__name__)
+
+def serialize_datetime(obj):
+    """Custom JSON serializer for datetime and date objects"""
+    if isinstance(obj, datetime):
+        return obj.isoformat()
+    elif isinstance(obj, date):
+        return obj.isoformat()
+    raise TypeError(f"Object of type {type(obj)} is not JSON serializable")
 
 class SimpleTileAgent:
     """Natural AI agent for tile shop assistance using proper LLM components"""
@@ -31,9 +39,9 @@ Your expertise includes:
 - Troubleshooting installation issues
 
 When customers ask about installation help:
-1. If they mention a specific product (like "permat", "backer-lite", "heat mat"), ask for their phone number to look up their purchase history
-2. Use the lookup_customer tool to verify what they actually bought
-3. Provide specific installation guidance for their verified purchase
+1. IMPORTANT: If you see a phone number anywhere in the user's message (like "My phone number is: 847-302-2594"), immediately use the lookup_customer tool to verify their purchase history
+2. If they mention a specific product but don't provide a phone number, ask for their phone number to look up their purchase history  
+3. After using lookup_customer, provide specific installation guidance for their verified purchase
 4. Recommend installation accessories: thinset, grout, sealer, sponges, trowels, wedges, leveling system, silicone, buckets, float
 
 When customers ask about products:
@@ -125,6 +133,11 @@ Be conversational and natural - like talking to a knowledgeable friend who works
             
             # Core Component 3: User Input
             user_message = message.strip()
+            
+            # If phone number is provided, enhance the user message
+            if phone_number:
+                user_message += f"\n\nMy phone number is: {phone_number}"
+                logger.info(f"Enhanced user message with phone number: {user_message}")
             
             # Build conversation for Claude
             messages = []
@@ -219,7 +232,7 @@ Be conversational and natural - like talking to a knowledgeable friend who works
                                 {
                                     "type": "tool_result",
                                     "tool_use_id": content.id,
-                                    "content": json.dumps(result)
+                                    "content": json.dumps(result, default=serialize_datetime)  # Handle datetime serialization
                                 }
                             ]
                         })
