@@ -158,12 +158,14 @@ class AOSConversationEngine:
     def _already_answered(self, question: str, gathered_info: Dict[str, Any]) -> bool:
         """Check if we already have information that this question would gather"""
         question_keywords = {
-            "color": ["color_scheme", "colors"],
+            "color": ["color_scheme", "colors", "color_preferences", "cabinet_info", "countertop_info", "color_scheme_provided"],
+            "cabinet": ["cabinet_info", "color_scheme_provided", "has_detailed_design_info"],
+            "countertop": ["countertop_info", "color_scheme_provided", "has_detailed_design_info"],
             "size": ["room_size", "square_feet", "dimensions"],
-            "style": ["style", "design_preference"],
+            "style": ["style", "design_preference", "style_preferences"],
             "timeline": ["timeline", "start_date"],
             "budget": ["budget", "price_range"],
-            "finish": ["finish", "matte", "polished"]
+            "finish": ["finish", "matte", "polished", "finish_preferences"]
         }
         
         for keyword, info_keys in question_keywords.items():
@@ -214,10 +216,12 @@ class AOSConversationEngine:
         info_patterns = {
             "phone_number": [r"(\d{3}[-.]?\d{3}[-.]?\d{4})", r"(\d{10})"],
             "room_size": [r"(\d+)\s*x\s*(\d+)", r"(\d+)\s*sq\s*ft", r"(\d+)\s*square"],
-            "color_preferences": ["white", "gray", "black", "beige", "brown", "blue", "green"],
+            "color_preferences": ["white", "gray", "grey", "black", "beige", "brown", "blue", "green", "charcoal", "neutral"],
             "style_preferences": ["modern", "traditional", "rustic", "farmhouse", "contemporary", "transitional"],
             "finish_preferences": ["matte", "polished", "satin", "glossy", "textured"],
-            "timeline": ["asap", "this week", "next month", "spring", "summer", "fall", "winter"]
+            "timeline": ["asap", "this week", "next month", "spring", "summer", "fall", "winter"],
+            "cabinet_info": ["cabinet", "cabinets", "upper", "lower", "charcoal", "white"],
+            "countertop_info": ["countertop", "countertops", "blue", "white specs", "granite", "quartz"]
         }
         
         # Extract phone number
@@ -238,12 +242,17 @@ class AOSConversationEngine:
                     extracted["room_size"] = match.group(1)
                 break
         
-        # Extract preferences
+        # Extract preferences and design info
         for pref_type, options in info_patterns.items():
-            if pref_type.endswith("_preferences"):
+            if pref_type.endswith("_preferences") or pref_type.endswith("_info"):
                 found_prefs = [opt for opt in options if opt in response_lower]
                 if found_prefs:
                     extracted[pref_type] = found_prefs
+        
+        # Special handling for comprehensive color scheme descriptions
+        if any(word in response_lower for word in ["cabinet", "countertop", "blue", "charcoal", "white"]):
+            extracted["color_scheme_provided"] = True
+            extracted["has_detailed_design_info"] = True
         
         # Extract timeline information
         timeline_keywords = info_patterns["timeline"]

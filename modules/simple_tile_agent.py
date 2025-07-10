@@ -115,7 +115,7 @@ Be conversational and knowledgeable - like a trusted tile expert who's helping t
             logger.error(f"Error getting installation guide: {e}")
             return {"success": False, "error": str(e)}
 
-    def get_aos_questions(self, project_type: str = "", customer_phase: str = "discovery", gathered_info: str = "{}") -> Dict[str, Any]:
+    def get_aos_questions(self, project_type: str = "", customer_phase: str = "discovery", gathered_info: str = "{}", conversation_history: str = "") -> Dict[str, Any]:
         """Tool: Get intelligent AOS questions based on conversation context"""
         try:
             # Parse gathered info
@@ -123,6 +123,11 @@ Be conversational and knowledgeable - like a trusted tile expert who's helping t
                 info_dict = json.loads(gathered_info) if gathered_info else {}
             except json.JSONDecodeError:
                 info_dict = {}
+            
+            # Extract information from conversation history
+            if conversation_history:
+                extracted_info = self.aos_engine.extract_info_from_response(conversation_history, None)
+                info_dict.update(extracted_info)
             
             # Create conversation context
             context = ConversationContext(
@@ -143,7 +148,8 @@ Be conversational and knowledgeable - like a trusted tile expert who's helping t
                 "current_phase": customer_phase,
                 "next_phase": next_phase,
                 "phase_changed": next_phase != customer_phase,
-                "conversation_tips": self._get_conversation_tips(context)
+                "conversation_tips": self._get_conversation_tips(context),
+                "extracted_info": info_dict
             }
         except Exception as e:
             logger.error(f"Error getting AOS questions: {e}")
@@ -297,7 +303,8 @@ Be conversational and knowledgeable - like a trusted tile expert who's helping t
                         "properties": {
                             "project_type": {"type": "string", "description": "Type of project (kitchen, bathroom, etc.)"},
                             "customer_phase": {"type": "string", "description": "Current conversation phase: discovery, qualification, recommendation, closing"},
-                            "gathered_info": {"type": "string", "description": "JSON string of information already gathered about customer"}
+                            "gathered_info": {"type": "string", "description": "JSON string of information already gathered about customer"},
+                            "conversation_history": {"type": "string", "description": "Recent conversation messages to extract context from"}
                         }
                     }
                 },
@@ -396,10 +403,20 @@ Be conversational and knowledgeable - like a trusted tile expert who's helping t
                         assistant_response += accessories_text
                     
                     elif tool_name == "get_aos_questions":
+                        # Build conversation history string for context extraction
+                        history_text = ""
+                        for msg in messages:
+                            if msg["role"] == "user":
+                                history_text += f"Customer: {msg['content']}\n"
+                            elif msg["role"] == "assistant":
+                                if isinstance(msg["content"], str):
+                                    history_text += f"Assistant: {msg['content']}\n"
+                        
                         result = self.get_aos_questions(
                             tool_input.get("project_type", ""),
                             tool_input.get("customer_phase", "discovery"),
-                            tool_input.get("gathered_info", "{}")
+                            tool_input.get("gathered_info", "{}"),
+                            history_text
                         )
                         tool_results.append({"tool": tool_name, "result": result})
                         
