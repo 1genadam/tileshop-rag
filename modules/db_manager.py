@@ -1454,3 +1454,150 @@ class DatabaseManager:
         except Exception as e:
             logger.error(f"Error getting conversation session: {e}")
             return None
+    
+    # Purchase History and Verification Methods
+    def get_customer_purchases(self, customer_id: str, days_back: int = 365) -> List[Dict[str, Any]]:
+        """Get customer purchase history"""
+        try:
+            conn = self.get_connection()
+            cursor = conn.cursor()
+            
+            cursor.execute("""
+                SELECT purchase_id, order_number, order_date, product_sku, product_name,
+                       product_category, product_subcategory, quantity_purchased,
+                       unit_price, total_price, purchase_source, store_location,
+                       sales_associate, delivery_date, installation_notes
+                FROM customer_purchases
+                WHERE customer_id = %s 
+                  AND order_date >= CURRENT_DATE - INTERVAL '%s days'
+                ORDER BY order_date DESC
+            """, (customer_id, days_back))
+            
+            results = cursor.fetchall()
+            cursor.close()
+            conn.close()
+            
+            purchases = []
+            for row in results:
+                purchases.append({
+                    'purchase_id': str(row[0]),
+                    'order_number': row[1],
+                    'order_date': row[2],
+                    'product_sku': row[3],
+                    'product_name': row[4],
+                    'product_category': row[5],
+                    'product_subcategory': row[6],
+                    'quantity_purchased': float(row[7]) if row[7] else 0,
+                    'unit_price': float(row[8]) if row[8] else 0,
+                    'total_price': float(row[9]) if row[9] else 0,
+                    'purchase_source': row[10],
+                    'store_location': row[11],
+                    'sales_associate': row[12],
+                    'delivery_date': row[13],
+                    'installation_notes': row[14]
+                })
+            
+            return purchases
+            
+        except Exception as e:
+            logger.error(f"Error getting customer purchases: {e}")
+            return []
+    
+    def find_product_by_keyword(self, keyword: str, customer_purchases: List[Dict] = None) -> Dict[str, Any]:
+        """Find products by keyword with intelligent matching"""
+        try:
+            conn = self.get_connection()
+            cursor = conn.cursor()
+            
+            keyword_lower = keyword.lower()
+            
+            # First, try to find in product categories for intelligent matching
+            cursor.execute("""
+                SELECT category_name, category_keywords, related_products, installation_type
+                FROM product_categories
+                WHERE %s = ANY(category_keywords) 
+                   OR category_name ILIKE %s
+                   OR %s = ANY(related_products)
+            """, (keyword_lower, f'%{keyword}%', keyword.upper()))
+            
+            category_matches = cursor.fetchall()
+            
+            result = {
+                'exact_match': None,
+                'category_matches': [],
+                'related_products': [],
+                'customer_has_related': [],
+                'suggestions': []
+            }
+            
+            # Process category matches
+            for row in category_matches:
+                category_info = {
+                    'category_name': row[0],
+                    'keywords': row[1],
+                    'related_products': row[2],
+                    'installation_type': row[3]
+                }
+                result['category_matches'].append(category_info)
+                result['related_products'].extend(row[2])
+            
+            # Check customer purchases for related products
+            if customer_purchases:
+                for purchase in customer_purchases:
+                    purchase_name = purchase['product_name'].upper()
+                    purchase_sku = purchase['product_sku'].upper()
+                    
+                    # Check if customer bought exact product
+                    if keyword_lower in purchase_name.lower() or keyword_lower in purchase_sku.lower():
+                        result['exact_match'] = purchase
+                    
+                    # Check if customer bought related products
+                    for related in result['related_products']:
+                        if related.upper() in purchase_name or related.upper() in purchase_sku:
+                            result['customer_has_related'].append({
+                                'purchased_product': purchase,
+                                'related_to': related,
+                                'category': next((cat['category_name'] for cat in result['category_matches'] 
+                                               if related in cat['related_products']), 'Unknown')
+                            })
+            
+            cursor.close()
+            conn.close()
+            
+            return result
+            
+        except Exception as e:
+            logger.error(f"Error finding product by keyword: {e}")
+            return {'exact_match': None, 'category_matches': [], 'related_products': [], 'customer_has_related': [], 'suggestions': []}
+    
+    def add_sample_purchase_data(self, customer_id: str) -> bool:
+        """Add sample purchase data for testing"""
+        try:
+            conn = self.get_connection()
+            cursor = conn.cursor()
+            
+            # Add some sample purchases
+            sample_purchases = [
+                ('ORD-001', '2025-06-15', 'BL-001', 'BACKER-LITE Anti-Fracture Mat', 'Anti-Fracture Mats', 'Underlayment', 150.0, 2.99, 448.50),
+                ('ORD-001', '2025-06-15', 'TS-002', 'Thinset Adhesive Premium', 'Adhesives', 'Modified Thinset', 2.0, 24.99, 49.98),
+                ('ORD-002', '2025-07-01', 'HM-003', 'Electric Heat Mat 120V', 'Heating Systems', 'Radiant Heat', 1.0, 299.99, 299.99)
+            ]
+            
+            for purchase in sample_purchases:
+                cursor.execute("""
+                    INSERT INTO customer_purchases (customer_id, order_number, order_date, product_sku, 
+                                                   product_name, product_category, product_subcategory, 
+                                                   quantity_purchased, unit_price, total_price, purchase_source)
+                    VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s)
+                    ON CONFLICT DO NOTHING
+                """, (customer_id, *purchase, 'store'))
+            
+            conn.commit()
+            cursor.close()
+            conn.close()
+            
+            return True
+            
+        except Exception as e:
+            logger.error(f"Error adding sample purchase data: {e}")
+            return False

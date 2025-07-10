@@ -444,6 +444,24 @@ Should we move forward with calculating the exact quantities you'll need and get
         if budget_match:
             extracted['budget_range'] = budget_match.group(0)
         
+        # **NEW: Extract purchase indicators and product mentions**
+        # Detect if customer mentions they bought something
+        purchase_indicators = ['bought', 'purchased', 'got from you', 'ordered', 'i have', 'already have']
+        if any(indicator in query_lower for indicator in purchase_indicators):
+            extracted['mentions_purchase'] = True
+            
+            # Extract specific product mentions
+            product_keywords = ['permat', 'backer-lite', 'heat mat', 'thinset', 'grout', 'tile', 'adhesive', 'mortar']
+            for keyword in product_keywords:
+                if keyword in query_lower:
+                    extracted['mentioned_product'] = keyword
+                    break
+        
+        # Detect if customer is asking for installation help
+        installation_help_indicators = ['how to install', 'installation', 'how do i', 'instructions', 'help with']
+        if any(indicator in query_lower for indicator in installation_help_indicators):
+            extracted['needs_installation_help'] = True
+        
         return extracted
     
     def should_vectorize_conversation(self, conversation_data: Dict, collected_info: Dict) -> bool:
@@ -618,3 +636,174 @@ Should we move forward with calculating the exact quantities you'll need and get
                 'error': str(e),
                 'response': 'I apologize, but I\'m experiencing some technical difficulties. Please try again.'
             }
+    
+    def handle_purchase_verification(self, query: str, extracted_info: Dict, customer: Dict = None) -> Dict[str, Any]:
+        """Handle purchase verification and product matching"""
+        result = {
+            'needs_phone_number': False,
+            'verification_result': None,
+            'response': '',
+            'purchase_verified': False,
+            'suggested_products': []
+        }
+        
+        # If customer mentions purchase but no customer info, request phone number
+        if extracted_info.get('mentions_purchase') and not customer:
+            result['needs_phone_number'] = True
+            result['response'] = """I'd be happy to help you with your installation! To provide you with the most accurate guidance, could you please provide your phone number so I can look up your purchase history and make sure I'm giving you the right instructions for the specific product you bought?"""
+            return result
+        
+        # If we have customer info and they mentioned a purchase, verify it
+        if customer and extracted_info.get('mentions_purchase'):
+            mentioned_product = extracted_info.get('mentioned_product', '')
+            
+            # Get customer purchase history
+            purchases = self.db.get_customer_purchases(customer['customer_id'])
+            
+            # Find product match
+            product_match = self.db.find_product_by_keyword(mentioned_product, purchases)
+            
+            result['verification_result'] = product_match
+            
+            if product_match['exact_match']:
+                # Customer bought exactly what they mentioned
+                purchased_product = product_match['exact_match']
+                result['purchase_verified'] = True
+                result['response'] = f"""Perfect! I can see you purchased {purchased_product['product_name']} on {purchased_product['order_date']}. I'll provide you with the specific installation instructions for this product."""
+                
+            elif product_match['customer_has_related']:
+                # Customer bought related products
+                related_purchase = product_match['customer_has_related'][0]
+                purchased_product = related_purchase['purchased_product']
+                category = related_purchase['category']
+                
+                result['purchase_verified'] = True
+                result['response'] = f"""I see you mentioned "{mentioned_product}", but I found that you actually purchased {purchased_product['product_name']} on {purchased_product['order_date']}, which is a {category} product - very similar to what you mentioned! Let me provide you with the correct installation instructions for the {purchased_product['product_name']} that you actually bought."""
+                
+            else:
+                # No matching purchase found
+                result['purchase_verified'] = False
+                if purchases:
+                    # Show what they did buy
+                    recent_products = [p['product_name'] for p in purchases[:3]]
+                    result['response'] = f"""I don't see "{mentioned_product}" in your recent purchase history. However, I do see you've purchased: {', '.join(recent_products)}. Could you clarify which product you need installation help with, or would you like assistance with one of these items instead?"""
+                else:
+                    result['response'] = f"""I don't see any recent purchases in our system for your phone number. Could you double-check the phone number, or if you purchased under a different number, please provide that instead? I want to make sure I give you the right installation instructions for your specific product."""
+        
+        return result
+    
+    def process_chat_with_purchase_verification(self, query: str, phone_number: str = None, first_name: str = None) -> Dict[str, Any]:
+        """Enhanced chat processing with purchase verification"""
+        try:
+            # Extract information from query first
+            extracted_info = self.extract_information_from_query(query)
+            
+            # If customer mentions purchase but no phone number provided, handle specially
+            if extracted_info.get('mentions_purchase') and not phone_number:
+                verification_result = self.handle_purchase_verification(query, extracted_info, None)
+                return {
+                    'success': True,
+                    'response': verification_result['response'],
+                    'needs_phone_number': True,
+                    'phase': 'purchase_verification',
+                    'extracted_info': extracted_info
+                }
+            
+            # If we have phone number, use the regular processing with verification
+            if phone_number:
+                # Get or create customer session
+                session = self.get_or_create_customer_session(phone_number, first_name)
+                if not session:
+                    return {
+                        'success': False,
+                        'error': 'Failed to create customer session'
+                    }
+                
+                # Handle purchase verification if needed
+                if extracted_info.get('mentions_purchase'):
+                    verification_result = self.handle_purchase_verification(query, extracted_info, session.get('customer'))
+                    
+                    if verification_result['purchase_verified']:
+                        # Add verification info to session
+                        session['purchase_verification'] = verification_result['verification_result']
+                        
+                        # For installation help, provide specific guidance
+                        if extracted_info.get('needs_installation_help'):
+                            return {
+                                'success': True,
+                                'response': verification_result['response'] + self._get_installation_guidance(verification_result['verification_result']),
+                                'purchase_verified': True,
+                                'verification_result': verification_result['verification_result'],
+                                'phase': 'installation_support'
+                            }
+                    
+                    # Return verification response
+                    return {
+                        'success': True,
+                        'response': verification_result['response'],
+                        'purchase_verified': verification_result['purchase_verified'],
+                        'verification_result': verification_result.get('verification_result'),
+                        'phase': 'purchase_verification'
+                    }
+                
+                # Continue with regular conversation processing
+                return self.process_chat_message(query, phone_number, first_name)
+            
+            # No phone number and no purchase mention - regular anonymous chat
+            return {
+                'success': True,
+                'response': "Hello! I'm here to help you with your tile project. How can I assist you today?",
+                'phase': 'greeting'
+            }
+            
+        except Exception as e:
+            logger.error(f"Error processing chat with purchase verification: {e}")
+            return {
+                'success': False,
+                'error': str(e),
+                'response': 'I apologize, but I\'m experiencing some technical difficulties. Please try again.'
+            }
+    
+    def _get_installation_guidance(self, verification_result: Dict) -> str:
+        """Get specific installation guidance based on verified purchase"""
+        if verification_result.get('exact_match'):
+            product = verification_result['exact_match']
+            product_name = product['product_name'].upper()
+            
+            if 'ANTI-FRACTURE' in product_name or 'BACKER-LITE' in product_name or 'PERMAT' in product_name:
+                return """
+
+**Installation Steps for Anti-Fracture Mat:**
+
+1. **Surface Preparation**: Ensure substrate is clean, flat, and structurally sound
+2. **Layout**: Roll out the mat and cut to fit your area
+3. **Adhesive Application**: Apply appropriate adhesive with recommended trowel
+4. **Mat Installation**: Place mat into wet adhesive, removing air bubbles
+5. **Seam Treatment**: Overlap seams by 2" and seal with appropriate tape
+6. **Tile Installation**: Wait for cure time, then install tile using polymer-modified thinset
+
+Would you like detailed guidance on any of these specific steps?"""
+            
+            elif 'HEAT MAT' in product_name or 'RADIANT' in product_name:
+                return """
+
+**Installation Steps for Electric Heat Mat:**
+
+1. **Electrical Planning**: Ensure proper GFCI protection and electrical capacity
+2. **Floor Preparation**: Clean, level substrate
+3. **Layout Planning**: Plan mat placement avoiding fixtures and cabinets
+4. **Mat Installation**: Secure mat with adhesive or mechanical fasteners
+5. **Sensor Installation**: Install floor temperature sensor
+6. **Testing**: Test system before covering with tile
+7. **Tile Installation**: Cover with appropriate thinset and tile
+
+Would you like detailed guidance on any of these specific steps?"""
+        
+        return """
+
+I'll help you with the installation process! Could you let me know what specific aspect of the installation you'd like guidance on? For example:
+- Surface preparation
+- Product application
+- Tool requirements
+- Step-by-step process
+- Troubleshooting"""
