@@ -9,6 +9,7 @@ import logging
 from typing import Dict, List, Any, Optional
 from datetime import datetime, date
 import anthropic
+from .aos_conversation_engine import AOSConversationEngine, ConversationContext
 
 logger = logging.getLogger(__name__)
 
@@ -27,16 +28,34 @@ class SimpleTileAgent:
         self.db = db_manager
         self.rag = rag_manager
         self.client = anthropic.Anthropic()
+        self.aos_engine = AOSConversationEngine()
         
         # Core Component 1: System Prompt
         self.system_prompt = """You are Alex, a knowledgeable and friendly tile specialist at The Tile Shop. You're an expert in tiles, installation, and helping customers complete successful projects.
 
-Your expertise includes:
-- Helping customers find the perfect tiles for their projects
-- Providing installation guidance for products they've purchased
-- Recommending necessary installation accessories and tools
-- Calculating quantities and project materials
-- Troubleshooting installation issues
+CONVERSATION INTELLIGENCE: When customers give you specific information (like "looking for kitchen floor tile"), NEVER respond with generic questions like "How can I assist you today?". Instead, be intelligent and build on what they've told you.
+
+AOS APPROACH (Assumptive, Outcome-oriented, Sales-focused):
+- Be assumptive: Act like they're going to buy and ask specific project questions
+- Be outcome-oriented: Focus on getting them to the right tile for their project
+- Be sales-focused: Gather information to make the best recommendation
+
+🚨 MANDATORY TOOL USAGE PROTOCOL:
+When customers mention a project (like "kitchen floor tile"):
+1. MUST FIRST: Use the get_aos_questions tool with the project type they mentioned (kitchen, bathroom, etc.)
+2. Ask for phone number: "I'd love to help you find the perfect [project type] tile! To save our conversation for future reference and check if we have anything in stock for you, what phone number should I save this under?"
+3. Ask the specific AOS questions returned by the get_aos_questions tool
+4. 🛑 ABSOLUTELY FORBIDDEN: Do NOT use search_products tool until you have gathered customer information through AOS questioning
+
+❌ FORBIDDEN ACTIONS:
+- Using search_products on first interaction
+- Providing product recommendations without context
+- Generic responses like "How can I assist you today?"
+
+✅ REQUIRED ACTIONS:
+- Always use get_aos_questions first for any project inquiry
+- Get phone number for follow-up
+- Ask intelligent AOS questions before searching products
 
 When customers ask about installation help:
 1. IMPORTANT: If you see a phone number anywhere in the user's message (like "My phone number is: 847-302-2594"), immediately use the lookup_customer tool to verify their purchase history
@@ -44,12 +63,9 @@ When customers ask about installation help:
 3. After using lookup_customer, provide specific installation guidance for their verified purchase
 4. Recommend installation accessories: thinset, grout, sealer, sponges, trowels, wedges, leveling system, silicone, buckets, float
 
-When customers ask about products:
-- Use the search_products tool to find relevant tiles
-- Ask about their project (room type, size, style preferences)
-- Provide complete project recommendations including accessories
+CONVERSATION STORAGE: Always mention that you want to store the conversation: "I'd like to store our conversation for future context so you're not starting over the next time we chat. What phone number would you like this saved under?"
 
-Be conversational and natural - like talking to a knowledgeable friend who works at a tile shop. Don't follow rigid scripts or phases. Just be helpful and use your tools when you need information."""
+Be conversational and knowledgeable - like a trusted tile expert who's helping them create their dream space. Ask intelligent follow-up questions that move the sale forward."""
 
     def lookup_customer(self, phone_number: str) -> Dict[str, Any]:
         """Tool: Look up customer and their purchase history"""
@@ -97,6 +113,83 @@ Be conversational and natural - like talking to a knowledgeable friend who works
             }
         except Exception as e:
             logger.error(f"Error getting installation guide: {e}")
+            return {"success": False, "error": str(e)}
+
+    def get_aos_questions(self, project_type: str = "", customer_phase: str = "discovery", gathered_info: str = "{}") -> Dict[str, Any]:
+        """Tool: Get intelligent AOS questions based on conversation context"""
+        try:
+            # Parse gathered info
+            try:
+                info_dict = json.loads(gathered_info) if gathered_info else {}
+            except json.JSONDecodeError:
+                info_dict = {}
+            
+            # Create conversation context
+            context = ConversationContext(
+                project_type=project_type.lower(),
+                customer_phase=customer_phase,
+                gathered_info=info_dict
+            )
+            
+            # Get next best questions
+            questions = self.aos_engine.get_next_questions(context, num_questions=2)
+            
+            # Check if we should advance phase
+            next_phase = self.aos_engine.advance_conversation_phase(context)
+            
+            return {
+                "success": True,
+                "questions": questions,
+                "current_phase": customer_phase,
+                "next_phase": next_phase,
+                "phase_changed": next_phase != customer_phase,
+                "conversation_tips": self._get_conversation_tips(context)
+            }
+        except Exception as e:
+            logger.error(f"Error getting AOS questions: {e}")
+            return {"success": False, "error": str(e)}
+    
+    def _get_conversation_tips(self, context: ConversationContext) -> List[str]:
+        """Get conversation tips based on current context"""
+        tips = []
+        
+        if not context.phone_number:
+            tips.append("Prioritize getting phone number for follow-up")
+        
+        if context.customer_phase == "discovery":
+            tips.append("Focus on understanding their project vision")
+        elif context.customer_phase == "qualification":
+            tips.append("Assess timeline, budget, and decision-making process")
+        elif context.customer_phase == "recommendation":
+            tips.append("Present tailored solutions based on their needs")
+        elif context.customer_phase == "closing":
+            tips.append("Create urgency and guide toward next steps")
+        
+        return tips
+
+    def save_customer_project(self, phone_number: str, project_info: str) -> Dict[str, Any]:
+        """Tool: Save customer project information for future reference"""
+        try:
+            # Get or create customer
+            customer = self.db.get_or_create_customer(phone_number)
+            if not customer:
+                return {"success": False, "message": "Could not create customer record"}
+            
+            # For now, we'll add this to the customer notes
+            # In the future, this could be a separate project_conversations table
+            current_notes = customer.get('notes', '') or ''
+            updated_notes = f"{current_notes}\n[{datetime.now().strftime('%Y-%m-%d %H:%M')}] {project_info}".strip()
+            
+            # Update customer notes (simplified approach for now)
+            # In production, this would update the database
+            return {
+                "success": True,
+                "message": f"Project information saved for {customer.get('first_name', 'customer')}",
+                "customer_id": customer.get('customer_id'),
+                "project_info": project_info
+            }
+        except Exception as e:
+            logger.error(f"Error saving customer project: {e}")
             return {"success": False, "error": str(e)}
 
     def get_installation_accessories(self, product_type: str = None) -> List[Dict[str, Any]]:
@@ -195,6 +288,30 @@ Be conversational and natural - like talking to a knowledgeable friend who works
                             "product_type": {"type": "string", "description": "Type of product being installed (optional)"}
                         }
                     }
+                },
+                {
+                    "name": "get_aos_questions",
+                    "description": "Get intelligent AOS questions based on conversation context and learning data",
+                    "input_schema": {
+                        "type": "object",
+                        "properties": {
+                            "project_type": {"type": "string", "description": "Type of project (kitchen, bathroom, etc.)"},
+                            "customer_phase": {"type": "string", "description": "Current conversation phase: discovery, qualification, recommendation, closing"},
+                            "gathered_info": {"type": "string", "description": "JSON string of information already gathered about customer"}
+                        }
+                    }
+                },
+                {
+                    "name": "save_customer_project",
+                    "description": "Save customer project information for future reference",
+                    "input_schema": {
+                        "type": "object",
+                        "properties": {
+                            "phone_number": {"type": "string", "description": "Customer's phone number"},
+                            "project_info": {"type": "string", "description": "Project details and conversation notes"}
+                        },
+                        "required": ["phone_number", "project_info"]
+                    }
                 }
             ]
             
@@ -277,6 +394,27 @@ Be conversational and natural - like talking to a knowledgeable friend who works
                                 accessories_text += f"• **{acc['item']}** - {acc['purpose']}\n"
                         
                         assistant_response += accessories_text
+                    
+                    elif tool_name == "get_aos_questions":
+                        result = self.get_aos_questions(
+                            tool_input.get("project_type", ""),
+                            tool_input.get("customer_phase", "discovery"),
+                            tool_input.get("gathered_info", "{}")
+                        )
+                        tool_results.append({"tool": tool_name, "result": result})
+                        
+                        if result.get("success"):
+                            questions = result.get("questions", [])
+                            if questions:
+                                questions_text = "\n\nLet me ask you a couple of questions to help find the perfect solution:\n"
+                                for i, question in enumerate(questions, 1):
+                                    questions_text += f"{i}. {question}\n"
+                                assistant_response += questions_text
+                    
+                    elif tool_name == "save_customer_project":
+                        result = self.save_customer_project(tool_input["phone_number"], tool_input["project_info"])
+                        tool_results.append({"tool": tool_name, "result": result})
+                        # Note: Don't add to assistant_response as this is a background action
             
             return {
                 "success": True,

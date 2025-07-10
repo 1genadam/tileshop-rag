@@ -33,7 +33,7 @@ async function sendMessage() {
             first_name: nameInput ? nameInput.value.trim() : ''
         };
         
-        const response = await fetch('/api/chat/unified', {
+        const response = await fetch('/api/chat/simple', {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify(requestData)
@@ -46,20 +46,17 @@ async function sendMessage() {
         
         if (data.success) {
             console.log('Adding assistant message:', data.response);
-            addMessage(data.response, 'assistant', {
-                aos_phase: data.aos_phase,
-                collected_info: data.collected_info,
-                customer_id: data.customer_id
-            });
+            addMessage(data.response, 'assistant');
             
-            // Show AOS phase indicator
-            if (data.aos_phase) {
-                showAOSPhase(data.aos_phase);
-            }
-            
-            // Show collected information progress
-            if (data.collected_info && Object.keys(data.collected_info).length > 0) {
-                showCollectedInfo(data.collected_info);
+            // Show tool usage information (optional debug info)
+            if (data.tool_calls && data.tool_calls.length > 0) {
+                console.log('Tools used:', data.tool_calls.map(tc => tc.tool));
+                
+                // Show AOS phase if available from tools
+                const aosResult = data.tool_calls.find(tc => tc.tool === 'get_aos_questions');
+                if (aosResult && aosResult.result && aosResult.result.current_phase) {
+                    showAOSPhase(aosResult.result.current_phase);
+                }
             }
             
         } else {
@@ -234,7 +231,7 @@ function clearChat() {
     container.innerHTML = `
         <div class="flex justify-start">
             <div class="message-bubble assistant">
-                <p>Hello! How can I help you find the perfect tiles today?</p>
+                <p>Hi! I'm Alex, your tile specialist. What project are you working on?</p>
                 <p class="message-timestamp">${new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}</p>
             </div>
         </div>
