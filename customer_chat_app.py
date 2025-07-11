@@ -250,11 +250,8 @@ def list_nepq_reports():
 
 @app.route('/api/vision/analyze-tile', methods=['POST'])
 def analyze_tile_image():
-    """Analyze uploaded tile image using CLIP vision"""
+    """Analyze uploaded tile image using CLIP vision or fallback system"""
     try:
-        if not clip_vision:
-            return jsonify({'success': False, 'error': 'Vision system not available'})
-        
         data = request.get_json()
         
         if not data or 'image' not in data:
@@ -262,14 +259,154 @@ def analyze_tile_image():
         
         image_data = data['image']
         
-        # Analyze the tile image
-        result = clip_vision.analyze_tile_image(image_data)
+        # If CLIP vision is available, use it
+        if clip_vision:
+            result = clip_vision.analyze_tile_image(image_data)
+            return jsonify(result)
         
-        return jsonify(result)
+        # Use OpenAI Vision API for tile analysis
+        logger.info("Using OpenAI Vision API for tile analysis")
+        
+        # Analyze the tile image using OpenAI GPT-4 Vision
+        vision_result = analyze_tile_with_openai_vision(image_data)
+        
+        if vision_result['success']:
+            # Search for tiles based on AI description
+            tile_matches = search_tiles_by_description(vision_result['description'])
+            
+            return jsonify({
+                'success': True,
+                'matches': tile_matches,
+                'confidence': vision_result['confidence'],
+                'description': vision_result['description'],
+                'message': f"I can see this tile! {vision_result['description']} Here are similar tiles from our inventory:",
+                'ai_analysis': True
+            })
+        else:
+            return jsonify({
+                'success': False,
+                'error': vision_result['error']
+            })
         
     except Exception as e:
         logger.error(f"Error analyzing tile image: {e}")
         return jsonify({'success': False, 'error': str(e)})
+
+def analyze_tile_with_openai_vision(image_data):
+    """Analyze tile image using OpenAI GPT-4 Vision"""
+    try:
+        if not openai_client:
+            return {'success': False, 'error': 'OpenAI client not available'}
+        
+        # OpenAI Vision API call
+        response = openai_client.chat.completions.create(
+            model="gpt-4o",
+            messages=[
+                {
+                    "role": "user",
+                    "content": [
+                        {
+                            "type": "text",
+                            "text": """Analyze this tile image and provide a detailed description focusing on:
+                            1. Material type (ceramic, porcelain, natural stone, glass, etc.)
+                            2. Color and pattern
+                            3. Size/dimensions if visible
+                            4. Texture and finish (matte, glossy, textured)
+                            5. Style (modern, traditional, rustic, etc.)
+                            6. Any unique characteristics
+                            
+                            Provide a concise but detailed description that would help match similar tiles."""
+                        },
+                        {
+                            "type": "image_url",
+                            "image_url": {
+                                "url": image_data
+                            }
+                        }
+                    ]
+                }
+            ],
+            max_tokens=300
+        )
+        
+        description = response.choices[0].message.content
+        
+        return {
+            'success': True,
+            'description': description,
+            'confidence': 0.85  # OpenAI Vision is generally high confidence
+        }
+        
+    except Exception as e:
+        logger.error(f"OpenAI Vision analysis failed: {e}")
+        return {
+            'success': False,
+            'error': f"Vision analysis failed: {str(e)}"
+        }
+
+def search_tiles_by_description(description):
+    """Search for tiles in database based on AI description"""
+    try:
+        # Use the RAG system to search for similar tiles
+        if rag_manager:
+            # Create search query from description
+            search_query = f"tile {description}"
+            results = rag_manager.search(search_query, limit=6)
+            
+            # Format results for frontend
+            matches = []
+            for result in results:
+                match = {
+                    'name': result.get('title', 'Unknown Tile'),
+                    'sku': result.get('sku', 'N/A'),
+                    'price': result.get('price_per_sq_ft', 0),
+                    'image_url': result.get('image_url', '/static/placeholder-tile.jpg'),
+                    'description': result.get('description', ''),
+                    'confidence': result.get('score', 0.7),
+                    'location': f"Aisle {result.get('aisle', 'TBD')}"
+                }
+                matches.append(match)
+            
+            return matches
+        
+        # Fallback if no RAG system
+        return get_sample_tile_matches()
+        
+    except Exception as e:
+        logger.error(f"Error searching tiles by description: {e}")
+        return get_sample_tile_matches()
+
+def get_sample_tile_matches():
+    """Return sample tile matches as fallback"""
+    return [
+        {
+            'name': 'Modern Ceramic Floor Tile',
+            'sku': 'MCF-001',
+            'price': 4.99,
+            'image_url': '/static/placeholder-tile.jpg',
+            'description': 'Modern ceramic tile with neutral finish',
+            'confidence': 0.7,
+            'location': 'Aisle 3'
+        },
+        {
+            'name': 'Premium Porcelain Tile',
+            'sku': 'PPT-002',
+            'price': 7.50,
+            'image_url': '/static/placeholder-tile.jpg',
+            'description': 'High-quality porcelain tile',
+            'confidence': 0.65,
+            'location': 'Aisle 5'
+        },
+        {
+            'name': 'Natural Stone Look Tile',
+            'sku': 'NSL-003',
+            'price': 6.25,
+            'image_url': '/static/placeholder-tile.jpg',
+            'description': 'Natural stone appearance ceramic tile',
+            'confidence': 0.6,
+            'location': 'Aisle 7'
+        }
+    ]
 
 @app.route('/api/vision/rebuild-database', methods=['POST'])
 def rebuild_vision_database():

@@ -534,6 +534,14 @@
                                 onclick="stopCamera()" id="stop-camera-btn">
                             <i class="fas fa-stop mr-2"></i>Stop
                         </button>
+                        <button class="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-lg hidden" 
+                                onclick="analyzeCapturedTile()" id="analyze-tile-btn">
+                            <i class="fas fa-search mr-2"></i>Analyze Tile
+                        </button>
+                        <button class="bg-yellow-600 hover:bg-yellow-700 text-white px-4 py-2 rounded-lg hidden" 
+                                onclick="retakePhoto()" id="retake-btn">
+                            <i class="fas fa-redo mr-2"></i>Retake
+                        </button>
                     </div>
                     
                     <!-- Video Preview -->
@@ -1363,12 +1371,14 @@
                 const captureBtn = document.getElementById('capture-btn');
                 const stopBtn = document.getElementById('stop-camera-btn');
 
-                // Request camera access
+                // Request camera access with higher quality
                 cameraStream = await navigator.mediaDevices.getUserMedia({ 
                     video: { 
-                        width: 640, 
-                        height: 480,
-                        facingMode: 'environment' // Use back camera on mobile
+                        width: { ideal: 1920, min: 1280 },
+                        height: { ideal: 1080, min: 720 },
+                        facingMode: 'environment', // Use back camera on mobile
+                        focusMode: 'continuous', // Enable autofocus
+                        exposureMode: 'continuous' // Auto exposure for better lighting
                     } 
                 });
 
@@ -1409,6 +1419,8 @@
 
                 // Update buttons
                 document.getElementById('capture-btn').classList.add('hidden');
+                document.getElementById('analyze-tile-btn').classList.remove('hidden');
+                document.getElementById('retake-btn').classList.remove('hidden');
                 
                 console.log('Image captured successfully');
                 
@@ -1432,7 +1444,115 @@
             video.classList.remove('hidden');
             captureBtn.classList.remove('hidden');
             
+            // Hide analyze and retake buttons
+            document.getElementById('analyze-tile-btn').classList.add('hidden');
+            document.getElementById('retake-btn').classList.add('hidden');
+            
             capturedImageData = null;
+        }
+
+        async function analyzeCapturedTile() {
+            if (!capturedImageData) {
+                alert('No image captured. Please capture a tile image first.');
+                return;
+            }
+
+            try {
+                // Show loading state
+                const analyzeBtn = document.getElementById('analyze-tile-btn');
+                const originalText = analyzeBtn.innerHTML;
+                analyzeBtn.innerHTML = '<i class="fas fa-spinner fa-spin mr-2"></i>Analyzing...';
+                analyzeBtn.disabled = true;
+
+                // Call the vision API
+                const response = await fetch('/api/vision/analyze-tile', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify({
+                        image: capturedImageData
+                    })
+                });
+
+                const result = await response.json();
+
+                // Restore button
+                analyzeBtn.innerHTML = originalText;
+                analyzeBtn.disabled = false;
+
+                if (result.success) {
+                    // Display results
+                    displayTileAnalysisResults(result);
+                    
+                    // Add analysis to chat
+                    const message = `${result.message || 'I analyzed your tile image and found some great matches!'}`;
+                    addMessage(message, 'assistant');
+                    
+                    // Hide buttons after successful analysis
+                    document.getElementById('analyze-tile-btn').classList.add('hidden');
+                } else {
+                    alert(`Analysis failed: ${result.error}`);
+                }
+
+            } catch (error) {
+                console.error('Error analyzing tile:', error);
+                alert('Error analyzing tile. Please try again.');
+                
+                // Restore button
+                const analyzeBtn = document.getElementById('analyze-tile-btn');
+                analyzeBtn.innerHTML = '<i class="fas fa-search mr-2"></i>Analyze Tile';
+                analyzeBtn.disabled = false;
+            }
+        }
+
+        function displayTileAnalysisResults(result) {
+            const resultsDiv = document.getElementById('vision-results');
+            const matchesDiv = document.getElementById('tile-matches');
+            
+            resultsDiv.classList.remove('hidden');
+            
+            // Show AI description if available
+            let resultsHtml = '';
+            if (result.description) {
+                resultsHtml += `
+                    <div class="mb-4 p-3 bg-blue-50 rounded-lg border border-blue-200">
+                        <h4 class="font-bold text-blue-800 mb-2">AI Analysis:</h4>
+                        <p class="text-blue-700">${result.description}</p>
+                    </div>
+                `;
+            }
+            
+            // Show tile matches
+            if (result.matches && result.matches.length > 0) {
+                resultsHtml += '<div class="grid grid-cols-1 md:grid-cols-2 gap-4">';
+                
+                result.matches.forEach((match, index) => {
+                    const confidenceColor = match.confidence > 0.8 ? 'text-green-600' : 
+                                          match.confidence > 0.6 ? 'text-yellow-600' : 'text-red-600';
+                    
+                    resultsHtml += `
+                        <div class="border rounded-lg p-4 hover:shadow-lg transition-shadow">
+                            <div class="flex justify-between items-start mb-2">
+                                <h3 class="font-semibold text-gray-800">${match.name}</h3>
+                                <span class="text-sm ${confidenceColor}">${Math.round(match.confidence * 100)}% match</span>
+                            </div>
+                            <p class="text-gray-600 text-sm mb-2">SKU: ${match.sku}</p>
+                            <p class="text-gray-600 text-sm mb-2">${match.description}</p>
+                            <div class="flex justify-between items-center">
+                                <span class="font-bold text-green-600">$${match.price}/sq ft</span>
+                                <span class="text-sm text-blue-600">${match.location}</span>
+                            </div>
+                        </div>
+                    `;
+                });
+                
+                resultsHtml += '</div>';
+            } else {
+                resultsHtml += '<p class="text-gray-600">No similar tiles found in our inventory.</p>';
+            }
+            
+            matchesDiv.innerHTML = resultsHtml;
         }
 
         function stopCamera() {
