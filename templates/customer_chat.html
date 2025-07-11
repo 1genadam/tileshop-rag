@@ -219,12 +219,73 @@
                 </div>
             </div>
 
-            <!-- Area-Based Project Organization -->
-            <div class="px-6 py-3 bg-blue-50 border-t border-blue-200" id="project-organizer" style="display: none;">
+            <!-- Hybrid Form/LLM Structured Data Panel -->
+            <div class="px-6 py-3 bg-gradient-to-r from-blue-50 to-indigo-50 border-t border-blue-200" id="project-organizer" style="display: none;">
+                <!-- Project Setup Header -->
+                <div class="bg-white rounded-lg p-4 mb-4 border border-blue-200 shadow-sm">
+                    <div class="flex justify-between items-center mb-3">
+                        <h3 class="text-lg font-bold text-blue-800">📋 Project Details</h3>
+                        <div class="text-sm text-blue-600">Structured Data Entry</div>
+                    </div>
+                    
+                    <!-- Project Basic Info -->
+                    <div class="grid grid-cols-1 md:grid-cols-3 gap-4 mb-4">
+                        <div>
+                            <label class="block text-sm font-medium text-gray-700 mb-1">Project Name</label>
+                            <input type="text" id="project-name" placeholder="e.g., Master Bathroom Renovation" 
+                                   class="w-full border border-gray-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                                   onchange="updateProjectData()">
+                        </div>
+                        <div>
+                            <label class="block text-sm font-medium text-gray-700 mb-1">Room Type</label>
+                            <select id="room-type" class="w-full border border-gray-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                                    onchange="updateProjectData()">
+                                <option value="">Select Room Type</option>
+                                <option value="bathroom">Bathroom</option>
+                                <option value="kitchen">Kitchen</option>
+                                <option value="living-room">Living Room</option>
+                                <option value="bedroom">Bedroom</option>
+                                <option value="laundry-room">Laundry Room</option>
+                                <option value="entryway">Entryway</option>
+                                <option value="commercial">Commercial</option>
+                            </select>
+                        </div>
+                        <div>
+                            <label class="block text-sm font-medium text-gray-700 mb-1">Customer Name</label>
+                            <input type="text" id="customer-name" placeholder="Your name" 
+                                   class="w-full border border-gray-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                                   onchange="updateProjectData()">
+                        </div>
+                    </div>
+                    
+                    <!-- Room Dimensions -->
+                    <div class="bg-gray-50 rounded-lg p-3">
+                        <label class="block text-sm font-medium text-gray-700 mb-2">Room Dimensions</label>
+                        <div class="flex items-center space-x-3">
+                            <div class="flex items-center space-x-2">
+                                <input type="number" id="room-length" placeholder="Length" step="0.1" min="0"
+                                       class="w-20 border border-gray-300 rounded px-2 py-1 text-center focus:ring-2 focus:ring-blue-500"
+                                       onchange="calculateRoomArea()">
+                                <span class="text-gray-600">×</span>
+                                <input type="number" id="room-width" placeholder="Width" step="0.1" min="0"
+                                       class="w-20 border border-gray-300 rounded px-2 py-1 text-center focus:ring-2 focus:ring-blue-500"
+                                       onchange="calculateRoomArea()">
+                                <select id="dimension-unit" class="border border-gray-300 rounded px-2 py-1 focus:ring-2 focus:ring-blue-500"
+                                        onchange="calculateRoomArea()">
+                                    <option value="feet">feet</option>
+                                    <option value="meters">meters</option>
+                                </select>
+                            </div>
+                            <div class="text-lg font-medium text-blue-800" id="calculated-area">= 0 sq ft</div>
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- Surface Selection Header -->
                 <div class="flex justify-between items-center mb-3">
-                    <h3 class="text-lg font-medium text-blue-800">🏠 Project Organization</h3>
-                    <button class="text-blue-600 hover:text-blue-800 text-sm" onclick="toggleProjectOrganizer()">
-                        <i class="fas fa-plus mr-1"></i>Add Area
+                    <h3 class="text-lg font-medium text-blue-800">🎯 Surface Planning</h3>
+                    <button class="bg-blue-600 hover:bg-blue-700 text-white px-3 py-1 rounded-lg text-sm" onclick="addSurfaceToProject()">
+                        <i class="fas fa-plus mr-1"></i>Add Surface
                     </button>
                 </div>
                 
@@ -1035,21 +1096,174 @@
             messagesContainer.scrollTop = messagesContainer.scrollHeight;
         }
 
-        // Area-Based Project Organization Functions
-        let projectData = {
-            areas: [],
-            totalCost: 0
+        // Hybrid Form/LLM Structured Data Functions
+        let structuredProjectData = {
+            projectName: '',
+            customerName: '',
+            roomType: '',
+            roomLength: 0,
+            roomWidth: 0,
+            dimensionUnit: 'feet',
+            totalArea: 0,
+            surfaces: [],
+            totalCost: 0,
+            lastUpdated: null
         };
-        let currentAreaId = null;
+        let currentSurfaceId = null;
 
         function toggleProjectOrganizer() {
             const organizer = document.getElementById('project-organizer');
             if (organizer.style.display === 'none') {
                 organizer.style.display = 'block';
-                addNewArea();
+                // Send LLM context about opening structured data panel
+                notifyLLMAboutStructuredData('opened_panel');
             } else {
                 organizer.style.display = 'none';
             }
+        }
+
+        function updateProjectData() {
+            structuredProjectData.projectName = document.getElementById('project-name').value;
+            structuredProjectData.customerName = document.getElementById('customer-name').value;
+            structuredProjectData.roomType = document.getElementById('room-type').value;
+            structuredProjectData.lastUpdated = new Date();
+            
+            // Trigger LLM acknowledgment if significant data entered
+            if (structuredProjectData.projectName && structuredProjectData.roomType) {
+                notifyLLMAboutStructuredData('project_details_updated');
+            }
+            
+            // Auto-send to backend for persistence
+            saveStructuredProjectData();
+        }
+
+        function calculateRoomArea() {
+            const length = parseFloat(document.getElementById('room-length').value) || 0;
+            const width = parseFloat(document.getElementById('room-width').value) || 0;
+            const unit = document.getElementById('dimension-unit').value;
+            
+            structuredProjectData.roomLength = length;
+            structuredProjectData.roomWidth = width;
+            structuredProjectData.dimensionUnit = unit;
+            
+            // Calculate area in square feet
+            let areaInSqFt = length * width;
+            if (unit === 'meters') {
+                areaInSqFt = areaInSqFt * 10.764; // Convert sq meters to sq feet
+            }
+            
+            structuredProjectData.totalArea = areaInSqFt;
+            
+            // Update display
+            const displayUnit = unit === 'feet' ? 'sq ft' : 'sq ft (converted from sq m)';
+            document.getElementById('calculated-area').textContent = `= ${areaInSqFt.toFixed(1)} ${displayUnit}`;
+            
+            // Trigger LLM acknowledgment if meaningful dimensions
+            if (length > 0 && width > 0) {
+                notifyLLMAboutStructuredData('dimensions_entered');
+            }
+            
+            updateProjectSummary();
+            saveStructuredProjectData();
+        }
+
+        function addSurfaceToProject() {
+            const roomType = structuredProjectData.roomType;
+            if (!roomType) {
+                alert('Please select a room type first.');
+                return;
+            }
+            
+            // Open surface selection modal with context
+            currentSurfaceId = 'surface-' + Date.now();
+            document.getElementById('current-area-name').textContent = `${structuredProjectData.projectName || 'your project'}`;
+            document.getElementById('surface-modal').classList.remove('hidden');
+        }
+
+        function notifyLLMAboutStructuredData(action) {
+            // Send context to LLM about structured data changes
+            let contextMessage = '';
+            
+            switch(action) {
+                case 'opened_panel':
+                    contextMessage = `Customer opened the structured data panel. Current project: ${structuredProjectData.projectName || 'Untitled'}, Room: ${structuredProjectData.roomType || 'Not selected'}, Area: ${structuredProjectData.totalArea.toFixed(1)} sq ft`;
+                    break;
+                case 'project_details_updated':
+                    contextMessage = `Customer updated project details - Name: "${structuredProjectData.projectName}", Room Type: "${structuredProjectData.roomType}"`;
+                    break;
+                case 'dimensions_entered':
+                    contextMessage = `Customer entered room dimensions: ${structuredProjectData.roomLength} × ${structuredProjectData.roomWidth} ${structuredProjectData.dimensionUnit} (${structuredProjectData.totalArea.toFixed(1)} sq ft total)`;
+                    break;
+                case 'surface_added':
+                    contextMessage = `Customer added a new surface to their project. Current surfaces: ${structuredProjectData.surfaces.length}`;
+                    break;
+            }
+            
+            if (contextMessage) {
+                // Add system message to chat for LLM context
+                addSystemContextMessage(contextMessage);
+                
+                // Trigger LLM response acknowledging the structured data
+                sendStructuredDataUpdate(action);
+            }
+        }
+
+        function addSystemContextMessage(message) {
+            // Add invisible context message for LLM (not displayed to user)
+            const messagesContainer = document.getElementById('chat-messages');
+            const contextDiv = document.createElement('div');
+            contextDiv.className = 'hidden';
+            contextDiv.setAttribute('data-context', 'structured-data');
+            contextDiv.textContent = `[SYSTEM CONTEXT] ${message}`;
+            messagesContainer.appendChild(contextDiv);
+        }
+
+        function sendStructuredDataUpdate(action) {
+            // Send AJAX request to update LLM with structured data context
+            fetch('/api/chat/structured-context', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify({
+                    action: action,
+                    projectData: structuredProjectData,
+                    phone: window.customerPhone || 'unknown'
+                })
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.llm_response) {
+                    // Add LLM acknowledgment to chat
+                    addMessageToChat(data.llm_response, 'assistant');
+                }
+            })
+            .catch(error => {
+                console.error('Error updating structured context:', error);
+            });
+        }
+
+        function saveStructuredProjectData() {
+            // Save to backend database
+            fetch('/api/project/structured-save', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify({
+                    phone: window.customerPhone || 'unknown',
+                    projectData: structuredProjectData
+                })
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.success) {
+                    console.log('Project data saved successfully');
+                }
+            })
+            .catch(error => {
+                console.error('Error saving project data:', error);
+            });
         }
 
         function addNewArea() {
