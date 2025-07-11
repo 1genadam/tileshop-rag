@@ -21,6 +21,17 @@ from modules.db_manager import DatabaseManager
 from modules.rag_manager import RAGManager
 from modules.simple_tile_agent import SimpleTileAgent
 
+# Add OpenAI for chat completions
+try:
+    from openai import OpenAI
+    openai_client = OpenAI(api_key=os.environ.get('OPENAI_API_KEY'))
+    OPENAI_AVAILABLE = True
+    logger.info("OpenAI client initialized for contractor chat")
+except ImportError:
+    openai_client = None
+    OPENAI_AVAILABLE = False
+    logger.warning("OpenAI not available. Falling back to other LLM providers.")
+
 # Configure logging
 logging.basicConfig(
     level=logging.INFO,

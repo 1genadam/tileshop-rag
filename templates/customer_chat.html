@@ -296,13 +296,83 @@
                 
                 <!-- Project Summary -->
                 <div class="mt-4 p-3 bg-white rounded-lg border border-blue-200" id="project-summary" style="display: none;">
-                    <div class="flex justify-between items-center">
+                    <div class="flex justify-between items-center mb-3">
                         <div>
                             <span class="font-medium text-blue-800">Total Project Cost:</span>
                             <span class="text-xl font-bold text-green-600 ml-2" id="total-project-cost">$0.00</span>
                         </div>
                         <div class="text-sm text-blue-600">
                             <span id="total-areas">0</span> areas • <span id="total-surfaces">0</span> surfaces • <span id="total-sq-ft">0</span> sq ft
+                        </div>
+                    </div>
+                    
+                    <!-- Design Generation Section -->
+                    <div class="pt-3 border-t border-blue-200" id="design-generation-section" style="display: none;">
+                        <div class="flex justify-between items-center mb-3">
+                            <h4 class="font-medium text-purple-800">🎨 AI Room Design</h4>
+                            <div class="flex items-center space-x-2">
+                                <select id="design-style" class="text-sm border border-gray-300 rounded px-2 py-1 focus:ring-2 focus:ring-purple-500">
+                                    <option value="modern">Modern</option>
+                                    <option value="traditional">Traditional</option>
+                                    <option value="transitional">Transitional</option>
+                                    <option value="industrial">Industrial</option>
+                                    <option value="farmhouse">Farmhouse</option>
+                                </select>
+                                <button class="bg-purple-600 hover:bg-purple-700 text-white px-3 py-1 rounded text-sm flex items-center" 
+                                        onclick="generateRoomDesign()" id="generate-design-btn">
+                                    <i class="fas fa-magic mr-1"></i>Generate Design
+                                </button>
+                            </div>
+                        </div>
+                        
+                        <!-- Design Preview -->
+                        <div class="hidden" id="design-preview">
+                            <div class="relative">
+                                <img id="generated-design-image" class="w-full rounded-lg border-2 border-purple-300" />
+                                <div class="absolute top-2 right-2 bg-black bg-opacity-70 text-white px-2 py-1 rounded text-xs">
+                                    AI Generated with DALL-E 3
+                                </div>
+                            </div>
+                            
+                            <!-- Design Details -->
+                            <div class="mt-3 grid grid-cols-1 md:grid-cols-2 gap-3">
+                                <div class="bg-purple-50 p-3 rounded">
+                                    <h5 class="font-medium text-purple-800 mb-2">Room Specifications</h5>
+                                    <div class="text-sm text-purple-700" id="room-specs"></div>
+                                </div>
+                                <div class="bg-green-50 p-3 rounded">
+                                    <h5 class="font-medium text-green-800 mb-2">Tiles Used</h5>
+                                    <div class="text-sm text-green-700" id="tiles-used"></div>
+                                </div>
+                            </div>
+                            
+                            <!-- Actions -->
+                            <div class="mt-3 flex space-x-2">
+                                <button class="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded text-sm flex items-center" 
+                                        onclick="regenerateDesign()">
+                                    <i class="fas fa-redo mr-2"></i>Generate Another Design
+                                </button>
+                                <button class="bg-green-600 hover:bg-green-700 text-white px-4 py-2 rounded text-sm flex items-center" 
+                                        onclick="saveDesignToProject()">
+                                    <i class="fas fa-save mr-2"></i>Save Design
+                                </button>
+                                <button class="bg-gray-600 hover:bg-gray-700 text-white px-4 py-2 rounded text-sm flex items-center" 
+                                        onclick="shareDesign()">
+                                    <i class="fas fa-share mr-2"></i>Share
+                                </button>
+                            </div>
+                        </div>
+                        
+                        <!-- Generation Loading -->
+                        <div class="hidden text-center py-6" id="design-loading">
+                            <div class="inline-flex items-center">
+                                <svg class="animate-spin h-6 w-6 text-purple-600 mr-3" fill="none" viewBox="0 0 24 24">
+                                    <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+                                    <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                                </svg>
+                                <span class="text-purple-800 font-medium">Generating your room design...</span>
+                            </div>
+                            <p class="text-purple-600 text-sm mt-2">This may take 10-30 seconds</p>
                         </div>
                     </div>
                 </div>
@@ -1264,6 +1334,160 @@
             .catch(error => {
                 console.error('Error saving project data:', error);
             });
+        }
+
+        // DALL-E 3 Room Design Generation Functions
+        let currentDesignData = null;
+
+        function generateRoomDesign() {
+            // Check if we have project data with tiles
+            if (!structuredProjectData.surfaces || structuredProjectData.surfaces.length === 0) {
+                alert('Please add surfaces and select tiles before generating a design.');
+                return;
+            }
+            
+            // Check if tiles are selected
+            const surfacesWithTiles = structuredProjectData.surfaces.filter(s => s.selectedTile);
+            if (surfacesWithTiles.length === 0) {
+                alert('Please scan and select tiles for your surfaces before generating a design.');
+                return;
+            }
+            
+            // Show loading state
+            document.getElementById('design-loading').classList.remove('hidden');
+            document.getElementById('design-preview').classList.add('hidden');
+            document.getElementById('generate-design-btn').disabled = true;
+            
+            const designData = {
+                roomType: structuredProjectData.roomType,
+                dimensions: {
+                    length: structuredProjectData.roomLength,
+                    width: structuredProjectData.roomWidth,
+                    unit: structuredProjectData.dimensionUnit
+                },
+                surfaces: surfacesWithTiles,
+                stylePreference: document.getElementById('design-style').value
+            };
+            
+            // Call DALL-E 3 API
+            fetch('/api/design/generate-room-layout', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify(designData)
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.success) {
+                    displayGeneratedDesign(data);
+                    
+                    // Add LLM message about the generated design
+                    const designMessage = `I've generated a ${data.room_info.style} ${data.room_info.type} design for you! The AI visualization shows your selected tiles in a photorealistic room layout. Take a look at how your tiles will look together in the space.`;
+                    addMessage(designMessage, 'assistant');
+                } else {
+                    alert(`Failed to generate design: ${data.error}`);
+                }
+            })
+            .catch(error => {
+                console.error('Error generating design:', error);
+                alert('Error generating design. Please try again.');
+            })
+            .finally(() => {
+                document.getElementById('design-loading').classList.add('hidden');
+                document.getElementById('generate-design-btn').disabled = false;
+            });
+        }
+
+        function displayGeneratedDesign(designData) {
+            currentDesignData = designData;
+            
+            // Show the design image
+            document.getElementById('generated-design-image').src = designData.design_url;
+            
+            // Fill in room specifications
+            const roomSpecs = document.getElementById('room-specs');
+            roomSpecs.innerHTML = `
+                <div><strong>Room:</strong> ${designData.room_info.type}</div>
+                <div><strong>Style:</strong> ${designData.room_info.style}</div>
+                <div><strong>Size:</strong> ${designData.room_info.dimensions.length || 0} × ${designData.room_info.dimensions.width || 0} ${designData.room_info.dimensions.unit || 'feet'}</div>
+                <div><strong>Surfaces:</strong> ${designData.room_info.total_surfaces} areas tiled</div>
+            `;
+            
+            // Fill in tiles used
+            const tilesUsed = document.getElementById('tiles-used');
+            const tilesList = designData.tile_details.map(tile => 
+                `<div class="mb-1">
+                    <strong>${tile.surface}:</strong> ${tile.tile_name} (${tile.sku})
+                    <br><span class="text-xs">$${tile.price}/sq ft • ${tile.area.toFixed(1)} sq ft</span>
+                </div>`
+            ).join('');
+            tilesUsed.innerHTML = tilesList;
+            
+            // Show the design preview
+            document.getElementById('design-preview').classList.remove('hidden');
+        }
+
+        function regenerateDesign() {
+            // Change style and regenerate
+            const currentStyle = document.getElementById('design-style').value;
+            const styles = ['modern', 'traditional', 'transitional', 'industrial', 'farmhouse'];
+            const currentIndex = styles.indexOf(currentStyle);
+            const nextIndex = (currentIndex + 1) % styles.length;
+            document.getElementById('design-style').value = styles[nextIndex];
+            
+            generateRoomDesign();
+        }
+
+        function saveDesignToProject() {
+            if (!currentDesignData) return;
+            
+            // Save design to project data
+            structuredProjectData.generatedDesign = {
+                imageUrl: currentDesignData.design_url,
+                style: currentDesignData.room_info.style,
+                generatedAt: currentDesignData.generated_at,
+                tileDetails: currentDesignData.tile_details
+            };
+            
+            saveStructuredProjectData();
+            
+            // Show success message
+            const successMsg = "Design saved to your project! I can reference this design in our conversation and help you with next steps.";
+            addMessage(successMsg, 'assistant');
+        }
+
+        function shareDesign() {
+            if (!currentDesignData) return;
+            
+            // Create shareable summary
+            const designSummary = `Check out my AI-generated ${currentDesignData.room_info.style} ${currentDesignData.room_info.type} design! Created with DALL-E 3 using actual tile selections from The Tile Shop.`;
+            
+            if (navigator.share) {
+                navigator.share({
+                    title: 'My Tile Design',
+                    text: designSummary,
+                    url: currentDesignData.design_url
+                });
+            } else {
+                // Fallback: copy to clipboard
+                navigator.clipboard.writeText(`${designSummary}\nDesign: ${currentDesignData.design_url}`);
+                alert('Design details copied to clipboard!');
+            }
+        }
+
+        function updateProjectSummary() {
+            // ... existing updateProjectSummary code ...
+            
+            // Show design generation section if we have surfaces with tiles
+            const surfacesWithTiles = structuredProjectData.surfaces.filter(s => s.selectedTile);
+            const designSection = document.getElementById('design-generation-section');
+            
+            if (surfacesWithTiles.length > 0 && structuredProjectData.roomType) {
+                designSection.style.display = 'block';
+            } else {
+                designSection.style.display = 'none';
+            }
         }
 
         function addNewArea() {

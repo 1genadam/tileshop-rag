@@ -7,9 +7,26 @@ Core Components: System Prompt + Message History + User Input + Tools
 import json
 import logging
 import math
+import os
 from typing import Dict, List, Any, Optional
 from datetime import datetime, date
-import anthropic
+from dotenv import load_dotenv
+
+# Load environment variables
+load_dotenv()
+
+# Try OpenAI first, fallback to Anthropic
+try:
+    from openai import OpenAI
+    openai_client = OpenAI(api_key=os.environ.get('OPENAI_API_KEY'))
+    USE_OPENAI = True
+    logger.info("SimpleTileAgent using OpenAI for chat completions")
+except ImportError:
+    openai_client = None
+    USE_OPENAI = False
+    import anthropic
+    logger.info("SimpleTileAgent falling back to Anthropic")
+
 from .aos_conversation_engine import AOSConversationEngine, ConversationContext
 from .nepq_scoring_system import NEPQScoringSystem, ConversationAnalysis
 

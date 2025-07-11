@@ -19,8 +19,26 @@ load_dotenv()
 from modules.db_manager import DatabaseManager
 from modules.rag_manager import RAGManager
 from modules.simple_tile_agent import SimpleTileAgent
-from modules.clip_tile_vision import CLIPTileVision
-from modules.store_inventory import StoreInventoryManager
+# Optional CLIP vision import
+try:
+    from modules.clip_tile_vision import CLIPTileVision
+    from modules.store_inventory import StoreInventoryManager
+    VISION_AVAILABLE = True
+except ImportError:
+    CLIPTileVision = None
+    StoreInventoryManager = None
+    VISION_AVAILABLE = False
+    print("CLIP vision modules not available. Camera scanning will be disabled.")
+
+# Add OpenAI for DALL-E 3 image generation
+try:
+    from openai import OpenAI
+    openai_client = OpenAI(api_key=os.environ.get('OPENAI_API_KEY'))
+    DALLE_AVAILABLE = True
+except ImportError:
+    openai_client = None
+    DALLE_AVAILABLE = False
+    logger.warning("OpenAI not installed. Room design generation will be unavailable.")
 
 # Configure logging
 logging.basicConfig(
@@ -38,14 +56,22 @@ socketio = SocketIO(app, cors_allowed_origins="*")
 try:
     db_manager = DatabaseManager()
     rag_manager = RAGManager()
-    clip_vision = CLIPTileVision(db_manager)
-    store_inventory = StoreInventoryManager(db_manager)
-    logger.info("Customer chat components initialized successfully")
     
-    # Build tile embeddings in background
-    logger.info("Building CLIP tile database embeddings...")
-    clip_vision.build_tile_database_embeddings()
-    logger.info("CLIP tile vision system ready")
+    # Initialize CLIP vision only if available
+    if VISION_AVAILABLE and CLIPTileVision is not None:
+        clip_vision = CLIPTileVision(db_manager)
+        store_inventory = StoreInventoryManager(db_manager)
+        
+        # Build tile embeddings in background
+        logger.info("Building CLIP tile database embeddings...")
+        clip_vision.build_tile_database_embeddings()
+        logger.info("CLIP tile vision system ready")
+    else:
+        clip_vision = None
+        store_inventory = None
+        logger.info("CLIP vision system disabled - camera scanning unavailable")
+    
+    logger.info("Customer chat components initialized successfully")
     
 except Exception as e:
     logger.error(f"Failed to initialize components: {e}")
@@ -503,6 +529,185 @@ def save_project_to_database(phone, project_data):
     except Exception as e:
         logger.error(f"Error saving to database: {e}")
         return {'success': False, 'error': str(e)}
+
+@app.route('/api/design/generate-room-layout', methods=['POST'])
+def generate_room_layout():
+    """Generate room design using DALL-E 3 with multiple tile SKUs"""
+    try:
+        if not DALLE_AVAILABLE:
+            return jsonify({
+                'success': False, 
+                'error': 'DALL-E 3 image generation not available. Please install OpenAI package and set OPENAI_API_KEY.'
+            })
+        
+        data = request.get_json()
+        
+        # Extract room and tile information
+        room_type = data.get('roomType', 'bathroom')
+        room_dimensions = data.get('dimensions', {})
+        surfaces = data.get('surfaces', [])
+        style_preference = data.get('stylePreference', 'modern')
+        
+        if not surfaces:
+            return jsonify({
+                'success': False,
+                'error': 'No surfaces with tiles selected. Please add surfaces and select tiles first.'
+            })
+        
+        # Build detailed design prompt
+        design_prompt = build_design_prompt(room_type, room_dimensions, surfaces, style_preference)
+        
+        logger.info(f"Generating room design with DALL-E 3: {design_prompt[:100]}...")
+        
+        # Call DALL-E 3 API
+        response = openai_client.images.generate(
+            model="dall-e-3",
+            prompt=design_prompt,
+            size="1024x1024",
+            quality="standard",
+            n=1
+        )
+        
+        image_url = response.data[0].url
+        
+        # Get tile details for display
+        tile_details = []
+        for surface in surfaces:
+            if surface.get('selectedTile'):
+                tile = surface['selectedTile']
+                tile_details.append({
+                    'surface': surface['name'],
+                    'tile_name': tile.get('name', 'Unknown Tile'),
+                    'sku': tile.get('sku', 'N/A'),
+                    'price': tile.get('price', 0),
+                    'area': surface.get('dimensions', {}).get('sqft', 0)
+                })
+        
+        return jsonify({
+            'success': True,
+            'design_url': image_url,
+            'prompt_used': design_prompt,
+            'tile_details': tile_details,
+            'room_info': {
+                'type': room_type,
+                'dimensions': room_dimensions,
+                'style': style_preference,
+                'total_surfaces': len(surfaces)
+            },
+            'generated_at': datetime.now().isoformat()
+        })
+        
+    except Exception as e:
+        logger.error(f"Error generating room design: {e}")
+        return jsonify({
+            'success': False,
+            'error': f"Failed to generate design: {str(e)}"
+        })
+
+def build_design_prompt(room_type, dimensions, surfaces, style='modern'):
+    """Build detailed DALL-E 3 prompt for room design"""
+    
+    # Base room description
+    room_size = f"{dimensions.get('length', 10)} x {dimensions.get('width', 8)} feet"
+    
+    prompt_parts = [
+        f"Create a photorealistic {style} {room_type} interior design rendering.",
+        f"Room dimensions: {room_size}.",
+        "High-quality architectural visualization with professional lighting."
+    ]
+    
+    # Add surface-specific tile descriptions
+    surface_descriptions = []
+    
+    for surface in surfaces:
+        if not surface.get('selectedTile'):
+            continue
+            
+        tile = surface['selectedTile']
+        surface_name = surface['name']
+        tile_name = tile.get('name', 'ceramic tile')
+        
+        # Create detailed tile description based on surface type
+        if 'floor' in surface_name.lower():
+            surface_descriptions.append(
+                f"Floor: {tile_name} with realistic tile pattern, proper grout lines, and natural texture"
+            )
+        elif 'wall' in surface_name.lower() or 'backsplash' in surface_name.lower():
+            surface_descriptions.append(
+                f"Walls/Backsplash: {tile_name} with accurate tile layout and professional installation"
+            )
+        elif 'shower' in surface_name.lower():
+            surface_descriptions.append(
+                f"Shower area: {tile_name} with water-resistant appearance and proper tile alignment"
+            )
+        else:
+            surface_descriptions.append(
+                f"{surface_name}: {tile_name} with realistic material appearance"
+            )
+    
+    if surface_descriptions:
+        prompt_parts.append("Tile specifications:")
+        prompt_parts.extend(surface_descriptions)
+    
+    # Add style-specific details
+    style_details = {
+        'modern': "Clean lines, minimalist fixtures, contemporary color palette, LED lighting",
+        'traditional': "Classic fixtures, warm colors, traditional patterns, elegant details",
+        'transitional': "Blend of modern and traditional elements, neutral colors, balanced design",
+        'industrial': "Raw materials, exposed elements, metal accents, urban aesthetic",
+        'farmhouse': "Rustic charm, natural materials, vintage-inspired fixtures, cozy atmosphere"
+    }
+    
+    prompt_parts.append(f"Style elements: {style_details.get(style, style_details['modern'])}")
+    
+    # Add technical specifications
+    prompt_parts.extend([
+        "Professional interior photography quality.",
+        "Realistic lighting with natural and artificial light sources.",
+        "Show proper tile installation with accurate grout lines and spacing.",
+        "Include appropriate fixtures and accessories for the room type.",
+        "Photorealistic textures and materials.",
+        "High-resolution architectural visualization."
+    ])
+    
+    return " ".join(prompt_parts)
+
+@app.route('/api/design/get-style-options')
+def get_design_style_options():
+    """Get available design style options"""
+    styles = [
+        {
+            'id': 'modern',
+            'name': 'Modern',
+            'description': 'Clean lines, minimalist fixtures, contemporary design'
+        },
+        {
+            'id': 'traditional',
+            'name': 'Traditional', 
+            'description': 'Classic fixtures, warm colors, timeless elegance'
+        },
+        {
+            'id': 'transitional',
+            'name': 'Transitional',
+            'description': 'Perfect blend of modern and traditional elements'
+        },
+        {
+            'id': 'industrial',
+            'name': 'Industrial',
+            'description': 'Raw materials, exposed elements, urban aesthetic'
+        },
+        {
+            'id': 'farmhouse',
+            'name': 'Farmhouse',
+            'description': 'Rustic charm, natural materials, cozy atmosphere'
+        }
+    ]
+    
+    return jsonify({
+        'success': True,
+        'styles': styles,
+        'default': 'modern'
+    })
 
 @socketio.on('connect')
 def handle_connect():
