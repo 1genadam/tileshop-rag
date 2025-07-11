@@ -8,6 +8,12 @@
     <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
     <link href="https://fonts.googleapis.com/icon?family=Material+Icons" rel="stylesheet">
     <script src="https://cdnjs.cloudflare.com/ajax/libs/socket.io/4.7.2/socket.io.js"></script>
+    
+    <!-- WebXR + Three.js for AR Tile Visualization -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/controls/OrbitControls.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/loaders/GLTFLoader.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/webxr/VRButton.js"></script>
     <style>
         body {
             font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
@@ -580,6 +586,10 @@
                             onclick="toggleVisionScanner()" id="vision-toggle-btn">
                         <i class="fas fa-camera mr-2"></i>Scan Tile
                     </button>
+                    <button class="bg-green-600 hover:bg-green-700 text-white font-medium py-3 px-4 rounded-lg flex items-center transition duration-200" 
+                            onclick="startARVisualization()" id="ar-toggle-btn">
+                        <i class="fas fa-cube mr-2"></i>AR View
+                    </button>
                     <button class="bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700 text-white font-medium py-3 px-6 rounded-lg flex items-center transition duration-200" 
                             id="send-button" onclick="sendMessage()">
                         <i class="fas fa-paper-plane mr-2"></i>Send
@@ -589,9 +599,526 @@
         </div>
     </div>
 
+    <!-- AR Visualization Container -->
+    <div id="ar-container" class="fixed inset-0 bg-black z-50 hidden">
+        <div class="absolute top-4 left-4 right-4 z-10">
+            <div class="bg-white bg-opacity-90 rounded-lg p-4 flex justify-between items-center">
+                <div class="flex items-center space-x-4">
+                    <h3 class="text-lg font-bold text-gray-800">AR Tile Visualization</h3>
+                    <div class="flex space-x-2">
+                        <button onclick="switchTilePattern('ceramic')" class="bg-blue-500 text-white px-3 py-1 rounded text-sm hover:bg-blue-600">
+                            Ceramic
+                        </button>
+                        <button onclick="switchTilePattern('porcelain')" class="bg-green-500 text-white px-3 py-1 rounded text-sm hover:bg-green-600">
+                            Porcelain
+                        </button>
+                        <button onclick="switchTilePattern('natural-stone')" class="bg-amber-500 text-white px-3 py-1 rounded text-sm hover:bg-amber-600">
+                            Natural Stone
+                        </button>
+                    </div>
+                </div>
+                <button onclick="exitARVisualization()" class="bg-red-500 hover:bg-red-600 text-white px-4 py-2 rounded">
+                    <i class="fas fa-times mr-1"></i>Exit AR
+                </button>
+            </div>
+        </div>
+        
+        <!-- AR Scene Canvas -->
+        <canvas id="ar-canvas" class="w-full h-full"></canvas>
+        
+        <!-- AR Controls -->
+        <div class="absolute bottom-4 left-4 right-4 z-10">
+            <div class="bg-white bg-opacity-90 rounded-lg p-4">
+                <div class="grid grid-cols-2 md:grid-cols-4 gap-2 text-sm">
+                    <div>
+                        <label class="block text-gray-700 font-medium mb-1">Tile Size:</label>
+                        <select id="ar-tile-size" onchange="updateTileSize()" class="w-full border rounded px-2 py-1">
+                            <option value="12x12">12" × 12"</option>
+                            <option value="18x18">18" × 18"</option>
+                            <option value="24x24">24" × 24"</option>
+                            <option value="6x24">6" × 24"</option>
+                            <option value="12x24">12" × 24"</option>
+                        </select>
+                    </div>
+                    <div>
+                        <label class="block text-gray-700 font-medium mb-1">Pattern:</label>
+                        <select id="ar-pattern" onchange="updateTilePattern()" class="w-full border rounded px-2 py-1">
+                            <option value="straight">Straight Lay</option>
+                            <option value="diagonal">Diagonal</option>
+                            <option value="herringbone">Herringbone</option>
+                            <option value="subway">Subway</option>
+                        </select>
+                    </div>
+                    <div>
+                        <label class="block text-gray-700 font-medium mb-1">Grout Color:</label>
+                        <input type="color" id="ar-grout-color" value="#cccccc" onchange="updateGroutColor()" 
+                               class="w-full border rounded px-1 py-1">
+                    </div>
+                    <div class="flex items-end">
+                        <button onclick="saveARView()" class="w-full bg-blue-500 hover:bg-blue-600 text-white px-3 py-1 rounded">
+                            <i class="fas fa-save mr-1"></i>Save View
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
     <script>
         let conversation_history = [];
         let socket = io();
+
+        // WebXR AR System Variables
+        let scene, camera, renderer, arSession;
+        let currentTileGroup = null;
+        let tileTextures = {};
+        let arController = null;
+
+        // AR System Initialization
+        async function initARSystem() {
+            try {
+                // Check WebXR support
+                if (!navigator.xr) {
+                    console.log('WebXR not supported, falling back to camera-based AR');
+                    return initCameraAR();
+                }
+                
+                // Initialize Three.js scene
+                scene = new THREE.Scene();
+                camera = new THREE.PerspectiveCamera(75, window.innerWidth / window.innerHeight, 0.1, 1000);
+                
+                const canvas = document.getElementById('ar-canvas');
+                renderer = new THREE.WebGLRenderer({ canvas: canvas, alpha: true });
+                renderer.setSize(window.innerWidth, window.innerHeight);
+                renderer.xr.enabled = true;
+                
+                // Load tile textures
+                await loadTileTextures();
+                
+                // Set up AR environment
+                setupAREnvironment();
+                
+                console.log('AR System initialized successfully');
+                return true;
+                
+            } catch (error) {
+                console.error('AR initialization failed:', error);
+                return initCameraAR();
+            }
+        }
+
+        // Fallback camera-based AR for non-WebXR devices
+        async function initCameraAR() {
+            try {
+                const canvas = document.getElementById('ar-canvas');
+                const ctx = canvas.getContext('2d');
+                
+                // Get camera stream
+                const stream = await navigator.mediaDevices.getUserMedia({ 
+                    video: { facingMode: 'environment' } 
+                });
+                
+                // Create video element for camera feed
+                const video = document.createElement('video');
+                video.srcObject = stream;
+                video.play();
+                
+                video.onloadedmetadata = () => {
+                    canvas.width = video.videoWidth;
+                    canvas.height = video.videoHeight;
+                    
+                    function drawFrame() {
+                        ctx.drawImage(video, 0, 0, canvas.width, canvas.height);
+                        
+                        // Add tile overlay (simplified for camera mode)
+                        drawTileOverlay(ctx);
+                        
+                        requestAnimationFrame(drawFrame);
+                    }
+                    drawFrame();
+                };
+                
+                console.log('Camera AR mode initialized');
+                return true;
+                
+            } catch (error) {
+                console.error('Camera AR failed:', error);
+                alert('Camera access required for AR visualization. Please enable camera permissions.');
+                return false;
+            }
+        }
+
+        // Load tile textures for different materials
+        async function loadTileTextures() {
+            const loader = new THREE.TextureLoader();
+            
+            // Basic tile patterns (in production, these would be actual product images)
+            tileTextures = {
+                'ceramic': await loadTexture(loader, generateTileTexture('ceramic')),
+                'porcelain': await loadTexture(loader, generateTileTexture('porcelain')),
+                'natural-stone': await loadTexture(loader, generateTileTexture('natural-stone'))
+            };
+        }
+
+        // Generate tile texture (placeholder - in production would load real images)
+        function generateTileTexture(type) {
+            const canvas = document.createElement('canvas');
+            canvas.width = 256;
+            canvas.height = 256;
+            const ctx = canvas.getContext('2d');
+            
+            // Different tile appearances
+            const colors = {
+                'ceramic': '#f0f0f0',
+                'porcelain': '#e8e8e8',
+                'natural-stone': '#d4c4a8'
+            };
+            
+            ctx.fillStyle = colors[type] || '#f0f0f0';
+            ctx.fillRect(0, 0, 256, 256);
+            
+            // Add tile pattern
+            ctx.strokeStyle = '#cccccc';
+            ctx.lineWidth = 2;
+            ctx.strokeRect(4, 4, 248, 248);
+            
+            // Add texture variation for natural stone
+            if (type === 'natural-stone') {
+                for (let i = 0; i < 20; i++) {
+                    ctx.fillStyle = `rgba(160, 140, 120, ${Math.random() * 0.3})`;
+                    ctx.fillRect(
+                        Math.random() * 256,
+                        Math.random() * 256,
+                        Math.random() * 50,
+                        Math.random() * 50
+                    );
+                }
+            }
+            
+            return canvas.toDataURL();
+        }
+
+        // Load texture helper
+        function loadTexture(loader, dataUrl) {
+            return new Promise((resolve) => {
+                loader.load(dataUrl, resolve);
+            });
+        }
+
+        // Set up AR environment with plane detection
+        function setupAREnvironment() {
+            // Add ambient light
+            const ambientLight = new THREE.AmbientLight(0xffffff, 0.6);
+            scene.add(ambientLight);
+            
+            // Add directional light
+            const directionalLight = new THREE.DirectionalLight(0xffffff, 0.8);
+            directionalLight.position.set(0, 1, 1);
+            scene.add(directionalLight);
+            
+            // Set up AR controller for hit testing
+            arController = {
+                hitTestResults: [],
+                hitTestSource: null
+            };
+        }
+
+        // Create tile grid on detected surface
+        function createTileGrid(position, size = { width: 2, height: 2 }) {
+            if (currentTileGroup) {
+                scene.remove(currentTileGroup);
+            }
+            
+            currentTileGroup = new THREE.Group();
+            
+            const tileSize = 0.3; // 30cm tiles
+            const groutWidth = 0.005; // 5mm grout lines
+            const totalTileSize = tileSize + groutWidth;
+            
+            const tilesX = Math.floor(size.width / totalTileSize);
+            const tilesY = Math.floor(size.height / totalTileSize);
+            
+            // Create tile geometry
+            const tileGeometry = new THREE.PlaneGeometry(tileSize, tileSize);
+            
+            // Get current tile material
+            const tileType = getCurrentTileType();
+            const tileMaterial = new THREE.MeshLambertMaterial({
+                map: tileTextures[tileType] || tileTextures['ceramic'],
+                transparent: true,
+                opacity: 0.9
+            });
+            
+            // Create tile grid
+            for (let x = 0; x < tilesX; x++) {
+                for (let y = 0; y < tilesY; y++) {
+                    const tile = new THREE.Mesh(tileGeometry, tileMaterial);
+                    
+                    // Position tile
+                    tile.position.set(
+                        (x - tilesX/2) * totalTileSize,
+                        0.001, // Slightly above surface
+                        (y - tilesY/2) * totalTileSize
+                    );
+                    
+                    tile.rotation.x = -Math.PI / 2; // Lay flat
+                    currentTileGroup.add(tile);
+                }
+            }
+            
+            // Position group at hit location
+            currentTileGroup.position.copy(position);
+            scene.add(currentTileGroup);
+        }
+
+        // Get current tile type from UI
+        function getCurrentTileType() {
+            const buttons = document.querySelectorAll('[onclick^="switchTilePattern"]');
+            for (let button of buttons) {
+                if (button.classList.contains('bg-blue-600') || 
+                    button.classList.contains('bg-green-600') || 
+                    button.classList.contains('bg-amber-600')) {
+                    return button.onclick.toString().match(/'([^']+)'/)[1];
+                }
+            }
+            return 'ceramic';
+        }
+
+        // AR Interaction Functions
+        async function startARVisualization() {
+            const arContainer = document.getElementById('ar-container');
+            arContainer.classList.remove('hidden');
+            
+            // Initialize AR system
+            const initialized = await initARSystem();
+            if (!initialized) {
+                exitARVisualization();
+                return;
+            }
+            
+            // Start AR session
+            try {
+                if (navigator.xr && renderer.xr.enabled) {
+                    arSession = await navigator.xr.requestSession('immersive-ar', {
+                        requiredFeatures: ['hit-test'],
+                        optionalFeatures: ['dom-overlay'],
+                        domOverlay: { root: arContainer }
+                    });
+                    
+                    renderer.xr.setSession(arSession);
+                    
+                    // Set up hit testing
+                    const referenceSpace = await arSession.requestReferenceSpace('viewer');
+                    arController.hitTestSource = await arSession.requestHitTestSource({ space: referenceSpace });
+                    
+                    // Start render loop
+                    renderer.setAnimationLoop(renderAR);
+                }
+            } catch (error) {
+                console.error('AR session failed:', error);
+                // Continue with camera-based AR
+            }
+            
+            // Add click/tap handler for placing tiles
+            const canvas = document.getElementById('ar-canvas');
+            canvas.addEventListener('click', onARClick);
+        }
+
+        // AR render loop
+        function renderAR(timestamp, frame) {
+            if (frame && arController.hitTestSource) {
+                const hitTestResults = frame.getHitTestResults(arController.hitTestSource);
+                arController.hitTestResults = hitTestResults;
+                
+                if (hitTestResults.length > 0) {
+                    const hit = hitTestResults[0];
+                    const pose = hit.getPose(renderer.xr.getReferenceSpace());
+                    
+                    // Update cursor or preview position
+                    if (pose) {
+                        // Show where tiles would be placed
+                        updateARCursor(pose.transform.position);
+                    }
+                }
+            }
+            
+            renderer.render(scene, camera);
+        }
+
+        // Handle AR click/tap
+        function onARClick(event) {
+            if (arController.hitTestResults.length > 0) {
+                const hit = arController.hitTestResults[0];
+                const pose = hit.getPose(renderer.xr.getReferenceSpace());
+                
+                if (pose) {
+                    const position = new THREE.Vector3(
+                        pose.transform.position.x,
+                        pose.transform.position.y,
+                        pose.transform.position.z
+                    );
+                    
+                    // Get room dimensions from form data
+                    const roomData = getRoomDimensions();
+                    createTileGrid(position, roomData);
+                    
+                    // Send tile placement data to chat
+                    sendARDataToChat(position, roomData);
+                }
+            }
+        }
+
+        // Get room dimensions from hybrid form
+        function getRoomDimensions() {
+            const length = parseFloat(document.getElementById('room-length')?.value) || 3;
+            const width = parseFloat(document.getElementById('room-width')?.value) || 3;
+            return { width: length, height: width };
+        }
+
+        // Send AR visualization data to chat
+        function sendARDataToChat(position, roomData) {
+            const tileType = getCurrentTileType();
+            const tileSize = document.getElementById('ar-tile-size')?.value || '12x12';
+            const pattern = document.getElementById('ar-pattern')?.value || 'straight';
+            
+            const message = `I'm visualizing ${tileType} tiles (${tileSize}) in a ${pattern} pattern for a ${roomData.width}×${roomData.height} space. The AR placement looks great!`;
+            
+            // Add structured context for the LLM
+            const structuredData = {
+                action: 'ar_visualization_placed',
+                tile_type: tileType,
+                tile_size: tileSize,
+                pattern: pattern,
+                room_dimensions: roomData,
+                ar_position: position
+            };
+            
+            // Send to chat system
+            fetch('/api/chat/structured-context', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify(structuredData)
+            });
+            
+            // Add to chat UI
+            addMessage(message, 'user');
+        }
+
+        // Update AR cursor/preview
+        function updateARCursor(position) {
+            // Update UI to show where tiles will be placed
+            // This would add a preview cursor in the AR scene
+        }
+
+        // AR Control Functions
+        function switchTilePattern(type) {
+            // Update UI buttons
+            document.querySelectorAll('[onclick^="switchTilePattern"]').forEach(btn => {
+                btn.className = btn.className.replace(/bg-(blue|green|amber)-600/, 'bg-gray-400');
+            });
+            
+            const clickedBtn = event.target.closest('button');
+            if (type === 'ceramic') clickedBtn.className = clickedBtn.className.replace('bg-gray-400', 'bg-blue-600');
+            if (type === 'porcelain') clickedBtn.className = clickedBtn.className.replace('bg-gray-400', 'bg-green-600');
+            if (type === 'natural-stone') clickedBtn.className = clickedBtn.className.replace('bg-gray-400', 'bg-amber-600');
+            
+            // Update AR visualization
+            if (currentTileGroup && tileTextures[type]) {
+                currentTileGroup.children.forEach(tile => {
+                    tile.material.map = tileTextures[type];
+                    tile.material.needsUpdate = true;
+                });
+            }
+        }
+
+        function updateTileSize() {
+            const size = document.getElementById('ar-tile-size').value;
+            // Recreate tile grid with new size
+            if (currentTileGroup) {
+                const position = currentTileGroup.position.clone();
+                const roomData = getRoomDimensions();
+                createTileGrid(position, roomData);
+            }
+        }
+
+        function updateTilePattern() {
+            const pattern = document.getElementById('ar-pattern').value;
+            // Update tile layout pattern
+            if (currentTileGroup) {
+                const position = currentTileGroup.position.clone();
+                const roomData = getRoomDimensions();
+                createTileGrid(position, roomData);
+            }
+        }
+
+        function updateGroutColor() {
+            const color = document.getElementById('ar-grout-color').value;
+            // Update grout lines (would modify tile spacing/borders)
+            console.log('Grout color updated to:', color);
+        }
+
+        function saveARView() {
+            // Capture AR view and save to project data
+            const tileData = {
+                type: getCurrentTileType(),
+                size: document.getElementById('ar-tile-size').value,
+                pattern: document.getElementById('ar-pattern').value,
+                grout_color: document.getElementById('ar-grout-color').value,
+                room_dimensions: getRoomDimensions()
+            };
+            
+            // Save to hybrid form data
+            saveProjectVisualization(tileData);
+            
+            // Show confirmation
+            alert('AR visualization saved to your project!');
+        }
+
+        function exitARVisualization() {
+            const arContainer = document.getElementById('ar-container');
+            arContainer.classList.add('hidden');
+            
+            // Stop AR session
+            if (arSession) {
+                arSession.end();
+                arSession = null;
+            }
+            
+            // Clean up
+            if (renderer) {
+                renderer.setAnimationLoop(null);
+            }
+            
+            // Stop camera stream if using camera mode
+            const canvas = document.getElementById('ar-canvas');
+            const stream = canvas.srcObject;
+            if (stream) {
+                stream.getTracks().forEach(track => track.stop());
+            }
+        }
+
+        // Helper function for camera-based tile overlay
+        function drawTileOverlay(ctx) {
+            const centerX = ctx.canvas.width / 2;
+            const centerY = ctx.canvas.height / 2;
+            const tileSize = 80;
+            const tilesX = 4;
+            const tilesY = 3;
+            
+            ctx.strokeStyle = '#00ff00';
+            ctx.lineWidth = 2;
+            ctx.fillStyle = 'rgba(255, 255, 255, 0.3)';
+            
+            for (let x = 0; x < tilesX; x++) {
+                for (let y = 0; y < tilesY; y++) {
+                    const tileX = centerX - (tilesX * tileSize / 2) + (x * tileSize);
+                    const tileY = centerY - (tilesY * tileSize / 2) + (y * tileSize);
+                    
+                    ctx.fillRect(tileX, tileY, tileSize - 2, tileSize - 2);
+                    ctx.strokeRect(tileX, tileY, tileSize - 2, tileSize - 2);
+                }
+            }
+        }
 
         document.addEventListener('DOMContentLoaded', function() {
             // Enter key support
@@ -1759,6 +2286,44 @@
             } else {
                 summary.style.display = 'none';
             }
+        }
+
+        // Save AR visualization data to project
+        function saveProjectVisualization(tileData) {
+            // Create a project visualization record
+            const visualizationData = {
+                timestamp: new Date().toISOString(),
+                ar_visualization: {
+                    tile_type: tileData.type,
+                    tile_size: tileData.size,
+                    pattern: tileData.pattern,
+                    grout_color: tileData.grout_color,
+                    room_dimensions: tileData.room_dimensions
+                }
+            };
+            
+            // Store in local storage for this session
+            const existingData = localStorage.getItem('project_visualizations') || '[]';
+            const visualizations = JSON.parse(existingData);
+            visualizations.push(visualizationData);
+            localStorage.setItem('project_visualizations', JSON.stringify(visualizations));
+            
+            // Send to backend if customer info is available
+            const customerPhone = document.getElementById('customer-phone')?.value;
+            if (customerPhone) {
+                fetch('/api/project/ar-visualization', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        phone_number: customerPhone,
+                        visualization_data: visualizationData
+                    })
+                }).catch(error => {
+                    console.error('Failed to save visualization to backend:', error);
+                });
+            }
+            
+            console.log('AR visualization saved:', visualizationData);
         }
 
         // Socket.io connection handlers

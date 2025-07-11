@@ -20,6 +20,13 @@ from modules.db_manager import DatabaseManager
 from modules.rag_manager import RAGManager
 from modules.simple_tile_agent import SimpleTileAgent
 
+# Configure logging
+logging.basicConfig(
+    level=logging.INFO,
+    format='%(asctime)s - %(name)s - %(levelname)s - %(message)s'
+)
+logger = logging.getLogger(__name__)
+
 # Add OpenAI for chat completions
 try:
     from openai import OpenAI
@@ -30,13 +37,6 @@ except ImportError:
     openai_client = None
     OPENAI_AVAILABLE = False
     logger.warning("OpenAI not available. Falling back to other LLM providers.")
-
-# Configure logging
-logging.basicConfig(
-    level=logging.INFO,
-    format='%(asctime)s - %(name)s - %(levelname)s - %(message)s'
-)
-logger = logging.getLogger(__name__)
 
 # Initialize Flask app
 app = Flask(__name__)

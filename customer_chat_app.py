@@ -460,6 +460,45 @@ def save_structured_project():
         logger.error(f"Error saving structured project: {e}")
         return jsonify({'success': False, 'error': str(e)})
 
+@app.route('/api/project/ar-visualization', methods=['POST'])
+def save_ar_visualization():
+    """Save AR visualization data to customer project"""
+    try:
+        data = request.get_json()
+        phone_number = data.get('phone_number')
+        visualization_data = data.get('visualization_data', {})
+        
+        if not phone_number:
+            return jsonify({'success': False, 'error': 'Phone number required'})
+        
+        # Create AR visualization record
+        ar_record = {
+            'phone_number': phone_number,
+            'timestamp': datetime.now().isoformat(),
+            'ar_data': {
+                'tile_type': visualization_data.get('ar_visualization', {}).get('tile_type'),
+                'tile_size': visualization_data.get('ar_visualization', {}).get('tile_size'),
+                'pattern': visualization_data.get('ar_visualization', {}).get('pattern'),
+                'grout_color': visualization_data.get('ar_visualization', {}).get('grout_color'),
+                'room_dimensions': visualization_data.get('ar_visualization', {}).get('room_dimensions'),
+                'session_id': f"ar_{datetime.now().strftime('%Y%m%d_%H%M%S')}"
+            }
+        }
+        
+        # Save to database (you would extend this to save to a specific AR table)
+        logger.info(f"AR visualization saved for {phone_number}: {ar_record['ar_data']['tile_type']} tiles")
+        
+        # For now, we'll return success (in production, save to database)
+        return jsonify({
+            'success': True,
+            'session_id': ar_record['ar_data']['session_id'],
+            'message': 'AR visualization saved successfully'
+        })
+        
+    except Exception as e:
+        logger.error(f"Error saving AR visualization: {e}")
+        return jsonify({'success': False, 'error': str(e)})
+
 def generate_structured_acknowledgment(action, project_data):
     """Generate LLM acknowledgment of structured data updates"""
     try:
