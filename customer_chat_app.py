@@ -293,7 +293,7 @@ def analyze_tile_image():
         return jsonify({'success': False, 'error': str(e)})
 
 def analyze_tile_with_openai_vision(image_data):
-    """Analyze tile image using OpenAI GPT-4 Vision"""
+    """Analyze tile image using OpenAI GPT-4 Vision with enhanced visual feature extraction"""
     try:
         if not openai_client:
             return {'success': False, 'error': 'OpenAI client not available'}
@@ -307,20 +307,23 @@ def analyze_tile_with_openai_vision(image_data):
                     "content": [
                         {
                             "type": "text",
-                            "text": """Analyze this tile image and extract specific attributes for database matching:
+                            "text": """Analyze this tile image and extract VISUAL CHARACTERISTICS for image-based similarity matching:
 
-REQUIRED FORMAT - Please provide structured analysis:
+VISUAL FEATURE ANALYSIS (focus on what makes this tile visually unique):
 
 **MATERIAL**: [ceramic/porcelain/natural stone/glass/metal/vinyl/etc.]
-**COLOR**: [primary color] with [secondary colors if any]
-**PATTERN**: [solid/subway/hexagon/mosaic/wood-look/stone-look/geometric/etc.]
-**SIZE**: [estimated dimensions like 12x12, 3x6, 2x2, etc.]
-**FINISH**: [matte/glossy/textured/honed/polished/brushed/etc.]
-**STYLE**: [modern/traditional/rustic/industrial/farmhouse/etc.]
-**EDGE**: [straight/beveled/rounded/chiseled/etc.]
-**INSTALLATION**: [floor/wall/backsplash suitable]
+**COLOR_PALETTE**: [primary, secondary, accent colors - be specific like "warm beige", "cool gray", "ivory white"]
+**PATTERN_TYPE**: [solid/subway/hexagon/mosaic/wood-look/stone-look/geometric/brick/herringbone/etc.]
+**TEXTURE_DETAIL**: [smooth/rough/glossy/matte/brushed/honed/tumbled/textured/raised/embossed]
+**VISUAL_GRAIN**: [fine/coarse/uniform/varied/linear/random - describe surface detail]
+**SIZE_SHAPE**: [estimated dimensions and proportions - square/rectangular/hexagonal]
+**EDGE_PROFILE**: [straight/beveled/rounded/chiseled/pillowed/pressed]
+**SURFACE_REFLECTION**: [high gloss/satin/matte/non-reflective]
+**VISUAL_STYLE**: [modern/traditional/rustic/industrial/contemporary/classic]
 
-Then provide a detailed description for search matching focusing on the most distinctive visual characteristics that would help identify similar tiles in a database."""
+**DISTINCTIVE_VISUAL_MARKERS**: [What makes this tile instantly recognizable? Unique patterns, color variations, surface textures, etc.]
+
+Focus on VISUAL characteristics that would help match similar-looking tiles, not just functional categories."""
                         },
                         {
                             "type": "image_url",
@@ -331,7 +334,7 @@ Then provide a detailed description for search matching focusing on the most dis
                     ]
                 }
             ],
-            max_tokens=300
+            max_tokens=400
         )
         
         description = response.choices[0].message.content
@@ -350,51 +353,58 @@ Then provide a detailed description for search matching focusing on the most dis
         }
 
 def search_tiles_by_description(description):
-    """Enhanced search for tiles using structured attributes and multiple search strategies"""
+    """Enhanced visual similarity search using detailed visual characteristics"""
     try:
         if not rag_manager:
             return get_sample_tile_matches()
         
-        # Extract structured attributes from description
-        attributes = extract_tile_attributes(description)
+        # Extract structured visual attributes from description
+        attributes = extract_visual_attributes(description)
+        logger.info(f"Extracted visual attributes: {attributes}")
         
-        # Multi-strategy search for better results
+        # Multi-strategy visual similarity search for better results
         all_matches = []
         
-        # Strategy 1: Direct description search
-        direct_results = rag_manager.search(f"tile {description}", limit=3)
-        all_matches.extend(format_search_results(direct_results, "Direct Match"))
+        # Strategy 1: Full visual description search (highest weight)
+        direct_results = rag_manager.search(f"tile {description}", limit=4)
+        all_matches.extend(format_search_results(direct_results, "Visual Match", weight=1.0))
         
-        # Strategy 2: Material + Color search
-        if attributes.get('material') and attributes.get('color'):
-            material_color_query = f"{attributes['material']} {attributes['color']} tile"
-            material_results = rag_manager.search(material_color_query, limit=2)
-            all_matches.extend(format_search_results(material_results, "Material/Color Match"))
+        # Strategy 2: Visual characteristics combination search
+        if attributes.get('color_palette') and attributes.get('pattern_type'):
+            visual_query = f"{attributes['color_palette']} {attributes['pattern_type']} tile"
+            visual_results = rag_manager.search(visual_query, limit=3)
+            all_matches.extend(format_search_results(visual_results, "Color/Pattern Match", weight=0.9))
         
-        # Strategy 3: Pattern + Size search
-        if attributes.get('pattern') and attributes.get('size'):
-            pattern_size_query = f"{attributes['pattern']} {attributes['size']} tile"
-            pattern_results = rag_manager.search(pattern_size_query, limit=2)
-            all_matches.extend(format_search_results(pattern_results, "Pattern/Size Match"))
+        # Strategy 3: Material + Texture search
+        if attributes.get('material') and attributes.get('texture_detail'):
+            texture_query = f"{attributes['material']} {attributes['texture_detail']} tile"
+            texture_results = rag_manager.search(texture_query, limit=2)
+            all_matches.extend(format_search_results(texture_results, "Material/Texture Match", weight=0.8))
         
-        # Strategy 4: Style + Finish search
-        if attributes.get('style') and attributes.get('finish'):
-            style_finish_query = f"{attributes['style']} {attributes['finish']} tile"
-            style_results = rag_manager.search(style_finish_query, limit=2)
-            all_matches.extend(format_search_results(style_results, "Style/Finish Match"))
+        # Strategy 4: Style + Surface reflection search
+        if attributes.get('visual_style') and attributes.get('surface_reflection'):
+            style_query = f"{attributes['visual_style']} {attributes['surface_reflection']} tile"
+            style_results = rag_manager.search(style_query, limit=2)
+            all_matches.extend(format_search_results(style_results, "Style/Finish Match", weight=0.7))
         
-        # Remove duplicates and score by relevance
-        unique_matches = remove_duplicate_matches(all_matches)
+        # Strategy 5: Distinctive visual markers search
+        if attributes.get('distinctive_visual_markers'):
+            distinctive_query = f"tile {attributes['distinctive_visual_markers']}"
+            distinctive_results = rag_manager.search(distinctive_query, limit=2)
+            all_matches.extend(format_search_results(distinctive_results, "Distinctive Features", weight=0.95))
+        
+        # Remove duplicates and score by visual similarity relevance
+        unique_matches = remove_duplicate_matches_weighted(all_matches)
         
         # Limit to top 6 results
         return unique_matches[:6] if unique_matches else get_sample_tile_matches()
         
     except Exception as e:
-        logger.error(f"Error in enhanced tile search: {e}")
+        logger.error(f"Error in visual similarity search: {e}")
         return get_sample_tile_matches()
 
-def extract_tile_attributes(description):
-    """Extract structured attributes from AI description"""
+def extract_visual_attributes(description):
+    """Extract structured visual attributes from enhanced AI description"""
     attributes = {}
     
     # Look for structured format in description
@@ -402,52 +412,82 @@ def extract_tile_attributes(description):
     for line in lines:
         if '**MATERIAL**:' in line:
             attributes['material'] = line.split(':', 1)[1].strip()
-        elif '**COLOR**:' in line:
-            attributes['color'] = line.split(':', 1)[1].strip()
-        elif '**PATTERN**:' in line:
-            attributes['pattern'] = line.split(':', 1)[1].strip()
-        elif '**SIZE**:' in line:
-            attributes['size'] = line.split(':', 1)[1].strip()
-        elif '**FINISH**:' in line:
-            attributes['finish'] = line.split(':', 1)[1].strip()
-        elif '**STYLE**:' in line:
-            attributes['style'] = line.split(':', 1)[1].strip()
+        elif '**COLOR_PALETTE**:' in line:
+            attributes['color_palette'] = line.split(':', 1)[1].strip()
+        elif '**PATTERN_TYPE**:' in line:
+            attributes['pattern_type'] = line.split(':', 1)[1].strip()
+        elif '**TEXTURE_DETAIL**:' in line:
+            attributes['texture_detail'] = line.split(':', 1)[1].strip()
+        elif '**VISUAL_GRAIN**:' in line:
+            attributes['visual_grain'] = line.split(':', 1)[1].strip()
+        elif '**SIZE_SHAPE**:' in line:
+            attributes['size_shape'] = line.split(':', 1)[1].strip()
+        elif '**EDGE_PROFILE**:' in line:
+            attributes['edge_profile'] = line.split(':', 1)[1].strip()
+        elif '**SURFACE_REFLECTION**:' in line:
+            attributes['surface_reflection'] = line.split(':', 1)[1].strip()
+        elif '**VISUAL_STYLE**:' in line:
+            attributes['visual_style'] = line.split(':', 1)[1].strip()
+        elif '**DISTINCTIVE_VISUAL_MARKERS**:' in line:
+            attributes['distinctive_visual_markers'] = line.split(':', 1)[1].strip()
     
     return attributes
 
-def format_search_results(results, match_type):
-    """Format RAG search results with match type"""
+def extract_tile_attributes(description):
+    """Legacy function for backward compatibility"""
+    return extract_visual_attributes(description)
+
+def format_search_results(results, match_type, weight=1.0):
+    """Format RAG search results with match type and visual similarity weight"""
     matches = []
     for result in results:
+        # Calculate visual similarity score based on search strategy weight
+        base_confidence = result.get('score', 0.7)
+        visual_confidence = min(base_confidence * weight, 1.0)
+        
         match = {
             'name': result.get('title', 'Unknown Tile'),
             'sku': result.get('sku', 'N/A'),
             'price': result.get('price_per_sq_ft', 0),
             'image_url': result.get('image_url', '/static/placeholder-tile.jpg'),
             'description': result.get('description', ''),
-            'confidence': result.get('score', 0.7),
+            'confidence': visual_confidence,
             'location': f"Aisle {result.get('aisle', 'TBD')}",
-            'match_type': match_type
+            'match_type': match_type,
+            'weight': weight
         }
         matches.append(match)
     
     return matches
 
-def remove_duplicate_matches(matches):
-    """Remove duplicate SKUs and sort by confidence"""
+def remove_duplicate_matches_weighted(matches):
+    """Remove duplicate SKUs and sort by visual similarity confidence with weights"""
     seen_skus = set()
     unique_matches = []
     
-    # Sort by confidence first
-    matches.sort(key=lambda x: x.get('confidence', 0), reverse=True)
+    # Sort by visual confidence (confidence * weight) first
+    matches.sort(key=lambda x: x.get('confidence', 0) * x.get('weight', 1.0), reverse=True)
     
     for match in matches:
         sku = match.get('sku', '')
         if sku not in seen_skus and sku != 'N/A':
             seen_skus.add(sku)
+            # Add visual similarity indicator to match type
+            if match.get('weight', 1.0) >= 0.9:
+                match['match_type'] = f"{match['match_type']} (High Visual Similarity)"
+            elif match.get('weight', 1.0) >= 0.8:
+                match['match_type'] = f"{match['match_type']} (Good Visual Similarity)"
             unique_matches.append(match)
     
     return unique_matches
+
+def remove_duplicate_matches(matches):
+    """Legacy function for backward compatibility"""
+    # Convert to weighted format for consistent processing
+    for match in matches:
+        if 'weight' not in match:
+            match['weight'] = 1.0
+    return remove_duplicate_matches_weighted(matches)
 
 def get_sample_tile_matches():
     """Return sample tile matches as fallback"""
