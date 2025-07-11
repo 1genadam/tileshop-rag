@@ -15,6 +15,11 @@ from dotenv import load_dotenv
 # Load environment variables
 load_dotenv()
 
+from .aos_conversation_engine import AOSConversationEngine, ConversationContext
+from .nepq_scoring_system import NEPQScoringSystem, ConversationAnalysis
+
+logger = logging.getLogger(__name__)
+
 # Try OpenAI first, fallback to Anthropic
 try:
     from openai import OpenAI
@@ -26,11 +31,6 @@ except ImportError:
     USE_OPENAI = False
     import anthropic
     logger.info("SimpleTileAgent falling back to Anthropic")
-
-from .aos_conversation_engine import AOSConversationEngine, ConversationContext
-from .nepq_scoring_system import NEPQScoringSystem, ConversationAnalysis
-
-logger = logging.getLogger(__name__)
 
 def serialize_datetime(obj):
     """Custom JSON serializer for datetime and date objects"""
@@ -46,7 +46,17 @@ class SimpleTileAgent:
     def __init__(self, db_manager, rag_manager):
         self.db = db_manager
         self.rag = rag_manager
-        self.client = anthropic.Anthropic()
+        
+        # Initialize LLM client - prefer OpenAI, fallback to Anthropic
+        if USE_OPENAI and openai_client:
+            self.client = openai_client
+            self.use_openai = True
+            logger.info("SimpleTileAgent initialized with OpenAI")
+        else:
+            self.client = anthropic.Anthropic()
+            self.use_openai = False
+            logger.info("SimpleTileAgent initialized with Anthropic")
+            
         self.aos_engine = AOSConversationEngine()
         self.nepq_scorer = NEPQScoringSystem()
         
