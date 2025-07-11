@@ -5,16 +5,16 @@
 
 echo "🔄 Rebooting Tileshop Dashboard (Auto-Background Mode)..."
 
-# Quick git sync (optimized for speed)
-echo "📤 Quick git sync..."
+# Quick git sync to GitHub repository (optimized for speed)
+echo "📤 Quick GitHub sync..."
 if ! git diff-index --quiet HEAD --; then
-    echo "📝 Auto-committing local changes..."
+    echo "📝 Auto-committing and pushing to GitHub repository..."
     git add -A && git commit -m "Dashboard reboot auto-commit" --quiet
     git push --quiet origin $(git branch --show-current) &
     GIT_PID=$!
-    echo "✅ Git push started in background (PID: $GIT_PID)"
+    echo "✅ GitHub push started in background (PID: $GIT_PID)"
 else
-    echo "✅ No changes to commit"
+    echo "✅ No changes to commit to GitHub"
 fi
 
 # Stop any existing dashboard and chat processes (fast)
