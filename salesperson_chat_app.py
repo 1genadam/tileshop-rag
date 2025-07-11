@@ -458,4 +458,4 @@ def handle_disconnect():
 
 if __name__ == '__main__':
     logger.info("Starting Salesperson Chat Application on port 8082")
-    socketio.run(app, debug=True, host='0.0.0.0', port=8082)
+    socketio.run(app, debug=True, host='0.0.0.0', port=8082, allow_unsafe_werkzeug=True)

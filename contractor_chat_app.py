@@ -726,4 +726,4 @@ def handle_disconnect():
 
 if __name__ == '__main__':
     logger.info("Starting Contractor Chat Application on port 8083")
-    socketio.run(app, debug=True, host='0.0.0.0', port=8083)
+    socketio.run(app, debug=True, host='0.0.0.0', port=8083, allow_unsafe_werkzeug=True)
