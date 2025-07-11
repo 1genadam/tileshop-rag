@@ -625,10 +625,66 @@
                         </button>
                     </div>
                 </div>
+                <button onclick="showTileSelector()" class="bg-blue-500 text-white px-4 py-2 rounded-lg hover:bg-blue-600 mr-2">
+                    Select Tile
+                </button>
                 <button onclick="exitARVisualization()" class="bg-red-500 hover:bg-red-600 text-white px-4 py-2 rounded">
                     <i class="fas fa-times mr-1"></i>Exit AR
                 </button>
             </div>
+        
+        <!-- Tile Selection Modal for AR -->
+        <div id="ar-tile-selector" class="absolute top-20 left-4 right-4 bg-white rounded-lg p-4 shadow-lg hidden">
+            <h4 class="text-lg font-bold mb-3">Select Tile for AR Preview</h4>
+            
+            <!-- Search by SKU -->
+            <div class="mb-3">
+                <label class="block text-sm font-medium text-gray-700 mb-1">Search by SKU</label>
+                <input type="text" id="ar-sku-search" placeholder="Enter SKU (e.g., MCF-001)" 
+                       class="w-full border border-gray-300 rounded px-3 py-2" 
+                       onchange="searchTileForAR('sku', this.value)">
+            </div>
+            
+            <!-- Search by Color -->
+            <div class="mb-3">
+                <label class="block text-sm font-medium text-gray-700 mb-1">Search by Color</label>
+                <select id="ar-color-search" class="w-full border border-gray-300 rounded px-3 py-2" 
+                        onchange="searchTileForAR('color', this.value)">
+                    <option value="">Select Color</option>
+                    <option value="white">White</option>
+                    <option value="gray">Gray</option>
+                    <option value="black">Black</option>
+                    <option value="beige">Beige</option>
+                    <option value="brown">Brown</option>
+                    <option value="blue">Blue</option>
+                    <option value="green">Green</option>
+                    <option value="red">Red</option>
+                </select>
+            </div>
+            
+            <!-- Search by Description -->
+            <div class="mb-3">
+                <label class="block text-sm font-medium text-gray-700 mb-1">Search by Description</label>
+                <input type="text" id="ar-desc-search" placeholder="e.g., modern subway tile" 
+                       class="w-full border border-gray-300 rounded px-3 py-2" 
+                       onchange="searchTileForAR('description', this.value)">
+            </div>
+            
+            <!-- Search Results -->
+            <div id="ar-search-results" class="mb-3 max-h-40 overflow-y-auto hidden">
+                <div class="text-sm font-medium text-gray-700 mb-2">Available Tiles:</div>
+                <div id="ar-tile-options" class="space-y-2"></div>
+            </div>
+            
+            <div class="flex justify-end space-x-2">
+                <button onclick="hideTileSelector()" class="bg-gray-500 text-white px-4 py-2 rounded hover:bg-gray-600">
+                    Cancel
+                </button>
+                <button onclick="applySelectedTileToAR()" class="bg-blue-500 text-white px-4 py-2 rounded hover:bg-blue-600">
+                    Apply to AR
+                </button>
+            </div>
+        </div>
         </div>
         
         <!-- AR Scene Canvas -->
@@ -897,9 +953,17 @@
             const arContainer = document.getElementById('ar-container');
             arContainer.classList.remove('hidden');
             
-            // Initialize AR system
-            const initialized = await initARSystem();
-            if (!initialized) {
+            // Start camera immediately for AR view
+            try {
+                await initCameraAR();
+                console.log('AR camera initialized successfully');
+                
+                // Add tile selection interface
+                showTileSelectionInterface();
+                
+            } catch (error) {
+                console.error('AR initialization failed:', error);
+                alert('Camera access required for AR visualization. Please enable camera permissions and try again.');
                 exitARVisualization();
                 return;
             }
@@ -1103,6 +1167,167 @@
             if (stream) {
                 stream.getTracks().forEach(track => track.stop());
             }
+        }
+
+        // Tile Selection Functions for AR
+        let selectedTileForAR = null;
+        
+        function showTileSelector() {
+            document.getElementById('ar-tile-selector').classList.remove('hidden');
+        }
+        
+        function hideTileSelector() {
+            document.getElementById('ar-tile-selector').classList.add('hidden');
+        }
+        
+        async function searchTileForAR(searchType, query) {
+            if (!query.trim()) {
+                document.getElementById('ar-search-results').classList.add('hidden');
+                return;
+            }
+            
+            try {
+                let searchQuery = '';
+                if (searchType === 'sku') {
+                    searchQuery = `sku:${query}`;
+                } else if (searchType === 'color') {
+                    searchQuery = `${query} color tile`;
+                } else if (searchType === 'description') {
+                    searchQuery = query;
+                }
+                
+                // Use sample tiles for now (can be connected to real search later)
+                displaySampleTileOptions(searchType, query);
+                
+            } catch (error) {
+                console.error('Error searching tiles:', error);
+                displaySampleTileOptions(searchType, query);
+            }
+        }
+        
+        function displaySampleTileOptions(searchType, query) {
+            const sampleTiles = [
+                { sku: 'MCF-001', name: 'Modern Ceramic Floor Tile', price: 4.99, image_url: '/static/placeholder-tile.jpg' },
+                { sku: 'PPT-002', name: 'Premium Porcelain Tile', price: 7.50, image_url: '/static/placeholder-tile.jpg' },
+                { sku: 'NSL-003', name: 'Natural Stone Look Tile', price: 6.25, image_url: '/static/placeholder-tile.jpg' },
+                { sku: 'WST-004', name: 'White Subway Tile', price: 3.99, image_url: '/static/placeholder-tile.jpg' },
+                { sku: 'GRT-005', name: 'Gray Textured Tile', price: 5.49, image_url: '/static/placeholder-tile.jpg' }
+            ];
+            
+            // Filter based on search
+            let filteredTiles = sampleTiles;
+            if (searchType === 'sku' && query) {
+                filteredTiles = sampleTiles.filter(tile => 
+                    tile.sku.toLowerCase().includes(query.toLowerCase())
+                );
+            } else if (searchType === 'color' && query) {
+                filteredTiles = sampleTiles.filter(tile => 
+                    tile.name.toLowerCase().includes(query.toLowerCase())
+                );
+            } else if (searchType === 'description' && query) {
+                filteredTiles = sampleTiles.filter(tile => 
+                    tile.name.toLowerCase().includes(query.toLowerCase())
+                );
+            }
+            
+            displayTileOptions(filteredTiles);
+        }
+        
+        function displayTileOptions(tiles) {
+            const resultsDiv = document.getElementById('ar-search-results');
+            const optionsDiv = document.getElementById('ar-tile-options');
+            
+            if (tiles.length === 0) {
+                resultsDiv.classList.add('hidden');
+                return;
+            }
+            
+            optionsDiv.innerHTML = '';
+            tiles.forEach((tile, index) => {
+                const tileOption = document.createElement('div');
+                tileOption.className = 'p-2 border rounded cursor-pointer hover:bg-blue-50';
+                tileOption.innerHTML = `
+                    <div class="flex justify-between items-center">
+                        <div>
+                            <div class="font-medium">${tile.name}</div>
+                            <div class="text-sm text-gray-600">SKU: ${tile.sku} | $${tile.price}/sq ft</div>
+                        </div>
+                        <button onclick="selectTileForAR('${tile.sku}', '${tile.name}', '${tile.image_url}')" 
+                                class="bg-blue-500 text-white px-3 py-1 rounded text-sm hover:bg-blue-600">
+                            Select
+                        </button>
+                    </div>
+                `;
+                optionsDiv.appendChild(tileOption);
+            });
+            
+            resultsDiv.classList.remove('hidden');
+        }
+        
+        function selectTileForAR(sku, name, imageUrl) {
+            selectedTileForAR = { sku, name, imageUrl };
+            
+            // Update UI to show selection
+            const optionsDiv = document.getElementById('ar-tile-options');
+            optionsDiv.querySelectorAll('.bg-green-50').forEach(el => el.classList.remove('bg-green-50'));
+            
+            // Highlight selected tile
+            event.target.closest('.p-2').classList.add('bg-green-50');
+            
+            console.log('Selected tile for AR:', selectedTileForAR);
+        }
+        
+        function applySelectedTileToAR() {
+            if (!selectedTileForAR) {
+                alert('Please select a tile first');
+                return;
+            }
+            
+            // Apply the selected tile to the AR scene
+            console.log('Applying tile to AR:', selectedTileForAR);
+            
+            // Update tile pattern based on selection
+            updateARTilePattern(selectedTileForAR);
+            
+            // Hide selector
+            hideTileSelector();
+            
+            // Show success message
+            const successMsg = document.createElement('div');
+            successMsg.className = 'absolute top-32 left-4 right-4 bg-green-100 border border-green-400 text-green-700 px-4 py-3 rounded';
+            successMsg.innerHTML = `
+                <strong>Success!</strong> Applied ${selectedTileForAR.name} (${selectedTileForAR.sku}) to AR view.
+                <button onclick="this.parentElement.remove()" class="float-right text-green-900">&times;</button>
+            `;
+            document.getElementById('ar-container').appendChild(successMsg);
+            
+            setTimeout(() => {
+                if (successMsg.parentElement) {
+                    successMsg.remove();
+                }
+            }, 5000);
+        }
+        
+        function updateARTilePattern(tile) {
+            // Update the AR visualization with the selected tile
+            console.log('Updating AR pattern with:', tile);
+            
+            // Determine pattern type based on tile name
+            let pattern = 'ceramic'; // default
+            if (tile.name.toLowerCase().includes('porcelain')) {
+                pattern = 'porcelain';
+            } else if (tile.name.toLowerCase().includes('stone')) {
+                pattern = 'natural-stone';
+            }
+            
+            switchTilePattern(pattern);
+        }
+        
+        function showTileSelectionInterface() {
+            // Auto-show the tile selector when AR starts
+            setTimeout(() => {
+                showTileSelector();
+            }, 1000);
         }
 
         // Helper function for camera-based tile overlay

@@ -298,7 +298,7 @@ def analyze_tile_with_openai_vision(image_data):
         if not openai_client:
             return {'success': False, 'error': 'OpenAI client not available'}
         
-        # OpenAI Vision API call
+        # Enhanced OpenAI Vision API call for better tile matching
         response = openai_client.chat.completions.create(
             model="gpt-4o",
             messages=[
@@ -307,15 +307,20 @@ def analyze_tile_with_openai_vision(image_data):
                     "content": [
                         {
                             "type": "text",
-                            "text": """Analyze this tile image and provide a detailed description focusing on:
-                            1. Material type (ceramic, porcelain, natural stone, glass, etc.)
-                            2. Color and pattern
-                            3. Size/dimensions if visible
-                            4. Texture and finish (matte, glossy, textured)
-                            5. Style (modern, traditional, rustic, etc.)
-                            6. Any unique characteristics
-                            
-                            Provide a concise but detailed description that would help match similar tiles."""
+                            "text": """Analyze this tile image and extract specific attributes for database matching:
+
+REQUIRED FORMAT - Please provide structured analysis:
+
+**MATERIAL**: [ceramic/porcelain/natural stone/glass/metal/vinyl/etc.]
+**COLOR**: [primary color] with [secondary colors if any]
+**PATTERN**: [solid/subway/hexagon/mosaic/wood-look/stone-look/geometric/etc.]
+**SIZE**: [estimated dimensions like 12x12, 3x6, 2x2, etc.]
+**FINISH**: [matte/glossy/textured/honed/polished/brushed/etc.]
+**STYLE**: [modern/traditional/rustic/industrial/farmhouse/etc.]
+**EDGE**: [straight/beveled/rounded/chiseled/etc.]
+**INSTALLATION**: [floor/wall/backsplash suitable]
+
+Then provide a detailed description for search matching focusing on the most distinctive visual characteristics that would help identify similar tiles in a database."""
                         },
                         {
                             "type": "image_url",
@@ -345,36 +350,104 @@ def analyze_tile_with_openai_vision(image_data):
         }
 
 def search_tiles_by_description(description):
-    """Search for tiles in database based on AI description"""
+    """Enhanced search for tiles using structured attributes and multiple search strategies"""
     try:
-        # Use the RAG system to search for similar tiles
-        if rag_manager:
-            # Create search query from description
-            search_query = f"tile {description}"
-            results = rag_manager.search(search_query, limit=6)
-            
-            # Format results for frontend
-            matches = []
-            for result in results:
-                match = {
-                    'name': result.get('title', 'Unknown Tile'),
-                    'sku': result.get('sku', 'N/A'),
-                    'price': result.get('price_per_sq_ft', 0),
-                    'image_url': result.get('image_url', '/static/placeholder-tile.jpg'),
-                    'description': result.get('description', ''),
-                    'confidence': result.get('score', 0.7),
-                    'location': f"Aisle {result.get('aisle', 'TBD')}"
-                }
-                matches.append(match)
-            
-            return matches
+        if not rag_manager:
+            return get_sample_tile_matches()
         
-        # Fallback if no RAG system
-        return get_sample_tile_matches()
+        # Extract structured attributes from description
+        attributes = extract_tile_attributes(description)
+        
+        # Multi-strategy search for better results
+        all_matches = []
+        
+        # Strategy 1: Direct description search
+        direct_results = rag_manager.search(f"tile {description}", limit=3)
+        all_matches.extend(format_search_results(direct_results, "Direct Match"))
+        
+        # Strategy 2: Material + Color search
+        if attributes.get('material') and attributes.get('color'):
+            material_color_query = f"{attributes['material']} {attributes['color']} tile"
+            material_results = rag_manager.search(material_color_query, limit=2)
+            all_matches.extend(format_search_results(material_results, "Material/Color Match"))
+        
+        # Strategy 3: Pattern + Size search
+        if attributes.get('pattern') and attributes.get('size'):
+            pattern_size_query = f"{attributes['pattern']} {attributes['size']} tile"
+            pattern_results = rag_manager.search(pattern_size_query, limit=2)
+            all_matches.extend(format_search_results(pattern_results, "Pattern/Size Match"))
+        
+        # Strategy 4: Style + Finish search
+        if attributes.get('style') and attributes.get('finish'):
+            style_finish_query = f"{attributes['style']} {attributes['finish']} tile"
+            style_results = rag_manager.search(style_finish_query, limit=2)
+            all_matches.extend(format_search_results(style_results, "Style/Finish Match"))
+        
+        # Remove duplicates and score by relevance
+        unique_matches = remove_duplicate_matches(all_matches)
+        
+        # Limit to top 6 results
+        return unique_matches[:6] if unique_matches else get_sample_tile_matches()
         
     except Exception as e:
-        logger.error(f"Error searching tiles by description: {e}")
+        logger.error(f"Error in enhanced tile search: {e}")
         return get_sample_tile_matches()
+
+def extract_tile_attributes(description):
+    """Extract structured attributes from AI description"""
+    attributes = {}
+    
+    # Look for structured format in description
+    lines = description.split('\n')
+    for line in lines:
+        if '**MATERIAL**:' in line:
+            attributes['material'] = line.split(':', 1)[1].strip()
+        elif '**COLOR**:' in line:
+            attributes['color'] = line.split(':', 1)[1].strip()
+        elif '**PATTERN**:' in line:
+            attributes['pattern'] = line.split(':', 1)[1].strip()
+        elif '**SIZE**:' in line:
+            attributes['size'] = line.split(':', 1)[1].strip()
+        elif '**FINISH**:' in line:
+            attributes['finish'] = line.split(':', 1)[1].strip()
+        elif '**STYLE**:' in line:
+            attributes['style'] = line.split(':', 1)[1].strip()
+    
+    return attributes
+
+def format_search_results(results, match_type):
+    """Format RAG search results with match type"""
+    matches = []
+    for result in results:
+        match = {
+            'name': result.get('title', 'Unknown Tile'),
+            'sku': result.get('sku', 'N/A'),
+            'price': result.get('price_per_sq_ft', 0),
+            'image_url': result.get('image_url', '/static/placeholder-tile.jpg'),
+            'description': result.get('description', ''),
+            'confidence': result.get('score', 0.7),
+            'location': f"Aisle {result.get('aisle', 'TBD')}",
+            'match_type': match_type
+        }
+        matches.append(match)
+    
+    return matches
+
+def remove_duplicate_matches(matches):
+    """Remove duplicate SKUs and sort by confidence"""
+    seen_skus = set()
+    unique_matches = []
+    
+    # Sort by confidence first
+    matches.sort(key=lambda x: x.get('confidence', 0), reverse=True)
+    
+    for match in matches:
+        sku = match.get('sku', '')
+        if sku not in seen_skus and sku != 'N/A':
+            seen_skus.add(sku)
+            unique_matches.append(match)
+    
+    return unique_matches
 
 def get_sample_tile_matches():
     """Return sample tile matches as fallback"""
