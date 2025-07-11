@@ -13,6 +13,7 @@ This directory contains all system documentation and guides:
 | **README.md** | Main project overview and quick start | First-time setup and daily operations |
 | **ARCHITECTURE.md** | Complete system architecture | Understanding system design and components |
 | **TROUBLESHOOTING.md** | Phase 2 diagnostic troubleshooting | Resolving service issues and errors |
+| **VISUAL_SIMILARITY_SYSTEM.md** | Google Lens-style tile recognition | Visual similarity matching implementation |
 
 ## 🤖 AI Agent & Chat Systems
 
@@ -23,7 +24,7 @@ This directory contains all system documentation and guides:
 - **Facts vs Meanings**: Advanced objection handling using NEPQ methodology
 
 ### 3-Mode Chat Applications
-- **Customer Mode** (`customer_chat_app.py`) - Port 8081: `/customer-chat` - Enhanced AOS-NEPQ customer consultation
+- **Customer Mode** (`customer_chat_app.py`) - Port 8081: `/customer-chat` - Enhanced AOS-NEPQ customer consultation with **Google Lens-style visual tile recognition**
 - **Salesperson Mode** (`salesperson_chat_app.py`) - Port 8082: `/sales-chat` - SKU search, project organization, upsell management
 - **Contractor Mode** (`contractor_chat_app.py`) - Port 8083: `/pro-chat` - Technical specs, advanced calculations, installation guides
 
@@ -69,6 +70,7 @@ The Tileshop RAG Production System is a comprehensive intelligence platform feat
 
 - **17 monitored services** across 3 categories (Microservices, Runtime, Pre-warming)
 - **Enhanced AOS-NEPQ Hybrid AI Agent** with 7-question framework and emotional engagement
+- **Google Lens-style Visual Tile Recognition** with multi-strategy similarity matching
 - **3-Mode Chat System**: Customer (8081), Salesperson (8082), Contractor (8083)
 - **NEPQ Objection Handling** with structured markdown reference guide
 - **Real-time web scraping** with Crawl4AI integration
@@ -320,6 +322,7 @@ docker ps --format "table {{.Names}}\t{{.Status}}"
 ### Detailed Documentation
 - **[ARCHITECTURE.md](ARCHITECTURE.md)** - Complete system architecture with diagrams, data flows, and technical specifications
 - **[TROUBLESHOOTING.md](TROUBLESHOOTING.md)** - Comprehensive troubleshooting guide for Phase 2 diagnostic framework
+- **[VISUAL_SIMILARITY_SYSTEM.md](VISUAL_SIMILARITY_SYSTEM.md)** - Google Lens-style visual tile recognition implementation
 
 ### Key Modules
 - `modules/service_diagnostic.py` - Diagnostic framework classes
@@ -349,6 +352,7 @@ docker ps --format "table {{.Names}}\t{{.Status}}"
 **📖 Full Documentation:**
 - System Architecture: [ARCHITECTURE.md](ARCHITECTURE.md)
 - Troubleshooting: [TROUBLESHOOTING.md](TROUBLESHOOTING.md)
+- Visual Recognition: [VISUAL_SIMILARITY_SYSTEM.md](VISUAL_SIMILARITY_SYSTEM.md)
 
 ---
 
@@ -373,7 +377,8 @@ docker ps --format "table {{.Names}}\t{{.Status}}"
 
 ---
 
-*Last Updated: July 8, 2025*  
+*Last Updated: July 11, 2025*  
 *Environment: Production*  
 *Status: All 17 services operational*  
-*Parsing Fixes: Edge Type, Box Quantity, Product Category, Pricing Logic - All Complete*
+*Latest: Google Lens-style Visual Tile Recognition System - Complete*  
+*Previous: Edge Type, Box Quantity, Product Category, Pricing Logic - All Complete*
