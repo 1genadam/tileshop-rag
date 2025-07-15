@@ -8,8 +8,8 @@ let messageCount = 0;
 async function sendMessage() {
     console.log('Send function called (AOS enhanced)');
     const input = document.getElementById('chat-input');
-    const phoneInput = document.getElementById('phone-number');
-    const nameInput = document.getElementById('customer-name-form');
+    const phoneInput = document.getElementById('customer-phone');
+    const nameInput = document.getElementById('customer-name');
     const message = input.value.trim();
     
     if (!message) {
@@ -596,21 +596,27 @@ let projectData = {
     currentSurface: {}
 };
 
-// Toggle form panel
-function toggleFormPanel() {
+// Toggle form panel (ensure it's globally available)
+window.toggleFormPanel = function toggleFormPanel() {
+    console.log('toggleFormPanel called');
     const panel = document.getElementById('form-panel');
     const toggle = document.getElementById('form-toggle');
+    
+    console.log('Panel element:', panel);
+    console.log('Toggle element:', toggle);
     
     if (panel.classList.contains('open')) {
         panel.classList.remove('open');
         toggle.innerHTML = '<i class="fas fa-clipboard-list"></i>';
+        console.log('Form panel closed');
     } else {
         panel.classList.add('open');
         toggle.innerHTML = '<i class="fas fa-times"></i>';
+        console.log('Form panel opened');
         // Trigger form opened event for chat integration
         notifyFormOpened();
     }
-}
+};
 
 // Notify chat system that form was opened
 function notifyFormOpened() {
