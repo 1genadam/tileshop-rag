@@ -489,6 +489,112 @@ def remove_duplicate_matches(matches):
             match['weight'] = 1.0
     return remove_duplicate_matches_weighted(matches)
 
+def get_actual_grout_options():
+    """Get actual grout options based on database records"""
+    return {
+        'superior_excel': {
+            'unsanded': {
+                'bag_sizes': [5, 20, 25],  # 20lb for some colors
+                'colors': ['Antique White', 'Charcoal', 'Desert Sand', 'Dove Grey', 'Ivory', 
+                          'Linen', 'London Fog', 'Mobe Pearl', 'Mocha', 'Natural', 'Standard White',
+                          'Terracotta', 'Tobacco', 'Umber', 'Whisper Grey', 'Autumn Wheat', 
+                          'Black Onyx', 'Hot Lila', 'Silver Luster'],
+                'price_range': '$12.99-$45.99'
+            },
+            'sanded': {
+                'bag_sizes': [8, 25],
+                'colors': ['Antique White', 'Charcoal', 'Desert Sand', 'Dove Grey', 'Ivory',
+                          'Linen', 'London Fog', 'Mobe Pearl', 'Mocha', 'Natural', 'Standard White',
+                          'Terracotta', 'Tobacco', 'Umber', 'Whisper Grey'],
+                'price_range': '$18.99-$45.99'
+            }
+        },
+        'ardex': {
+            'fg_c_microtec': {  # Unsanded
+                'bag_sizes': [25],
+                'colors': ['Brilliant White', 'Fresh Lily', 'Polar White', 'Silver Simmer'],
+                'price_range': '$55.99'
+            },
+            'fl': {  # Sanded
+                'bag_sizes': [25],
+                'colors': ['Antique Ivory', 'Battleship', 'Black Licorice', 'Brilliant White',
+                          'Cast Iron', 'Charcoal Dust', 'Dove Gray', 'Fresh Lilly', 'Gray Dusk',
+                          'Gunmetal', 'Irish Cream', 'Polar White', 'Raw Steel', 'Silver Shimmer',
+                          'Slate Gray', 'Smoke', 'Stone Beach', 'Stormy Mist', 'Sugar Cookie',
+                          'Vintage Linen'],
+                'price_range': '$55.99'
+            }
+        },
+        'superior_pro_grout': {
+            'sanded': {
+                'bag_sizes': [8, 25],
+                'colors': ['Almond', 'Antique White', 'Desert Bloom', 'Desert Sand', 'Dove Grey',
+                          'Ivory', 'Linen', 'London Fog', 'Milk Chocolate', 'Mobe Pearl', 'Mocha',
+                          'Natural', 'Whisper Grey', 'White', 'Terra-Cotta', 'Umber'],
+                'price_range': '$8.99-$28.99'
+            }
+        },
+        'superior_standard': {
+            'unsanded': {
+                'bag_sizes': [5],
+                'colors': ['Antique White', 'Charcoal', 'Dove Grey', 'Ivory', 'Linen', 
+                          'London Fog', 'Milk Chocolate', 'Mocha', 'Standard White', 'Tobacco',
+                          'Whisper Grey'],
+                'price_range': '$8.99'
+            }
+        }
+    }
+
+def recommend_grout_bag_actual(grout_lbs, grout_brand, grout_type):
+    """Recommend bag size based on actual database inventory"""
+    grout_options = get_actual_grout_options()
+    
+    if grout_brand == 'superior_excel':
+        available_bags = grout_options['superior_excel'][grout_type]['bag_sizes']
+    elif grout_brand == 'ardex':
+        if grout_type == 'unsanded':
+            available_bags = grout_options['ardex']['fg_c_microtec']['bag_sizes']
+        else:
+            available_bags = grout_options['ardex']['fl']['bag_sizes']
+    elif grout_brand == 'superior_pro_grout':
+        available_bags = grout_options['superior_pro_grout']['sanded']['bag_sizes']
+    else:
+        available_bags = [5, 8, 25]  # fallback
+    
+    # Find optimal bag size
+    for bag_size in available_bags:
+        if bag_size >= grout_lbs:
+            return {
+                'recommended_bag': bag_size,
+                'quantity': 1,
+                'total_lbs': bag_size,
+                'waste_lbs': bag_size - grout_lbs,
+                'waste_percent': round(((bag_size - grout_lbs) / bag_size) * 100, 1)
+            }
+    
+    # Handle larger quantities with multiple bags
+    largest_bag = max(available_bags)
+    large_bags = int(grout_lbs // largest_bag)
+    remainder = grout_lbs % largest_bag
+    
+    if remainder > 0:
+        small_bag = next((size for size in available_bags if size >= remainder), available_bags[0])
+        return {
+            'recommended_bag': f"{large_bags}×{largest_bag}lb + 1×{small_bag}lb",
+            'quantity': large_bags + 1,
+            'total_lbs': (large_bags * largest_bag) + small_bag,
+            'waste_lbs': ((large_bags * largest_bag) + small_bag) - grout_lbs,
+            'waste_percent': round((((large_bags * largest_bag) + small_bag - grout_lbs) / ((large_bags * largest_bag) + small_bag)) * 100, 1)
+        }
+    
+    return {
+        'recommended_bag': f"{large_bags}×{largest_bag}lb",
+        'quantity': large_bags,
+        'total_lbs': large_bags * largest_bag,
+        'waste_lbs': 0,
+        'waste_percent': 0
+    }
+
 def get_sample_tile_matches():
     """Return sample tile matches as fallback"""
     return [
@@ -997,6 +1103,286 @@ def get_design_style_options():
         'styles': styles,
         'default': 'modern'
     })
+
+# ========================================
+# DYNAMIC FORM SYSTEM API ENDPOINTS
+# ========================================
+
+@app.route('/api/customers/lookup/<phone_number>')
+def lookup_customer(phone_number):
+    """Lookup customer by phone number"""
+    try:
+        if not db_manager:
+            return jsonify({'success': False, 'error': 'Database not available'})
+        
+        # Clean phone number
+        cleaned_phone = ''.join(c for c in phone_number if c.isdigit())
+        
+        # Search for customer in database
+        customer = db_manager.get_customer_by_phone(cleaned_phone)
+        
+        if customer:
+            # Get customer's existing projects
+            projects = db_manager.get_customer_projects(cleaned_phone)
+            
+            return jsonify({
+                'success': True,
+                'customer': {
+                    'phone': customer.get('phone', ''),
+                    'name': customer.get('name', ''),
+                    'email': customer.get('email', ''),
+                    'id': customer.get('id', '')
+                },
+                'projects': projects or []
+            })
+        else:
+            return jsonify({
+                'success': False,
+                'error': 'Customer not found'
+            })
+        
+    except Exception as e:
+        logger.error(f"Error looking up customer {phone_number}: {e}")
+        return jsonify({'success': False, 'error': str(e)})
+
+@app.route('/api/customers/create', methods=['POST'])
+def create_customer():
+    """Create new customer"""
+    try:
+        if not db_manager:
+            return jsonify({'success': False, 'error': 'Database not available'})
+        
+        data = request.get_json()
+        phone = data.get('phone', '').strip()
+        name = data.get('name', '').strip()
+        email = data.get('email', '').strip()
+        
+        if not phone or not name:
+            return jsonify({'success': False, 'error': 'Phone and name are required'})
+        
+        # Clean phone number
+        cleaned_phone = ''.join(c for c in phone if c.isdigit())
+        
+        # Create customer
+        customer_id = db_manager.create_customer(cleaned_phone, name, email)
+        
+        return jsonify({
+            'success': True,
+            'customer_id': customer_id,
+            'customer': {
+                'phone': cleaned_phone,
+                'name': name,
+                'email': email,
+                'id': customer_id
+            }
+        })
+        
+    except Exception as e:
+        logger.error(f"Error creating customer: {e}")
+        return jsonify({'success': False, 'error': str(e)})
+
+@app.route('/api/projects/create', methods=['POST'])
+def create_project():
+    """Create new project"""
+    try:
+        if not db_manager:
+            return jsonify({'success': False, 'error': 'Database not available'})
+        
+        data = request.get_json()
+        customer_phone = data.get('customer_phone', '').strip()
+        project_name = data.get('project_name', '').strip()
+        address = data.get('address', '').strip()
+        
+        if not customer_phone or not project_name:
+            return jsonify({'success': False, 'error': 'Customer phone and project name are required'})
+        
+        # Clean phone number
+        cleaned_phone = ''.join(c for c in customer_phone if c.isdigit())
+        
+        # Create project
+        project_id = db_manager.create_project(cleaned_phone, project_name, address)
+        
+        return jsonify({
+            'success': True,
+            'project_id': project_id,
+            'project': {
+                'id': project_id,
+                'name': project_name,
+                'address': address,
+                'customer_phone': cleaned_phone
+            }
+        })
+        
+    except Exception as e:
+        logger.error(f"Error creating project: {e}")
+        return jsonify({'success': False, 'error': str(e)})
+
+@app.route('/api/grout/calculate', methods=['POST'])
+def calculate_grout_recommendation():
+    """Calculate grout recommendation for a tile and surface"""
+    try:
+        data = request.get_json()
+        tile_info = data.get('tile', {})
+        surface_sqft = data.get('surface_sqft', 0)
+        
+        if not tile_info or surface_sqft <= 0:
+            return jsonify({'success': False, 'error': 'Tile info and surface area required'})
+        
+        # Determine grout type based on tile characteristics
+        grout_type = determine_grout_type_from_tile(tile_info)
+        
+        # Calculate grout quantity
+        grout_lbs = calculate_grout_quantity_advanced(surface_sqft, tile_info)
+        
+        # Get bag recommendation
+        bag_recommendation = recommend_grout_bag_actual(grout_lbs, 'superior_excel', grout_type)
+        
+        return jsonify({
+            'success': True,
+            'grout_type': grout_type,
+            'grout_lbs_needed': grout_lbs,
+            'bag_recommendation': bag_recommendation,
+            'explanation': f"Based on {tile_info.get('material_type', 'ceramic')} tile and {surface_sqft} sq ft area"
+        })
+        
+    except Exception as e:
+        logger.error(f"Error calculating grout recommendation: {e}")
+        return jsonify({'success': False, 'error': str(e)})
+
+def determine_grout_type_from_tile(tile_info):
+    """Determine grout type based on tile characteristics"""
+    material_type = tile_info.get('material_type', '').lower()
+    finish = tile_info.get('finish', '').lower()
+    edge_type = tile_info.get('edge_type', '').lower()
+    
+    # Natural stone logic
+    if any(stone in material_type for stone in ['marble', 'travertine', 'limestone']):
+        if 'polished' in finish:
+            return 'unsanded'
+        else:
+            return 'sanded'
+    
+    # Rectified tiles
+    if 'rectified' in edge_type:
+        return 'unsanded'
+    
+    # Glass tiles
+    if 'glass' in material_type:
+        return 'unsanded'
+    
+    # Default to sanded for ceramic/porcelain
+    return 'sanded'
+
+def calculate_grout_quantity_advanced(surface_sqft, tile_info):
+    """Advanced grout quantity calculation based on tile size and grout width"""
+    tile_size = tile_info.get('size', '12x12')
+    grout_width = tile_info.get('grout_width', '1/8"')
+    
+    # Base rates per square foot for different grout widths
+    grout_rates = {
+        '1/16"': 0.045,
+        '1/8"': 0.067,
+        '3/16"': 0.089,
+        '1/4"': 0.111
+    }
+    
+    # Adjust for tile size
+    if 'x' in tile_size:
+        try:
+            dimensions = tile_size.split('x')
+            width = int(dimensions[0])
+            height = int(dimensions[1])
+            tile_area = width * height
+            
+            # Smaller tiles need more grout
+            if tile_area < 16:  # 4x4 or smaller
+                multiplier = 1.3
+            elif tile_area < 64:  # 8x8 or smaller
+                multiplier = 1.1
+            else:
+                multiplier = 1.0
+        except:
+            multiplier = 1.0
+    else:
+        multiplier = 1.0
+    
+    base_rate = grout_rates.get(grout_width, 0.067)
+    return max(1, int(surface_sqft * base_rate * multiplier))
+
+@app.route('/api/materials/calculate', methods=['POST'])
+def calculate_materials():
+    """Calculate all materials needed for a surface"""
+    try:
+        data = request.get_json()
+        surface_info = data.get('surface', {})
+        tile_info = data.get('tile', {})
+        
+        surface_sqft = surface_info.get('calculated', 0)
+        surface_type = surface_info.get('surface', '')
+        area_type = surface_info.get('area', '')
+        
+        if surface_sqft <= 0:
+            return jsonify({'success': False, 'error': 'Surface area required'})
+        
+        materials = {
+            'tile': {
+                'quantity_sqft': surface_sqft,
+                'waste_factor': 0.1,
+                'total_needed': surface_sqft * 1.1,
+                'estimated_cost': surface_sqft * 1.1 * tile_info.get('price', 0)
+            },
+            'grout': {},
+            'thinset': {
+                'bags_needed': max(1, int(surface_sqft / 100)),  # 50lb bag covers ~100 sqft
+                'type': 'glass_specific' if 'glass' in tile_info.get('material_type', '').lower() else 'standard',
+                'estimated_cost': max(1, int(surface_sqft / 100)) * 25.99
+            },
+            'additives': {}
+        }
+        
+        # Calculate grout
+        grout_type = determine_grout_type_from_tile(tile_info)
+        grout_lbs = calculate_grout_quantity_advanced(surface_sqft, tile_info)
+        bag_rec = recommend_grout_bag_actual(grout_lbs, 'superior_excel', grout_type)
+        
+        materials['grout'] = {
+            'type': grout_type,
+            'lbs_needed': grout_lbs,
+            'bag_recommendation': bag_rec,
+            'estimated_cost': bag_rec.get('total_lbs', 8) * 2.25  # Approximate cost per lb
+        }
+        
+        # Calculate additives based on surface type
+        if surface_type == 'floor':
+            materials['additives']['decoupling_membrane'] = {
+                'sqft_needed': surface_sqft,
+                'estimated_cost': surface_sqft * 1.25
+            }
+        
+        if area_type in ['shower', 'bathtub-surround']:
+            materials['additives']['waterproofing'] = {
+                'sqft_needed': surface_sqft,
+                'estimated_cost': surface_sqft * 2.50
+            }
+        
+        # Calculate total cost
+        total_cost = (
+            materials['tile']['estimated_cost'] +
+            materials['grout']['estimated_cost'] +
+            materials['thinset']['estimated_cost'] +
+            sum(addon.get('estimated_cost', 0) for addon in materials['additives'].values())
+        )
+        
+        return jsonify({
+            'success': True,
+            'materials': materials,
+            'total_estimated_cost': round(total_cost, 2),
+            'surface_sqft': surface_sqft
+        })
+        
+    except Exception as e:
+        logger.error(f"Error calculating materials: {e}")
+        return jsonify({'success': False, 'error': str(e)})
 
 @socketio.on('connect')
 def handle_connect():

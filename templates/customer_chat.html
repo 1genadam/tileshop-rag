@@ -80,10 +80,356 @@
             0%, 80%, 100% { transform: scale(0); }
             40% { transform: scale(1); }
         }
+        
+        /* Dynamic Form Styles */
+        .form-section {
+            background: white;
+            border-radius: 0.75rem;
+            padding: 1.5rem;
+            margin-bottom: 1rem;
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+            border: 1px solid #e5e7eb;
+        }
+        
+        .form-section h3 {
+            color: #1f2937;
+            font-size: 1.125rem;
+            font-weight: 600;
+            margin-bottom: 1rem;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+        
+        .phone-input {
+            display: flex;
+            gap: 0.5rem;
+            margin-bottom: 1rem;
+        }
+        
+        .phone-input input {
+            flex: 1;
+            padding: 0.75rem;
+            border: 1px solid #d1d5db;
+            border-radius: 0.5rem;
+            font-size: 1rem;
+        }
+        
+        .phone-input button {
+            padding: 0.75rem 1.5rem;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            border: none;
+            border-radius: 0.5rem;
+            cursor: pointer;
+            font-weight: 500;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+        
+        .phone-status {
+            padding: 0.75rem;
+            border-radius: 0.5rem;
+            margin-bottom: 1rem;
+        }
+        
+        .phone-status.found {
+            background: #dcfce7;
+            color: #166534;
+            border: 1px solid #bbf7d0;
+        }
+        
+        .phone-status.not-found {
+            background: #fef3c7;
+            color: #92400e;
+            border: 1px solid #fde68a;
+        }
+        
+        .project-options {
+            display: flex;
+            flex-direction: column;
+            gap: 0.75rem;
+            margin-bottom: 1rem;
+        }
+        
+        .project-options label {
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            padding: 0.75rem;
+            border: 1px solid #d1d5db;
+            border-radius: 0.5rem;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+        
+        .project-options label:hover {
+            background: #f9fafb;
+        }
+        
+        .project-options input[type="radio"]:checked + label {
+            background: #eff6ff;
+            border-color: #3b82f6;
+        }
+        
+        .selection-controls {
+            display: flex;
+            gap: 0.75rem;
+            margin-bottom: 1rem;
+        }
+        
+        .selection-controls select {
+            flex: 1;
+            padding: 0.75rem;
+            border: 1px solid #d1d5db;
+            border-radius: 0.5rem;
+            font-size: 1rem;
+        }
+        
+        .dimensions {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(100px, 1fr));
+            gap: 0.75rem;
+            margin-bottom: 1rem;
+        }
+        
+        .dimensions input {
+            padding: 0.75rem;
+            border: 1px solid #d1d5db;
+            border-radius: 0.5rem;
+            font-size: 1rem;
+        }
+        
+        .tile-selection {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 0.75rem;
+            background: #f9fafb;
+            border: 1px solid #d1d5db;
+            border-radius: 0.5rem;
+            margin-bottom: 1rem;
+        }
+        
+        .materials-summary {
+            background: #f0f9ff;
+            padding: 1rem;
+            border-radius: 0.5rem;
+            border: 1px solid #e0f2fe;
+        }
+        
+        .add-surface-btn {
+            background: linear-gradient(135deg, #10b981 0%, #059669 100%);
+            color: white;
+            border: none;
+            padding: 0.75rem 1.5rem;
+            border-radius: 0.5rem;
+            cursor: pointer;
+            font-weight: 500;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            margin-top: 1rem;
+        }
+        
+        .calculated-display {
+            background: #f3f4f6;
+            padding: 0.5rem;
+            border-radius: 0.25rem;
+            margin-left: 0.5rem;
+            font-weight: 500;
+        }
+        
+        .form-toggle {
+            position: fixed;
+            bottom: 1rem;
+            right: 1rem;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            border: none;
+            border-radius: 50%;
+            width: 3.5rem;
+            height: 3.5rem;
+            cursor: pointer;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.5rem;
+            z-index: 1000;
+        }
+        
+        .form-panel {
+            position: fixed;
+            bottom: 0;
+            right: 0;
+            width: 400px;
+            max-height: 80vh;
+            background: white;
+            border-radius: 0.75rem 0.75rem 0 0;
+            box-shadow: 0 -4px 20px rgba(0, 0, 0, 0.15);
+            transform: translateY(100%);
+            transition: transform 0.3s ease;
+            z-index: 999;
+            overflow-y: auto;
+        }
+        
+        .form-panel.open {
+            transform: translateY(0);
+        }
+        
+        .form-panel-header {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 1rem;
+            border-radius: 0.75rem 0.75rem 0 0;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+        }
+        
+        .form-panel-content {
+            padding: 1rem;
+        }
+        
+        @media (max-width: 640px) {
+            .form-panel {
+                width: 100%;
+                max-width: 100%;
+            }
+        }
     </style>
 </head>
 <body>
     <div class="min-h-screen p-4 flex items-center justify-center">
+        <!-- Dynamic Form Toggle Button -->
+        <button id="form-toggle" class="form-toggle" onclick="toggleFormPanel()">
+            <i class="fas fa-clipboard-list"></i>
+        </button>
+        
+        <!-- Dynamic Form Panel -->
+        <div id="form-panel" class="form-panel">
+            <div class="form-panel-header">
+                <h2 class="text-lg font-semibold">📋 Project Details</h2>
+                <button onclick="toggleFormPanel()" class="text-white hover:text-gray-200">
+                    <i class="fas fa-times"></i>
+                </button>
+            </div>
+            <div class="form-panel-content">
+                <!-- Phone Number Section -->
+                <div class="form-section">
+                    <h3>📱 Customer Information</h3>
+                    <div class="phone-input">
+                        <input type="tel" id="customer-phone" placeholder="Phone Number" maxlength="14">
+                        <button onclick="lookupCustomer()">
+                            <i class="fas fa-search"></i> Search
+                        </button>
+                    </div>
+                    <div id="phone-status" class="phone-status" style="display: none;">
+                        <span id="phone-status-text"></span>
+                        <button id="different-number-btn" onclick="enterDifferentNumber()" style="display: none; margin-left: 1rem; padding: 0.25rem 0.75rem; background: transparent; border: 1px solid #6b7280; border-radius: 0.25rem; cursor: pointer;">
+                            Enter Different Number
+                        </button>
+                    </div>
+                    <input type="text" id="customer-name" placeholder="Customer Name" class="w-full p-3 border border-gray-300 rounded-lg mb-2">
+                    <input type="email" id="customer-email" placeholder="Email Address" class="w-full p-3 border border-gray-300 rounded-lg">
+                </div>
+                
+                <!-- Project Selection -->
+                <div class="form-section">
+                    <h3>🏠 Project Selection</h3>
+                    <div class="project-options">
+                        <label>
+                            <input type="radio" name="project" value="new" checked>
+                            <span>New Project</span>
+                        </label>
+                        <label style="display: none;" id="continue-project-option">
+                            <input type="radio" name="project" value="continue">
+                            <span>Continue Project:</span>
+                            <select id="existing-projects" style="margin-left: 0.5rem;">
+                                <option>Select existing project...</option>
+                            </select>
+                        </label>
+                    </div>
+                    <input type="text" id="project-name" placeholder="Project Name" class="w-full p-3 border border-gray-300 rounded-lg mb-2">
+                    <input type="text" id="project-address" placeholder="Address" class="w-full p-3 border border-gray-300 rounded-lg">
+                </div>
+                
+                <!-- Current Selection -->
+                <div class="form-section">
+                    <h3>🔨 Current Selection</h3>
+                    <div class="selection-controls">
+                        <select id="area-select" onchange="updateCurrentSelection()">
+                            <option value="">Select Area...</option>
+                            <option value="bathroom-1">Bathroom 1</option>
+                            <option value="bathroom-2">Bathroom 2</option>
+                            <option value="bathroom-3">Bathroom 3</option>
+                            <option value="kitchen">Kitchen</option>
+                            <option value="living-room">Living Room</option>
+                            <option value="patio">Patio</option>
+                            <option value="entry">Entry</option>
+                            <option value="basement">Basement</option>
+                            <option value="halls">Halls</option>
+                        </select>
+                        <select id="surface-select" onchange="updateCurrentSelection()">
+                            <option value="">Select Surface...</option>
+                            <option value="wall">Wall</option>
+                            <option value="floor">Floor</option>
+                            <option value="ceiling">Ceiling</option>
+                            <option value="half-wall">1/2 Wall</option>
+                            <option value="wainscoting">Wainscoting</option>
+                            <option value="shower-floor">Shower Floor</option>
+                            <option value="main-floor">Main Floor</option>
+                            <option value="bathtub-surround">Bathtub Surround</option>
+                            <option value="niche-interior">Niche Interior</option>
+                            <option value="niche-trim">Niche Trim</option>
+                            <option value="wall-framing-trim">Wall Framing Trim</option>
+                            <option value="curb">Curb</option>
+                            <option value="threshold">Threshold</option>
+                            <option value="floor-molding">Floor Molding</option>
+                        </select>
+                    </div>
+                    <div class="dimensions">
+                        <input type="number" id="surface-length" placeholder="Length (ft)" step="0.1" onchange="calculateSurface()">
+                        <input type="number" id="surface-width" placeholder="Width (ft)" step="0.1" onchange="calculateSurface()">
+                        <input type="number" id="surface-height" placeholder="Height (ft)" step="0.1" onchange="calculateSurface()">
+                    </div>
+                    <div class="calculated-display" id="calculated-amount">
+                        <span id="calculated-value">0</span> <span id="calculated-unit">sq ft</span>
+                    </div>
+                    <div class="tile-selection">
+                        <span id="selected-tile-display">No Tile Selected</span>
+                        <button onclick="changeTile()" class="bg-blue-500 text-white px-3 py-1 rounded text-sm">
+                            <i class="fas fa-sync"></i> Change
+                        </button>
+                    </div>
+                    <div class="materials-summary" id="materials-summary">
+                        <div class="grout-info">
+                            <strong>Grout:</strong> <span id="grout-recommendation">Select tile first</span>
+                        </div>
+                        <div class="cost-summary">
+                            <strong>Total Cost:</strong> <span id="total-cost">$0.00</span>
+                        </div>
+                    </div>
+                    <button class="add-surface-btn" onclick="addSurface()">
+                        <i class="fas fa-plus"></i> Add Another Surface
+                    </button>
+                </div>
+                
+                <!-- Saved Surfaces -->
+                <div class="form-section" id="saved-surfaces-section" style="display: none;">
+                    <h3>📦 Saved Surfaces</h3>
+                    <div id="saved-surfaces-list"></div>
+                </div>
+                
+                <!-- Auto-save Status -->
+                <div class="text-center text-sm text-gray-500 mt-4">
+                    <span id="auto-save-status">Auto-save enabled</span>
+                </div>
+            </div>
+        </div>
+        
         <div class="chat-container w-full max-w-4xl h-[90vh] flex flex-col">
             <!-- Header -->
             <div class="p-6 border-b border-gray-200 bg-gradient-to-r from-blue-600 to-purple-600 text-white rounded-t-lg">

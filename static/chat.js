@@ -500,7 +500,533 @@ document.addEventListener('DOMContentLoaded', function() {
         console.log('Container element:', testContainer);
     }
     
+    // Initialize the dynamic form system
+    initializeFormSystem();
+    
     console.log('✅ External JavaScript initialization complete!');
 });
+
+// ========================================
+// DYNAMIC FORM SYSTEM FUNCTIONS
+// ========================================
+
+// Global form data storage
+let projectData = {
+    customer: {},
+    project: {},
+    areas: {},
+    surfaces: [],
+    currentSurface: {}
+};
+
+// Toggle form panel
+function toggleFormPanel() {
+    const panel = document.getElementById('form-panel');
+    const toggle = document.getElementById('form-toggle');
+    
+    if (panel.classList.contains('open')) {
+        panel.classList.remove('open');
+        toggle.innerHTML = '<i class="fas fa-clipboard-list"></i>';
+    } else {
+        panel.classList.add('open');
+        toggle.innerHTML = '<i class="fas fa-times"></i>';
+        // Trigger form opened event for chat integration
+        notifyFormOpened();
+    }
+}
+
+// Notify chat system that form was opened
+function notifyFormOpened() {
+    // Send structured context update to chat
+    sendStructuredContextUpdate('opened_panel', projectData);
+}
+
+// Customer lookup function
+async function lookupCustomer() {
+    const phoneInput = document.getElementById('customer-phone');
+    const phone = phoneInput.value.trim();
+    
+    if (!phone) {
+        alert('Please enter a phone number');
+        return;
+    }
+    
+    const statusDiv = document.getElementById('phone-status');
+    const statusText = document.getElementById('phone-status-text');
+    const differentBtn = document.getElementById('different-number-btn');
+    
+    statusDiv.style.display = 'block';
+    statusText.textContent = 'Searching...';
+    statusDiv.className = 'phone-status';
+    
+    try {
+        // Check if customer exists in database
+        const response = await fetch(`/api/customers/lookup/${phone}`);
+        const data = await response.json();
+        
+        if (data.success && data.customer) {
+            // Customer found
+            statusDiv.className = 'phone-status found';
+            statusText.textContent = `✅ Found: ${data.customer.name}`;
+            differentBtn.style.display = 'inline-block';
+            
+            // Populate customer data
+            document.getElementById('customer-name').value = data.customer.name || '';
+            document.getElementById('customer-email').value = data.customer.email || '';
+            
+            // Store customer data
+            projectData.customer = data.customer;
+            
+            // Show existing projects if any
+            if (data.projects && data.projects.length > 0) {
+                const continueOption = document.getElementById('continue-project-option');
+                const projectSelect = document.getElementById('existing-projects');
+                
+                continueOption.style.display = 'block';
+                projectSelect.innerHTML = '<option value="">Select existing project...</option>';
+                
+                data.projects.forEach(project => {
+                    const option = document.createElement('option');
+                    option.value = project.id;
+                    option.textContent = `${project.name} - ${project.address}`;
+                    projectSelect.appendChild(option);
+                });
+            }
+            
+            // Auto-save customer data
+            autoSaveProject();
+            
+        } else {
+            // Customer not found
+            statusDiv.className = 'phone-status not-found';
+            statusText.textContent = '❌ Not found - New customer setup';
+            differentBtn.style.display = 'inline-block';
+            
+            // Clear fields for new customer
+            document.getElementById('customer-name').value = '';
+            document.getElementById('customer-email').value = '';
+            
+            // Focus on name field
+            document.getElementById('customer-name').focus();
+        }
+        
+    } catch (error) {
+        console.error('Error looking up customer:', error);
+        statusDiv.className = 'phone-status not-found';
+        statusText.textContent = '❌ Error searching - Please try again';
+    }
+}
+
+// Enter different number
+function enterDifferentNumber() {
+    const phoneInput = document.getElementById('customer-phone');
+    const statusDiv = document.getElementById('phone-status');
+    
+    phoneInput.value = '';
+    phoneInput.focus();
+    statusDiv.style.display = 'none';
+    
+    // Clear customer data
+    document.getElementById('customer-name').value = '';
+    document.getElementById('customer-email').value = '';
+    document.getElementById('continue-project-option').style.display = 'none';
+    
+    projectData.customer = {};
+}
+
+// Update current selection
+function updateCurrentSelection() {
+    const area = document.getElementById('area-select').value;
+    const surface = document.getElementById('surface-select').value;
+    
+    if (area && surface) {
+        projectData.currentSurface = {
+            area: area,
+            surface: surface,
+            dimensions: {}
+        };
+        
+        // Update measurement type based on surface
+        updateMeasurementType(surface);
+        
+        // Calculate current surface
+        calculateSurface();
+        
+        // Auto-save
+        autoSaveProject();
+    }
+}
+
+// Update measurement type based on surface
+function updateMeasurementType(surface) {
+    const linearSurfaces = ['niche-trim', 'wall-framing-trim', 'curb', 'threshold', 'floor-molding'];
+    const unit = document.getElementById('calculated-unit');
+    
+    if (linearSurfaces.includes(surface)) {
+        unit.textContent = 'linear ft';
+        document.getElementById('surface-width').style.display = 'none';
+        document.getElementById('surface-height').style.display = 'none';
+    } else {
+        unit.textContent = 'sq ft';
+        document.getElementById('surface-width').style.display = 'block';
+        document.getElementById('surface-height').style.display = 'block';
+    }
+}
+
+// Calculate surface area/linear feet
+function calculateSurface() {
+    const length = parseFloat(document.getElementById('surface-length').value) || 0;
+    const width = parseFloat(document.getElementById('surface-width').value) || 0;
+    const height = parseFloat(document.getElementById('surface-height').value) || 0;
+    const surface = document.getElementById('surface-select').value;
+    
+    const linearSurfaces = ['niche-trim', 'wall-framing-trim', 'curb', 'threshold', 'floor-molding'];
+    
+    let calculated = 0;
+    
+    if (linearSurfaces.includes(surface)) {
+        // Linear measurement
+        calculated = length;
+    } else {
+        // Square footage calculation
+        if (surface === 'wall' || surface === 'half-wall' || surface === 'wainscoting') {
+            calculated = length * height;
+        } else {
+            calculated = length * width;
+        }
+    }
+    
+    document.getElementById('calculated-value').textContent = calculated.toFixed(1);
+    
+    // Store in current surface data
+    if (projectData.currentSurface) {
+        projectData.currentSurface.dimensions = {
+            length: length,
+            width: width,
+            height: height,
+            calculated: calculated
+        };
+    }
+    
+    // Update materials calculation
+    updateMaterialsCalculation();
+    
+    // Auto-save
+    autoSaveProject();
+    
+    // Notify chat about dimensions
+    if (calculated > 0) {
+        sendStructuredContextUpdate('dimensions_entered', projectData);
+    }
+}
+
+// Update materials calculation
+function updateMaterialsCalculation() {
+    const calculated = parseFloat(document.getElementById('calculated-value').textContent) || 0;
+    const selectedTile = projectData.currentSurface?.selectedTile;
+    
+    if (!selectedTile || calculated === 0) {
+        document.getElementById('grout-recommendation').textContent = 'Select tile first';
+        document.getElementById('total-cost').textContent = '$0.00';
+        return;
+    }
+    
+    // Calculate grout recommendation
+    const groutRec = calculateGroutRecommendation(selectedTile, calculated);
+    document.getElementById('grout-recommendation').textContent = groutRec.text;
+    
+    // Calculate total cost
+    const tileCost = calculated * (selectedTile.price || 0);
+    const groutCost = groutRec.cost || 0;
+    const totalCost = tileCost + groutCost;
+    
+    document.getElementById('total-cost').textContent = `$${totalCost.toFixed(2)}`;
+}
+
+// Calculate grout recommendation based on tile and area
+function calculateGroutRecommendation(tile, sqft) {
+    // Simplified grout calculation based on the plan
+    const groutType = determineGroutType(tile);
+    const groutLbs = calculateGroutQuantity(sqft, tile.size || '12x12');
+    const bagRec = recommendGroutBag(groutLbs, groutType);
+    
+    return {
+        text: `${groutType} - ${bagRec.size}lb bag (${bagRec.waste}% waste)`,
+        cost: bagRec.price || 18.99
+    };
+}
+
+// Determine grout type based on tile
+function determineGroutType(tile) {
+    const materialType = tile.material_type || tile.material || 'ceramic';
+    const finish = tile.finish || '';
+    
+    if (materialType.toLowerCase().includes('marble') || 
+        materialType.toLowerCase().includes('travertine') || 
+        materialType.toLowerCase().includes('limestone')) {
+        
+        if (finish.toLowerCase().includes('polished')) {
+            return 'Excel Unsanded';
+        } else {
+            return 'Excel Sanded';
+        }
+    }
+    
+    if (tile.edge_type === 'Rectified') {
+        return 'Excel Unsanded';
+    }
+    
+    return 'Excel Sanded';
+}
+
+// Calculate grout quantity
+function calculateGroutQuantity(sqft, tileSize) {
+    // Simplified calculation - would use actual grout calculator in production
+    const baseRate = 0.067; // lbs per sq ft for typical 12x12 tile
+    return Math.ceil(sqft * baseRate);
+}
+
+// Recommend grout bag size
+function recommendGroutBag(lbs, groutType) {
+    if (groutType.includes('Unsanded')) {
+        if (lbs <= 5) return { size: 5, waste: Math.round(((5 - lbs) / 5) * 100), price: 12.99 };
+        if (lbs <= 20) return { size: 20, waste: Math.round(((20 - lbs) / 20) * 100), price: 35.99 };
+        return { size: 25, waste: Math.round(((25 - lbs) / 25) * 100), price: 45.99 };
+    } else {
+        if (lbs <= 8) return { size: 8, waste: Math.round(((8 - lbs) / 8) * 100), price: 18.99 };
+        return { size: 25, waste: Math.round(((25 - lbs) / 25) * 100), price: 45.99 };
+    }
+}
+
+// Change tile selection
+function changeTile() {
+    addMessage("I'd like to change the tile selection for this surface", 'user');
+    sendMessage();
+}
+
+// Add surface to saved list
+function addSurface() {
+    const area = document.getElementById('area-select').value;
+    const surface = document.getElementById('surface-select').value;
+    const calculated = parseFloat(document.getElementById('calculated-value').textContent) || 0;
+    
+    if (!area || !surface || calculated === 0) {
+        alert('Please complete all fields before adding the surface');
+        return;
+    }
+    
+    const surfaceData = {
+        id: Date.now(),
+        area: area,
+        surface: surface,
+        dimensions: projectData.currentSurface.dimensions,
+        selectedTile: projectData.currentSurface.selectedTile,
+        calculated: calculated
+    };
+    
+    projectData.surfaces.push(surfaceData);
+    
+    // Update saved surfaces display
+    updateSavedSurfacesDisplay();
+    
+    // Clear current selection
+    clearCurrentSelection();
+    
+    // Auto-save
+    autoSaveProject();
+    
+    // Notify chat
+    sendStructuredContextUpdate('surface_added', projectData);
+}
+
+// Update saved surfaces display
+function updateSavedSurfacesDisplay() {
+    const section = document.getElementById('saved-surfaces-section');
+    const list = document.getElementById('saved-surfaces-list');
+    
+    if (projectData.surfaces.length === 0) {
+        section.style.display = 'none';
+        return;
+    }
+    
+    section.style.display = 'block';
+    list.innerHTML = '';
+    
+    projectData.surfaces.forEach(surface => {
+        const item = document.createElement('div');
+        item.className = 'bg-gray-50 p-3 rounded-lg mb-2 flex justify-between items-center';
+        item.innerHTML = `
+            <div>
+                <strong>${surface.area} - ${surface.surface}</strong><br>
+                <span class="text-sm text-gray-600">${surface.calculated.toFixed(1)} sq ft</span>
+                ${surface.selectedTile ? `<br><span class="text-sm text-blue-600">${surface.selectedTile.name}</span>` : ''}
+            </div>
+            <button onclick="removeSurface(${surface.id})" class="text-red-500 hover:text-red-700">
+                <i class="fas fa-trash"></i>
+            </button>
+        `;
+        list.appendChild(item);
+    });
+}
+
+// Remove surface from saved list
+function removeSurface(surfaceId) {
+    projectData.surfaces = projectData.surfaces.filter(s => s.id !== surfaceId);
+    updateSavedSurfacesDisplay();
+    autoSaveProject();
+}
+
+// Clear current selection
+function clearCurrentSelection() {
+    document.getElementById('area-select').value = '';
+    document.getElementById('surface-select').value = '';
+    document.getElementById('surface-length').value = '';
+    document.getElementById('surface-width').value = '';
+    document.getElementById('surface-height').value = '';
+    document.getElementById('calculated-value').textContent = '0';
+    document.getElementById('selected-tile-display').textContent = 'No Tile Selected';
+    document.getElementById('grout-recommendation').textContent = 'Select tile first';
+    document.getElementById('total-cost').textContent = '$0.00';
+    
+    projectData.currentSurface = {};
+}
+
+// Auto-save project data
+function autoSaveProject() {
+    const phone = document.getElementById('customer-phone').value.trim();
+    const projectName = document.getElementById('project-name').value.trim();
+    const address = document.getElementById('project-address').value.trim();
+    
+    // Update project data
+    projectData.customer = {
+        ...projectData.customer,
+        phone: phone,
+        name: document.getElementById('customer-name').value.trim(),
+        email: document.getElementById('customer-email').value.trim()
+    };
+    
+    projectData.project = {
+        name: projectName,
+        address: address,
+        surfaces: projectData.surfaces
+    };
+    
+    // Save to localStorage
+    localStorage.setItem('tileshop_project', JSON.stringify(projectData));
+    
+    // Update auto-save status
+    document.getElementById('auto-save-status').textContent = 'Auto-saved at ' + new Date().toLocaleTimeString();
+    
+    // Send to server (optional)
+    if (phone && projectName) {
+        saveProjectToServer();
+    }
+}
+
+// Save project to server
+async function saveProjectToServer() {
+    try {
+        const response = await fetch('/api/project/structured-save', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+                phone: projectData.customer.phone,
+                projectData: projectData
+            })
+        });
+        
+        const data = await response.json();
+        if (data.success) {
+            console.log('Project saved to server:', data.project_id);
+        }
+    } catch (error) {
+        console.error('Error saving project to server:', error);
+    }
+}
+
+// Send structured context update to chat
+async function sendStructuredContextUpdate(action, data) {
+    try {
+        const response = await fetch('/api/chat/structured-context', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+                action: action,
+                projectData: data,
+                phone: data.customer?.phone || 'unknown'
+            })
+        });
+        
+        const result = await response.json();
+        if (result.success && result.llm_response) {
+            addMessage(result.llm_response, 'assistant');
+        }
+    } catch (error) {
+        console.error('Error sending structured context:', error);
+    }
+}
+
+// Load saved project data
+function loadSavedProject() {
+    const saved = localStorage.getItem('tileshop_project');
+    if (saved) {
+        try {
+            projectData = JSON.parse(saved);
+            
+            // Populate form fields
+            if (projectData.customer) {
+                document.getElementById('customer-phone').value = projectData.customer.phone || '';
+                document.getElementById('customer-name').value = projectData.customer.name || '';
+                document.getElementById('customer-email').value = projectData.customer.email || '';
+            }
+            
+            if (projectData.project) {
+                document.getElementById('project-name').value = projectData.project.name || '';
+                document.getElementById('project-address').value = projectData.project.address || '';
+            }
+            
+            // Update saved surfaces display
+            updateSavedSurfacesDisplay();
+            
+        } catch (error) {
+            console.error('Error loading saved project:', error);
+        }
+    }
+}
+
+// Initialize form system
+function initializeFormSystem() {
+    // Load saved project data
+    loadSavedProject();
+    
+    // Add event listeners for auto-save
+    const formInputs = document.querySelectorAll('#form-panel input, #form-panel select');
+    formInputs.forEach(input => {
+        input.addEventListener('input', () => {
+            setTimeout(autoSaveProject, 500); // Debounced auto-save
+        });
+        input.addEventListener('change', autoSaveProject);
+    });
+    
+    // Phone number formatting
+    const phoneInput = document.getElementById('customer-phone');
+    phoneInput.addEventListener('input', formatPhoneNumber);
+    
+    console.log('Dynamic form system initialized');
+}
+
+// Format phone number as user types
+function formatPhoneNumber() {
+    const input = document.getElementById('customer-phone');
+    let value = input.value.replace(/\D/g, ''); // Remove non-digits
+    
+    if (value.length >= 6) {
+        value = value.replace(/(\d{3})(\d{3})(\d{4})/, '($1) $2-$3');
+    } else if (value.length >= 3) {
+        value = value.replace(/(\d{3})(\d{0,3})/, '($1) $2');
+    }
+    
+    input.value = value;
+}
 
 console.log('✅ External JavaScript file loaded completely');

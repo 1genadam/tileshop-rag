@@ -1601,3 +1601,221 @@ class DatabaseManager:
         except Exception as e:
             logger.error(f"Error adding sample purchase data: {e}")
             return False
+    
+    # ========================================
+    # DYNAMIC FORM SYSTEM DATABASE METHODS
+    # ========================================
+    
+    def get_customer_by_phone(self, phone_number: str) -> Optional[Dict[str, Any]]:
+        """Enhanced customer lookup by phone number"""
+        try:
+            normalized_phone = self.normalize_phone(phone_number)
+            
+            with self.get_connection() as conn:
+                cursor = conn.cursor(cursor_factory=psycopg2.extras.RealDictCursor)
+                
+                cursor.execute("""
+                    SELECT 
+                        c.id,
+                        c.phone_number as phone,
+                        c.first_name || ' ' || COALESCE(c.last_name, '') as name,
+                        c.email,
+                        c.created_at,
+                        COUNT(cp.id) as project_count
+                    FROM customers c
+                    LEFT JOIN customer_projects cp ON c.id = cp.customer_id
+                    WHERE c.phone_number = %s
+                    GROUP BY c.id, c.phone_number, c.first_name, c.last_name, c.email, c.created_at
+                """, (normalized_phone,))
+                
+                result = cursor.fetchone()
+                return dict(result) if result else None
+                
+        except Exception as e:
+            logger.error(f"Error getting customer by phone {phone_number}: {e}")
+            return None
+    
+    def get_customer_projects(self, phone_number: str) -> List[Dict[str, Any]]:
+        """Get all projects for a customer by phone number"""
+        try:
+            normalized_phone = self.normalize_phone(phone_number)
+            
+            with self.get_connection() as conn:
+                cursor = conn.cursor(cursor_factory=psycopg2.extras.RealDictCursor)
+                
+                cursor.execute("""
+                    SELECT 
+                        cp.id,
+                        cp.project_name as name,
+                        cp.project_address as address,
+                        cp.project_status as status,
+                        cp.created_at,
+                        cp.updated_at
+                    FROM customer_projects cp
+                    JOIN customers c ON cp.customer_id = c.id
+                    WHERE c.phone_number = %s
+                    ORDER BY cp.updated_at DESC
+                """, (normalized_phone,))
+                
+                projects = []
+                for row in cursor.fetchall():
+                    projects.append(dict(row))
+                
+                return projects
+                
+        except Exception as e:
+            logger.error(f"Error getting customer projects for {phone_number}: {e}")
+            return []
+    
+    def create_customer(self, phone_number: str, name: str, email: str = None) -> str:
+        """Create new customer"""
+        try:
+            normalized_phone = self.normalize_phone(phone_number)
+            
+            # Split name into first and last name
+            name_parts = name.strip().split(' ', 1)
+            first_name = name_parts[0]
+            last_name = name_parts[1] if len(name_parts) > 1 else None
+            
+            with self.get_connection() as conn:
+                cursor = conn.cursor()
+                
+                cursor.execute("""
+                    INSERT INTO customers (phone_number, first_name, last_name, email, created_at)
+                    VALUES (%s, %s, %s, %s, %s)
+                    RETURNING id
+                """, (normalized_phone, first_name, last_name, email, datetime.now()))
+                
+                customer_id = cursor.fetchone()[0]
+                conn.commit()
+                
+                logger.info(f"Created new customer: {customer_id} - {name}")
+                return str(customer_id)
+                
+        except Exception as e:
+            logger.error(f"Error creating customer: {e}")
+            return None
+    
+    def create_project(self, customer_phone: str, project_name: str, address: str = None) -> str:
+        """Create new project for customer"""
+        try:
+            normalized_phone = self.normalize_phone(customer_phone)
+            
+            with self.get_connection() as conn:
+                cursor = conn.cursor()
+                
+                # Get customer ID
+                cursor.execute("SELECT id FROM customers WHERE phone_number = %s", (normalized_phone,))
+                customer_row = cursor.fetchone()
+                
+                if not customer_row:
+                    logger.error(f"Customer not found for phone {customer_phone}")
+                    return None
+                
+                customer_id = customer_row[0]
+                
+                # Create project
+                cursor.execute("""
+                    INSERT INTO customer_projects (customer_id, project_name, project_address, project_status, created_at, updated_at)
+                    VALUES (%s, %s, %s, %s, %s, %s)
+                    RETURNING id
+                """, (customer_id, project_name, address, 'active', datetime.now(), datetime.now()))
+                
+                project_id = cursor.fetchone()[0]
+                conn.commit()
+                
+                logger.info(f"Created new project: {project_id} - {project_name}")
+                return str(project_id)
+                
+        except Exception as e:
+            logger.error(f"Error creating project: {e}")
+            return None
+    
+    def save_project_data(self, phone_number: str, project_data: Dict[str, Any]) -> bool:
+        """Save structured project data"""
+        try:
+            normalized_phone = self.normalize_phone(phone_number)
+            
+            with self.get_connection() as conn:
+                cursor = conn.cursor()
+                
+                # Get or create customer
+                cursor.execute("SELECT id FROM customers WHERE phone_number = %s", (normalized_phone,))
+                customer_row = cursor.fetchone()
+                
+                if not customer_row:
+                    # Create customer if not exists
+                    customer_name = project_data.get('customer', {}).get('name', 'Unknown')
+                    customer_email = project_data.get('customer', {}).get('email', '')
+                    customer_id = self.create_customer(phone_number, customer_name, customer_email)
+                    if not customer_id:
+                        return False
+                else:
+                    customer_id = customer_row[0]
+                
+                # Get or create project
+                project_info = project_data.get('project', {})
+                project_name = project_info.get('name', 'Untitled Project')
+                project_address = project_info.get('address', '')
+                
+                cursor.execute("""
+                    SELECT id FROM customer_projects 
+                    WHERE customer_id = %s AND project_name = %s
+                """, (customer_id, project_name))
+                
+                project_row = cursor.fetchone()
+                
+                if not project_row:
+                    project_id = self.create_project(phone_number, project_name, project_address)
+                    if not project_id:
+                        return False
+                else:
+                    project_id = project_row[0]
+                
+                # Save project data as JSON
+                cursor.execute("""
+                    UPDATE customer_projects 
+                    SET project_data = %s, updated_at = %s
+                    WHERE id = %s
+                """, (json.dumps(project_data), datetime.now(), project_id))
+                
+                conn.commit()
+                return True
+                
+        except Exception as e:
+            logger.error(f"Error saving project data: {e}")
+            return False
+    
+    def get_project_data(self, phone_number: str, project_name: str = None) -> Optional[Dict[str, Any]]:
+        """Get structured project data"""
+        try:
+            normalized_phone = self.normalize_phone(phone_number)
+            
+            with self.get_connection() as conn:
+                cursor = conn.cursor(cursor_factory=psycopg2.extras.RealDictCursor)
+                
+                query = """
+                    SELECT cp.project_data
+                    FROM customer_projects cp
+                    JOIN customers c ON cp.customer_id = c.id
+                    WHERE c.phone_number = %s
+                """
+                params = [normalized_phone]
+                
+                if project_name:
+                    query += " AND cp.project_name = %s"
+                    params.append(project_name)
+                
+                query += " ORDER BY cp.updated_at DESC LIMIT 1"
+                
+                cursor.execute(query, params)
+                result = cursor.fetchone()
+                
+                if result and result['project_data']:
+                    return json.loads(result['project_data'])
+                
+                return None
+                
+        except Exception as e:
+            logger.error(f"Error getting project data: {e}")
+            return None
