@@ -152,7 +152,13 @@ Enhanced AOS methodology scoring on key questions to understand the customer dee
 - Maintenance and long-term care
 - Cost analysis and value positioning
 
-Remember: You're both a tile expert AND a sales professional. Use NEPQ methodology to understand their emotional motivations while providing expert technical guidance."""
+🚨 **CRITICAL APPLICATION FILTERING REQUIREMENTS:**
+- **EXTERIOR/OUTDOOR PROJECTS**: Only recommend tiles with "Exterior" in their applications field
+- **INTERIOR PROJECTS**: Recommend tiles with "Floor" or "Wall" applications
+- **NEVER recommend ceramic or standard porcelain for exterior use** - only tiles specifically rated for exterior applications
+- **ALWAYS check product specifications** for application suitability before recommending
+
+Remember: You're both a tile expert AND a sales professional. Use NEPQ methodology to understand their emotional motivations while providing expert technical guidance. NEVER compromise on application safety - outdoor tiles must be explicitly rated for exterior use."""
     
     def _call_llm(self, messages, tools=None, system_prompt=None):
         """Universal LLM calling method - handles both OpenAI and Anthropic"""
@@ -673,11 +679,11 @@ Remember: You're both a tile expert AND a sales professional. Use NEPQ methodolo
                 },
                 {
                     "name": "search_products",
-                    "description": "Search for tiles and products in our inventory. Use this for product SKUs (6-digit numbers like 680129), product names, or any product-related queries",
+                    "description": "Search for tiles and products in our inventory with automatic application filtering. Use this for product SKUs (6-digit numbers like 680129), product names, or any product-related queries. For exterior/outdoor projects, only tiles rated for exterior use will be returned.",
                     "input_schema": {
                         "type": "object",
                         "properties": {
-                            "query": {"type": "string", "description": "Search query for products, product SKUs, or product names"}
+                            "query": {"type": "string", "description": "Search query for products, product SKUs, or product names. Include 'exterior', 'outdoor', 'patio' etc. for outdoor projects to enable proper filtering."}
                         },
                         "required": ["query"]
                     }
@@ -1238,16 +1244,76 @@ Remember: You're both a tile expert AND a sales professional. Use NEPQ methodolo
             return {"success": False, "error": str(e)}
     
     def search_products(self, query: str) -> Dict[str, Any]:
-        """Tool: Search for products using RAG system"""
+        """Tool: Search for products using RAG system with application filtering"""
         try:
             if not self.rag:
                 return {"success": False, "error": "RAG system not available"}
             
-            results = self.rag.search(query, limit=5)
+            # Use the correct method name from RAGManager
+            results = self.rag.search_products(query, limit=10)  # Get more results for filtering
+            
+            # Extract products from the results (RAG returns in 'results' key, not 'products')
+            all_products = results.get('results', [])
+            
+            # Check if query indicates exterior/outdoor use
+            query_lower = query.lower()
+            is_exterior_query = any(term in query_lower for term in [
+                'exterior', 'outdoor', 'patio', 'outside', 'deck', 'pool', 'garden', 'balcony'
+            ])
+            
+            # Filter products based on application
+            filtered_products = []
+            for product in all_products:
+                # Get product info from relational database to check applications
+                try:
+                    conn = self.db.get_connection('relational_db')
+                    cursor = conn.cursor()
+                    cursor.execute("""
+                        SELECT raw_markdown FROM product_data 
+                        WHERE sku = %s AND raw_markdown IS NOT NULL
+                    """, (product.get('sku'),))
+                    result = cursor.fetchone()
+                    cursor.close()
+                    conn.close()
+                    
+                    if result and result[0]:
+                        import json
+                        try:
+                            # Parse the JSON in raw_markdown
+                            raw_data = json.loads(result[0])
+                            applications = raw_data.get('applications', '').lower()
+                            
+                            # Filter based on query type
+                            if is_exterior_query:
+                                # For exterior queries, only include tiles with "exterior" in applications
+                                if 'exterior' in applications:
+                                    filtered_products.append(product)
+                            else:
+                                # For interior queries, include tiles with floor/wall applications
+                                if any(app in applications for app in ['floor', 'wall']):
+                                    filtered_products.append(product)
+                        except:
+                            # If JSON parsing fails, include the product (fallback)
+                            if not is_exterior_query:
+                                filtered_products.append(product)
+                    else:
+                        # If no application data available, include for interior only
+                        if not is_exterior_query:
+                            filtered_products.append(product)
+                except Exception as e:
+                    logger.error(f"Error checking applications for SKU {product.get('sku')}: {e}")
+                    # On error, include for interior only
+                    if not is_exterior_query:
+                        filtered_products.append(product)
+            
+            # Limit to 5 results
+            final_products = filtered_products[:5]
+            
             return {
                 "success": True,
-                "products": results,
-                "response": f"Found {len(results)} tile options that match your needs."
+                "products": final_products,
+                "response": f"Found {len(final_products)} tile options that match your needs" + 
+                           (" and are suitable for exterior use" if is_exterior_query else "") + "."
             }
         except Exception as e:
             logger.error(f"Error searching products: {e}")
