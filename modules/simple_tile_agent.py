@@ -158,7 +158,38 @@ Enhanced AOS methodology scoring on key questions to understand the customer dee
 - **NEVER recommend ceramic or standard porcelain for exterior use** - only tiles specifically rated for exterior applications
 - **ALWAYS check product specifications** for application suitability before recommending
 
-Remember: You're both a tile expert AND a sales professional. Use NEPQ methodology to understand their emotional motivations while providing expert technical guidance. NEVER compromise on application safety - outdoor tiles must be explicitly rated for exterior use."""
+📅 **APPOINTMENT SYSTEM (Phase 4) - FRUSTRATION DETECTION & SCHEDULING:**
+When customers show signs of frustration or complexity, offer scheduling assistance:
+
+**FRUSTRATION INDICATORS:**
+- Complex project requirements or multiple rooms
+- Confusion about technical specifications
+- Long conversation without clear resolution
+- Repeated questions or misunderstandings
+- Expressions of being overwhelmed or stuck
+
+**APPOINTMENT TYPES AVAILABLE:**
+- **In-Store Consultation**: See and touch samples in showroom (45-60 min, Free)
+- **Design Consultation**: Work with design expert (60-90 min, Free)
+- **Installation Consultation**: Technical installation review (30-45 min, Free)
+- **Project Planning**: Comprehensive large project planning (90-120 min, Free)
+- **Product Selection**: Help choosing right tiles (30-45 min, Free)
+- **Technical Support**: Installation issues or questions (30 min, Free)
+
+**WHEN TO OFFER APPOINTMENTS:**
+- Use `detect_customer_frustration` to assess frustration levels
+- Offer appointments when frustration score ≥ 5 (medium/high)
+- Proactively suggest appointments for complex projects
+- Always present as helpful, not as failure to solve online
+
+**APPOINTMENT SCHEDULING FLOW:**
+1. Detect frustration or complexity
+2. Offer appointment with benefits ("walk through everything together")
+3. Show available appointment types with `get_available_appointments`
+4. Schedule with `schedule_appointment` when customer agrees
+5. Provide confirmation and next steps
+
+Remember: You're both a tile expert AND a sales professional. Use NEPQ methodology to understand their emotional motivations while providing expert technical guidance. NEVER compromise on application safety - outdoor tiles must be explicitly rated for exterior use. When customers get overwhelmed, offer in-person help as a positive next step."""
     
     def _call_llm(self, messages, tools=None, system_prompt=None):
         """Universal LLM calling method - handles both OpenAI and Anthropic"""
@@ -760,6 +791,43 @@ Remember: You're both a tile expert AND a sales professional. Use NEPQ methodolo
                         },
                         "required": ["project_summary"]
                     }
+                },
+                {
+                    "name": "detect_customer_frustration",
+                    "description": "Detect customer frustration level based on conversation patterns and offer appointment if needed",
+                    "input_schema": {
+                        "type": "object",
+                        "properties": {
+                            "conversation_history": {"type": "array", "description": "Full conversation history to analyze for frustration patterns"}
+                        },
+                        "required": ["conversation_history"]
+                    }
+                },
+                {
+                    "name": "get_available_appointments",
+                    "description": "Get available appointment types and time slots for scheduling",
+                    "input_schema": {
+                        "type": "object",
+                        "properties": {
+                            "customer_phone": {"type": "string", "description": "Customer's phone number (optional)"}
+                        }
+                    }
+                },
+                {
+                    "name": "schedule_appointment",
+                    "description": "Schedule an appointment with the customer for in-person consultation or support",
+                    "input_schema": {
+                        "type": "object",
+                        "properties": {
+                            "customer_phone": {"type": "string", "description": "Customer's phone number"},
+                            "customer_name": {"type": "string", "description": "Customer's name"},
+                            "appointment_type": {"type": "string", "description": "Type of appointment: in_store_consultation, design_consultation, installation_consultation, project_planning, product_selection, or technical_support"},
+                            "preferred_date": {"type": "string", "description": "Preferred appointment date (optional)"},
+                            "preferred_time": {"type": "string", "description": "Preferred appointment time (optional)"},
+                            "notes": {"type": "string", "description": "Additional notes or special requests (optional)"}
+                        },
+                        "required": ["customer_phone", "customer_name", "appointment_type"]
+                    }
                 }
             ]
             
@@ -1021,6 +1089,50 @@ Remember: You're both a tile expert AND a sales professional. Use NEPQ methodolo
 
 {result['urgency_close']}"""
                             assistant_response += close_response
+                    
+                    elif tool_name == "detect_customer_frustration":
+                        result = self.detect_customer_frustration(tool_input["conversation_history"])
+                        tool_results.append({"tool": tool_name, "result": result})
+                        
+                        if result.get("success") and result.get("should_offer_appointment"):
+                            frustration_response = f"""
+
+I can sense this might be getting a bit complex. Would you like to schedule a free consultation where we can walk through everything together in person? Our tile experts can show you samples, help with measurements, and make sure you get exactly what you need.
+
+**Frustration Level:** {result['frustration_level']} (indicators: {', '.join(result['indicators'])})
+"""
+                            assistant_response += frustration_response
+                    
+                    elif tool_name == "get_available_appointments":
+                        result = self.get_available_appointments(tool_input.get("customer_phone"))
+                        tool_results.append({"tool": tool_name, "result": result})
+                        
+                        if result.get("success"):
+                            appointments_text = "\n\n**Available Appointment Types:**\n"
+                            for apt_type, details in result["appointment_types"].items():
+                                appointments_text += f"• **{details['name']}** - {details['description']} ({details['duration']}, {details['cost']})\n"
+                            
+                            appointments_text += "\n**Available Time Slots:**\n"
+                            for slot in result["available_slots"]:
+                                appointments_text += f"• {slot}\n"
+                            
+                            assistant_response += appointments_text
+                    
+                    elif tool_name == "schedule_appointment":
+                        result = self.schedule_appointment(
+                            tool_input["customer_phone"],
+                            tool_input["customer_name"],
+                            tool_input["appointment_type"],
+                            tool_input.get("preferred_date"),
+                            tool_input.get("preferred_time"),
+                            tool_input.get("notes")
+                        )
+                        tool_results.append({"tool": tool_name, "result": result})
+                        
+                        if result.get("success"):
+                            assistant_response += f"\n\n{result['confirmation_message']}"
+                        else:
+                            assistant_response += f"\n\nI'm sorry, there was an issue scheduling your appointment: {result.get('error', 'Unknown error')}"
             
             # Generate NEPQ conversation analysis and scoring
             nepq_analysis = self._generate_nepq_analysis(messages, phone_number)
@@ -1383,3 +1495,236 @@ Remember: You're both a tile expert AND a sales professional. Use NEPQ methodolo
         """Check if style preferences have been collected"""
         style_indicators = ['color', 'style', 'look', 'design', 'modern', 'traditional', 'rustic', 'contemporary']
         return any(indicator in conversation_text.lower() for indicator in style_indicators)
+    
+    # Phase 4: Appointment System Implementation
+    def detect_customer_frustration(self, conversation_history: List[Dict]) -> Dict[str, Any]:
+        """Tool: Detect customer frustration based on conversation patterns"""
+        try:
+            frustration_score = 0
+            frustration_indicators = []
+            
+            # Analyze recent messages for frustration patterns
+            recent_messages = conversation_history[-5:] if len(conversation_history) >= 5 else conversation_history
+            
+            for message in recent_messages:
+                if message.get('role') == 'user':
+                    content = message.get('content', '').lower()
+                    
+                    # Frustration keywords (weighted)
+                    frustration_keywords = {
+                        'confused': 3,
+                        'frustrated': 5,
+                        'annoyed': 4,
+                        'help': 2,
+                        'stuck': 3,
+                        'complicated': 3,
+                        'difficult': 2,
+                        'hard': 2,
+                        'too many': 3,
+                        'overwhelmed': 4,
+                        'dont understand': 4,
+                        'not working': 3,
+                        'wrong': 2,
+                        'mistake': 2,
+                        'problem': 2,
+                        'issue': 2,
+                        'cant': 3,
+                        'impossible': 4,
+                        'give up': 5,
+                        'this is': 1  # Context-dependent
+                    }
+                    
+                    for keyword, weight in frustration_keywords.items():
+                        if keyword in content:
+                            frustration_score += weight
+                            frustration_indicators.append(keyword)
+            
+            # Check conversation length (long conversations without resolution)
+            if len(conversation_history) > 8:
+                frustration_score += 2
+                frustration_indicators.append('long_conversation')
+            
+            # Check for repeated questions (customer asking same thing)
+            user_messages = [msg.get('content', '').lower() for msg in conversation_history if msg.get('role') == 'user']
+            if len(user_messages) > 1:
+                for i, msg in enumerate(user_messages[:-1]):
+                    if any(msg[:20] in other_msg for other_msg in user_messages[i+1:]):
+                        frustration_score += 3
+                        frustration_indicators.append('repeated_question')
+                        break
+            
+            # Determine frustration level
+            if frustration_score >= 10:
+                level = 'high'
+            elif frustration_score >= 5:
+                level = 'medium'
+            elif frustration_score >= 2:
+                level = 'low'
+            else:
+                level = 'none'
+            
+            return {
+                "success": True,
+                "frustration_level": level,
+                "frustration_score": frustration_score,
+                "indicators": frustration_indicators,
+                "should_offer_appointment": frustration_score >= 5,
+                "message": f"Customer frustration level: {level} (score: {frustration_score})"
+            }
+            
+        except Exception as e:
+            logger.error(f"Error detecting customer frustration: {e}")
+            return {"success": False, "error": str(e)}
+    
+    def schedule_appointment(self, customer_phone: str, customer_name: str, appointment_type: str, 
+                           preferred_date: str = None, preferred_time: str = None, 
+                           notes: str = None) -> Dict[str, Any]:
+        """Tool: Schedule an appointment with customer"""
+        try:
+            # Generate appointment ID
+            appointment_id = f"APT-{datetime.now().strftime('%Y%m%d%H%M%S')}"
+            
+            # Validate appointment type
+            valid_types = [
+                'in_store_consultation',
+                'design_consultation', 
+                'installation_consultation',
+                'project_planning',
+                'product_selection',
+                'technical_support'
+            ]
+            
+            if appointment_type not in valid_types:
+                return {
+                    "success": False,
+                    "error": f"Invalid appointment type. Must be one of: {', '.join(valid_types)}"
+                }
+            
+            # Create appointment record
+            appointment = {
+                "appointment_id": appointment_id,
+                "customer_phone": customer_phone,
+                "customer_name": customer_name,
+                "appointment_type": appointment_type,
+                "preferred_date": preferred_date,
+                "preferred_time": preferred_time,
+                "notes": notes,
+                "status": "scheduled",
+                "created_at": datetime.now().isoformat(),
+                "urgency": "high" if appointment_type == 'technical_support' else "medium"
+            }
+            
+            # In production, save to database
+            logger.info(f"Appointment scheduled: {appointment}")
+            
+            # Generate confirmation message
+            type_descriptions = {
+                'in_store_consultation': 'In-Store Consultation',
+                'design_consultation': 'Design Consultation',
+                'installation_consultation': 'Installation Consultation',
+                'project_planning': 'Project Planning Session',
+                'product_selection': 'Product Selection Assistance',
+                'technical_support': 'Technical Support'
+            }
+            
+            confirmation_message = f"""
+✅ Appointment Scheduled Successfully!
+
+**Appointment Details:**
+- ID: {appointment_id}
+- Type: {type_descriptions.get(appointment_type, appointment_type)}
+- Customer: {customer_name}
+- Phone: {customer_phone}
+"""
+            
+            if preferred_date:
+                confirmation_message += f"- Preferred Date: {preferred_date}\n"
+            if preferred_time:
+                confirmation_message += f"- Preferred Time: {preferred_time}\n"
+            if notes:
+                confirmation_message += f"- Notes: {notes}\n"
+            
+            confirmation_message += """
+**Next Steps:**
+1. Our team will contact you within 24 hours to confirm the appointment
+2. We'll send you a calendar invite with all details
+3. Please bring any photos or measurements of your project area
+
+**Questions?** Call us at (555) 123-TILE or reply to this chat.
+"""
+            
+            return {
+                "success": True,
+                "appointment_id": appointment_id,
+                "appointment": appointment,
+                "confirmation_message": confirmation_message,
+                "message": f"Appointment {appointment_id} scheduled successfully for {customer_name}"
+            }
+            
+        except Exception as e:
+            logger.error(f"Error scheduling appointment: {e}")
+            return {"success": False, "error": str(e)}
+    
+    def get_available_appointments(self, customer_phone: str = None) -> Dict[str, Any]:
+        """Tool: Get available appointment slots or customer's existing appointments"""
+        try:
+            # Available appointment types with descriptions
+            appointment_types = {
+                'in_store_consultation': {
+                    'name': 'In-Store Consultation',
+                    'description': 'Visit our showroom to see and touch tile samples',
+                    'duration': '45-60 minutes',
+                    'cost': 'Free'
+                },
+                'design_consultation': {
+                    'name': 'Design Consultation',
+                    'description': 'Work with our design expert to plan your project',
+                    'duration': '60-90 minutes',
+                    'cost': 'Free'
+                },
+                'installation_consultation': {
+                    'name': 'Installation Consultation',
+                    'description': 'Technical review of your installation project',
+                    'duration': '30-45 minutes',
+                    'cost': 'Free'
+                },
+                'project_planning': {
+                    'name': 'Project Planning Session',
+                    'description': 'Comprehensive planning for large projects',
+                    'duration': '90-120 minutes',
+                    'cost': 'Free'
+                },
+                'product_selection': {
+                    'name': 'Product Selection Assistance',
+                    'description': 'Help choosing the right tiles for your needs',
+                    'duration': '30-45 minutes',
+                    'cost': 'Free'
+                },
+                'technical_support': {
+                    'name': 'Technical Support',
+                    'description': 'Help with installation issues or questions',
+                    'duration': '30 minutes',
+                    'cost': 'Free'
+                }
+            }
+            
+            # Sample available time slots (in production, query actual availability)
+            available_slots = [
+                "Tomorrow 10:00 AM",
+                "Tomorrow 2:00 PM", 
+                "Tomorrow 4:00 PM",
+                "Day after tomorrow 9:00 AM",
+                "Day after tomorrow 11:00 AM",
+                "Day after tomorrow 3:00 PM"
+            ]
+            
+            return {
+                "success": True,
+                "appointment_types": appointment_types,
+                "available_slots": available_slots,
+                "message": "Available appointment types and time slots retrieved successfully"
+            }
+            
+        except Exception as e:
+            logger.error(f"Error getting available appointments: {e}")
+            return {"success": False, "error": str(e)}

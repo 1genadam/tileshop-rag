@@ -58,6 +58,22 @@ async function sendMessage() {
                     displaySearchResults(searchResult.result.products);
                 }
                 
+                // Handle appointment tool calls
+                const frustrationResult = data.tool_calls.find(tc => tc.tool === 'detect_customer_frustration');
+                if (frustrationResult && frustrationResult.result && frustrationResult.result.should_offer_appointment) {
+                    showAppointmentSuggestion(frustrationResult.result);
+                }
+                
+                const appointmentResult = data.tool_calls.find(tc => tc.tool === 'get_available_appointments');
+                if (appointmentResult && appointmentResult.result && appointmentResult.result.success) {
+                    showAppointmentOptions(appointmentResult.result);
+                }
+                
+                const scheduleResult = data.tool_calls.find(tc => tc.tool === 'schedule_appointment');
+                if (scheduleResult && scheduleResult.result && scheduleResult.result.success) {
+                    showAppointmentConfirmation(scheduleResult.result);
+                }
+                
                 // Show AOS phase if available from tools
                 const aosResult = data.tool_calls.find(tc => tc.tool === 'get_aos_questions');
                 if (aosResult && aosResult.result && aosResult.result.current_phase) {
@@ -1088,6 +1104,222 @@ function formatPhoneNumber() {
     }
     
     input.value = value;
+}
+
+// Phase 4: Appointment System Functions
+function showAppointmentSuggestion(frustrationResult) {
+    console.log('Showing appointment suggestion:', frustrationResult);
+    
+    const container = document.getElementById('chat-messages');
+    if (!container) return;
+    
+    const appointmentCard = document.createElement('div');
+    appointmentCard.className = 'appointment-suggestion';
+    appointmentCard.innerHTML = `
+        <div class="appointment-card">
+            <div class="appointment-header">
+                <i class="fas fa-calendar-plus"></i>
+                <h3>Need Extra Help?</h3>
+            </div>
+            <p>I can sense this might be getting complex. Let me schedule a free consultation where we can walk through everything together!</p>
+            <div class="appointment-actions">
+                <button class="btn btn-primary" onclick="requestAppointmentOptions()">
+                    <i class="fas fa-calendar"></i> See Available Times
+                </button>
+                <button class="btn btn-secondary" onclick="dismissAppointmentSuggestion(this)">
+                    <i class="fas fa-times"></i> Continue Here
+                </button>
+            </div>
+            <div class="frustration-debug" style="font-size: 0.8em; color: #666; margin-top: 10px;">
+                Frustration Level: ${frustrationResult.frustration_level} (Score: ${frustrationResult.frustration_score})
+            </div>
+        </div>
+    `;
+    
+    container.appendChild(appointmentCard);
+    container.scrollTop = container.scrollHeight;
+}
+
+function showAppointmentOptions(appointmentData) {
+    console.log('Showing appointment options:', appointmentData);
+    
+    const container = document.getElementById('chat-messages');
+    if (!container) return;
+    
+    const optionsCard = document.createElement('div');
+    optionsCard.className = 'appointment-options';
+    
+    let appointmentTypesHTML = '';
+    for (const [type, details] of Object.entries(appointmentData.appointment_types)) {
+        appointmentTypesHTML += `
+            <div class="appointment-type" onclick="selectAppointmentType('${type}')">
+                <h4>${details.name}</h4>
+                <p>${details.description}</p>
+                <span class="appointment-duration">${details.duration} • ${details.cost}</span>
+            </div>
+        `;
+    }
+    
+    let timeSlotsHTML = '';
+    appointmentData.available_slots.forEach(slot => {
+        timeSlotsHTML += `
+            <button class="time-slot" onclick="selectTimeSlot('${slot}')">${slot}</button>
+        `;
+    });
+    
+    optionsCard.innerHTML = `
+        <div class="appointment-card">
+            <div class="appointment-header">
+                <i class="fas fa-calendar-check"></i>
+                <h3>Available Appointments</h3>
+            </div>
+            
+            <div class="appointment-types">
+                <h4>Choose Appointment Type:</h4>
+                ${appointmentTypesHTML}
+            </div>
+            
+            <div class="time-slots">
+                <h4>Available Times:</h4>
+                <div class="time-slots-grid">
+                    ${timeSlotsHTML}
+                </div>
+            </div>
+            
+            <div class="appointment-form" id="appointment-form" style="display: none;">
+                <h4>Schedule Your Appointment</h4>
+                <form onsubmit="scheduleAppointment(event)">
+                    <input type="hidden" id="selected-appointment-type" />
+                    <input type="hidden" id="selected-time-slot" />
+                    
+                    <div class="form-group">
+                        <label>Name:</label>
+                        <input type="text" id="appointment-name" required />
+                    </div>
+                    
+                    <div class="form-group">
+                        <label>Phone:</label>
+                        <input type="tel" id="appointment-phone" required />
+                    </div>
+                    
+                    <div class="form-group">
+                        <label>Notes (Optional):</label>
+                        <textarea id="appointment-notes"></textarea>
+                    </div>
+                    
+                    <div class="form-actions">
+                        <button type="submit" class="btn btn-primary">
+                            <i class="fas fa-check"></i> Schedule Appointment
+                        </button>
+                        <button type="button" class="btn btn-secondary" onclick="cancelAppointment()">
+                            <i class="fas fa-times"></i> Cancel
+                        </button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    `;
+    
+    container.appendChild(optionsCard);
+    container.scrollTop = container.scrollHeight;
+}
+
+function showAppointmentConfirmation(appointmentData) {
+    console.log('Showing appointment confirmation:', appointmentData);
+    
+    const container = document.getElementById('chat-messages');
+    if (!container) return;
+    
+    const confirmationCard = document.createElement('div');
+    confirmationCard.className = 'appointment-confirmation';
+    confirmationCard.innerHTML = `
+        <div class="appointment-card success">
+            <div class="appointment-header">
+                <i class="fas fa-check-circle"></i>
+                <h3>Appointment Confirmed!</h3>
+            </div>
+            <div class="confirmation-details">
+                <p><strong>Appointment ID:</strong> ${appointmentData.appointment_id}</p>
+                <p><strong>Customer:</strong> ${appointmentData.appointment.customer_name}</p>
+                <p><strong>Phone:</strong> ${appointmentData.appointment.customer_phone}</p>
+                <p><strong>Type:</strong> ${appointmentData.appointment.appointment_type}</p>
+                ${appointmentData.appointment.preferred_date ? `<p><strong>Preferred Date:</strong> ${appointmentData.appointment.preferred_date}</p>` : ''}
+                ${appointmentData.appointment.preferred_time ? `<p><strong>Preferred Time:</strong> ${appointmentData.appointment.preferred_time}</p>` : ''}
+            </div>
+            <div class="next-steps">
+                <h4>Next Steps:</h4>
+                <ul>
+                    <li>Our team will contact you within 24 hours</li>
+                    <li>You'll receive a calendar invite</li>
+                    <li>Please bring photos and measurements</li>
+                </ul>
+            </div>
+        </div>
+    `;
+    
+    container.appendChild(confirmationCard);
+    container.scrollTop = container.scrollHeight;
+}
+
+function requestAppointmentOptions() {
+    const message = "I'd like to see available appointment times";
+    document.getElementById('chat-input').value = message;
+    sendMessage();
+}
+
+function selectAppointmentType(type) {
+    document.getElementById('selected-appointment-type').value = type;
+    
+    // Highlight selected type
+    document.querySelectorAll('.appointment-type').forEach(el => el.classList.remove('selected'));
+    event.target.closest('.appointment-type').classList.add('selected');
+    
+    // Show form if both type and time are selected
+    checkAppointmentFormReady();
+}
+
+function selectTimeSlot(slot) {
+    document.getElementById('selected-time-slot').value = slot;
+    
+    // Highlight selected time
+    document.querySelectorAll('.time-slot').forEach(el => el.classList.remove('selected'));
+    event.target.classList.add('selected');
+    
+    // Show form if both type and time are selected
+    checkAppointmentFormReady();
+}
+
+function checkAppointmentFormReady() {
+    const type = document.getElementById('selected-appointment-type').value;
+    const time = document.getElementById('selected-time-slot').value;
+    
+    if (type && time) {
+        document.getElementById('appointment-form').style.display = 'block';
+        document.getElementById('appointment-form').scrollIntoView({ behavior: 'smooth' });
+    }
+}
+
+function scheduleAppointment(event) {
+    event.preventDefault();
+    
+    const type = document.getElementById('selected-appointment-type').value;
+    const time = document.getElementById('selected-time-slot').value;
+    const name = document.getElementById('appointment-name').value;
+    const phone = document.getElementById('appointment-phone').value;
+    const notes = document.getElementById('appointment-notes').value;
+    
+    const message = `Please schedule a ${type} appointment for ${name} at ${time}. Phone: ${phone}. Notes: ${notes}`;
+    
+    document.getElementById('chat-input').value = message;
+    sendMessage();
+}
+
+function cancelAppointment() {
+    document.querySelector('.appointment-options').remove();
+}
+
+function dismissAppointmentSuggestion(button) {
+    button.closest('.appointment-suggestion').remove();
 }
 
 console.log('✅ External JavaScript file loaded completely');
