@@ -1264,47 +1264,24 @@ Remember: You're both a tile expert AND a sales professional. Use NEPQ methodolo
             # Filter products based on application
             filtered_products = []
             for product in all_products:
-                # Get product info from relational database to check applications
-                try:
-                    conn = self.db.get_connection('relational_db')
-                    cursor = conn.cursor()
-                    cursor.execute("""
-                        SELECT raw_markdown FROM product_data 
-                        WHERE sku = %s AND raw_markdown IS NOT NULL
-                    """, (product.get('sku'),))
-                    result = cursor.fetchone()
-                    cursor.close()
-                    conn.close()
-                    
-                    if result and result[0]:
-                        import json
-                        try:
-                            # Parse the JSON in raw_markdown
-                            raw_data = json.loads(result[0])
-                            applications = raw_data.get('applications', '').lower()
-                            
-                            # Filter based on query type
-                            if is_exterior_query:
-                                # For exterior queries, only include tiles with "exterior" in applications
-                                if 'exterior' in applications:
-                                    filtered_products.append(product)
-                            else:
-                                # For interior queries, include tiles with floor/wall applications
-                                if any(app in applications for app in ['floor', 'wall']):
-                                    filtered_products.append(product)
-                        except:
-                            # If JSON parsing fails, include the product (fallback)
-                            if not is_exterior_query:
-                                filtered_products.append(product)
-                    else:
-                        # If no application data available, include for interior only
-                        if not is_exterior_query:
-                            filtered_products.append(product)
-                except Exception as e:
-                    logger.error(f"Error checking applications for SKU {product.get('sku')}: {e}")
-                    # On error, include for interior only
-                    if not is_exterior_query:
+                # Check if product description contains exterior/outdoor indicators
+                product_content = product.get('content', '').lower()
+                product_title = product.get('title', '').lower()
+                
+                # Check for outdoor/exterior indicators in product content
+                has_exterior_indicators = any(term in product_content or term in product_title for term in [
+                    'outdoor', 'exterior', 'patio', 'pool', 'deck', 'frost resistant', 'freeze resistant'
+                ])
+                
+                # Filter based on query type
+                if is_exterior_query:
+                    # For exterior queries, only include tiles with outdoor/exterior indicators
+                    if has_exterior_indicators:
                         filtered_products.append(product)
+                else:
+                    # For interior queries, include all tiles (they can be used indoors regardless)
+                    # But prefer tiles without explicit outdoor-only restrictions
+                    filtered_products.append(product)
             
             # Limit to 5 results
             final_products = filtered_products[:5]
