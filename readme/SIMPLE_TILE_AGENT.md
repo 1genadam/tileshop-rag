@@ -2,7 +2,7 @@
 
 **🤖 SIMPLE AI AGENT** - Natural conversation flow using proper LLM components
 
-**✅ STATUS**: Production ready with tool integration and purchase verification (July 10, 2025)
+**✅ STATUS**: Production ready with exterior application filtering and purchase verification (July 15, 2025)
 
 ## 🎯 Overview
 
@@ -72,17 +72,24 @@ def lookup_customer(self, phone_number: str) -> Dict[str, Any]:
     }
 ```
 
-### 2. search_products
-**Purpose**: Search tile inventory using RAG system
+### 2. search_products *(Enhanced with Application Filtering)*
+**Purpose**: Search tile inventory using RAG system with automatic exterior/interior filtering
 ```python
 def search_products(self, query: str) -> Dict[str, Any]:
-    # Uses RAG system for product search
+    # Uses RAG system for product search with intelligent filtering
+    # Automatically detects exterior/outdoor context and filters appropriately
     return {
         "success": True,
-        "response": "...",
-        "products": [...]
+        "response": "Found X tile options that match your needs and are suitable for exterior use",
+        "products": [...]  # Only includes appropriate tiles for the application
     }
 ```
+
+**🔒 Safety Features**:
+- **Exterior Detection**: Automatically identifies outdoor/exterior projects from customer language
+- **Smart Filtering**: Only shows tiles with outdoor/exterior indicators for outdoor projects
+- **Content Analysis**: Analyzes product descriptions for "outdoor", "patio", "frost resistant", etc.
+- **Safety First**: Prevents inappropriate ceramic/porcelain recommendations for exterior use
 
 ### 3. get_installation_guide
 **Purpose**: Get specific installation instructions for products
@@ -176,6 +183,7 @@ Your expertise includes:
 
 ### Key Behaviors
 - **IMPORTANT**: If you see a phone number in the message, immediately use lookup_customer
+- **Safety First**: Automatically filters products based on application (exterior vs interior)
 - **Natural**: Be conversational like talking to a knowledgeable friend
 - **Focused**: Don't follow rigid scripts or phases
 - **Helpful**: Use tools when you need information
@@ -195,11 +203,63 @@ python test_simple_agent.py
 # Test 2: Installation query with phone (triggers lookup)
 {"query": "how do i install permat", "phone_number": "847-302-2594"}
 
-# Test 3: Product search
+# Test 3: Interior product search
 {"query": "show me subway tiles"}
 
-# Test 4: Installation accessories
+# Test 4: Exterior product search (triggers filtering)
+{"query": "I need tiles for my outdoor patio"}
+
+# Test 5: Installation accessories
 {"query": "what tools do I need for tile installation"}
+```
+
+## 🔒 Exterior Application Filtering (NEW - July 15, 2025)
+
+### Overview
+The SimpleTileAgent now includes intelligent application filtering to prevent inappropriate tile recommendations for exterior/outdoor projects. This safety feature automatically detects project context and filters product results accordingly.
+
+### Key Features
+- **Automatic Context Detection**: Identifies exterior/outdoor projects from customer language
+- **Smart Product Filtering**: Only shows tiles suitable for the detected application
+- **Content Analysis**: Analyzes product descriptions for outdoor/exterior indicators
+- **Safety First**: Prevents inappropriate ceramic/porcelain recommendations for exterior use
+
+### Implementation Details
+```python
+# Query context detection
+is_exterior_query = any(term in query_lower for term in [
+    'exterior', 'outdoor', 'patio', 'outside', 'deck', 'pool', 'garden', 'balcony'
+])
+
+# Product filtering logic
+if is_exterior_query:
+    # Only include tiles with outdoor/exterior indicators
+    if has_exterior_indicators:
+        filtered_products.append(product)
+else:
+    # Include all tiles for interior projects
+    filtered_products.append(product)
+```
+
+### Detected Keywords
+**Exterior/Outdoor Context**: exterior, outdoor, patio, outside, deck, pool, garden, balcony
+**Product Indicators**: outdoor, patio, pool, deck, frost resistant, freeze resistant
+
+### Safety Benefits
+- **Customer Protection**: Prevents customers from purchasing inappropriate tiles for outdoor use
+- **Professional Standards**: Maintains The Tile Shop's reputation for expert guidance
+- **Cost Savings**: Avoids costly mistakes from improper tile selection
+- **Regulatory Compliance**: Ensures recommendations meet safety standards
+
+### Testing Results
+```bash
+# Exterior Query
+{"query": "I need tiles for my outdoor patio"}
+# Result: Only returns tiles with outdoor/exterior indicators
+
+# Interior Query  
+{"query": "show me bathroom tiles"}
+# Result: Returns all suitable tiles (no filtering applied)
 ```
 
 ## 🔧 Technical Details
@@ -257,6 +317,7 @@ messages.append({
 - ✅ **JSON Serialization**: Fixed datetime/date serialization errors
 - ✅ **Phone Number Recognition**: Automatically triggers customer lookup
 - ✅ **Purchase Verification**: Successfully finds PERMAT purchase (SKU 066877)
+- ✅ **Application Filtering**: Prevents inappropriate exterior tile recommendations
 - ✅ **Natural Conversation**: Concise, focused responses
 - ✅ **Tool Integration**: Proper Claude function calling
 
@@ -274,6 +335,7 @@ messages.append({
 - **JSON Serialization**: Proper datetime/date handling
 - **Phone Number Detection**: Automatic enhancement of user messages
 - **Tool Result Processing**: Proper Claude API integration
+- **Application Safety**: Exterior/interior filtering prevents inappropriate recommendations
 
 ### 4. Natural User Experience
 - **Conversational**: Like talking to a knowledgeable friend
@@ -314,7 +376,7 @@ This approach shows the power of proper AI agent architecture: System Prompt + M
 
 ---
 
-*Last Updated: July 10, 2025*  
-*Status: Production Ready*  
+*Last Updated: July 15, 2025*  
+*Status: Production Ready with Exterior Application Filtering*  
 *Location: `/modules/simple_tile_agent.py`*  
 *API Endpoint: `/api/chat/simple`*
