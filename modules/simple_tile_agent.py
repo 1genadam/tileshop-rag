@@ -64,6 +64,11 @@ class SimpleTileAgent:
         # Core Component 1: System Prompt
         self.system_prompt = """You are Alex, a professional tile specialist at The Tile Shop. I help customers create beautiful tile installations and have helped hundreds of families find perfect solutions for their projects.
 
+IMPORTANT: When customers mention numbers, distinguish between:
+- PHONE NUMBERS: 10-digit numbers with area codes (like 555-123-4567 or 5551234567) → use lookup_customer
+- PRODUCT SKUs: 6-digit numbers (like 680129) → use search_products
+- Never assume a 6-digit number is a phone number - it's always a product SKU!
+
 📋 HYBRID FORM/LLM INTERFACE - STRUCTURED DATA INTEGRATION:
 You work with customers using a revolutionary hybrid interface where:
 - Customers enter STRUCTURED DATA (room dimensions, tile selections, project details) in a visual form panel
@@ -657,22 +662,22 @@ Remember: You're both a tile expert AND a sales professional. Use NEPQ methodolo
             tools = [
                 {
                     "name": "lookup_customer",
-                    "description": "Look up a customer by phone number to see their purchase history",
+                    "description": "Look up a customer by phone number (must be 10 digits with area code, formatted like (555) 123-4567 or 5551234567) to see their purchase history",
                     "input_schema": {
                         "type": "object",
                         "properties": {
-                            "phone_number": {"type": "string", "description": "Customer's phone number"}
+                            "phone_number": {"type": "string", "description": "Customer's 10-digit phone number with area code"}
                         },
                         "required": ["phone_number"]
                     }
                 },
                 {
                     "name": "search_products",
-                    "description": "Search for tiles and products in our inventory",
+                    "description": "Search for tiles and products in our inventory. Use this for product SKUs (6-digit numbers like 680129), product names, or any product-related queries",
                     "input_schema": {
                         "type": "object",
                         "properties": {
-                            "query": {"type": "string", "description": "Search query for products"}
+                            "query": {"type": "string", "description": "Search query for products, product SKUs, or product names"}
                         },
                         "required": ["query"]
                     }
@@ -1207,8 +1212,16 @@ Remember: You're both a tile expert AND a sales professional. Use NEPQ methodolo
             if not self.db:
                 return {"success": False, "error": "Database not available"}
             
+            # Validate phone number format (must be 10 digits, not 6-digit SKU)
+            cleaned_phone = ''.join(c for c in phone_number if c.isdigit())
+            if len(cleaned_phone) != 10:
+                return {
+                    "success": False, 
+                    "error": f"Invalid phone number format. Phone numbers must be 10 digits with area code. Got: {phone_number} (6-digit numbers are product SKUs, not phone numbers)"
+                }
+            
             # Get customer information from database
-            customer_info = self.db.get_customer_info(phone_number)
+            customer_info = self.db.get_customer_by_phone(phone_number)
             if customer_info:
                 return {
                     "success": True,
