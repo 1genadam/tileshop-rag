@@ -640,19 +640,16 @@
                 </div>
             </div>
 
-            <!-- Customer Info -->
-            <div class="p-4 bg-gray-50 border-b border-gray-200">
-                <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
-                    <div class="relative">
-                        <i class="fas fa-user absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400"></i>
-                        <input class="w-full border border-gray-300 rounded-lg py-2 pl-10 pr-4 focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none" 
-                               id="customer-name" placeholder="Your name" type="text">
+            <!-- Hybrid Interface Info -->
+            <div class="p-4 bg-gradient-to-r from-green-50 to-blue-50 border-b border-gray-200">
+                <div class="flex items-center justify-between">
+                    <div class="flex items-center">
+                        <i class="fas fa-info-circle text-blue-600 mr-2"></i>
+                        <span class="text-sm font-medium text-gray-700">Use the form panel to enter project details - I'll provide expert guidance based on your structured data</span>
                     </div>
-                    <div class="relative">
-                        <i class="fas fa-phone absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400"></i>
-                        <input class="w-full border border-gray-300 rounded-lg py-2 pl-10 pr-4 focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none" 
-                               id="customer-phone" placeholder="Phone number" type="tel">
-                    </div>
+                    <button onclick="toggleFormPanel()" class="bg-blue-600 text-white px-4 py-2 rounded-lg text-sm hover:bg-blue-700 transition-colors">
+                        <i class="fas fa-clipboard-list mr-2"></i>Open Form Panel
+                    </button>
                 </div>
             </div>
 
@@ -661,8 +658,9 @@
                 <div class="space-y-4">
                     <div class="flex justify-start">
                         <div class="message-bubble assistant">
-                            <p>Hi! I'm Alex from The Tile Shop. I've been helping customers create beautiful tile installations for over 8 years. May I have your name?</p>
-                            <p class="text-xs text-gray-500 mt-2">Using professional AOS methodology for 4/4 performance</p>
+                            <p>Hi! I'm Alex from The Tile Shop. I've been helping customers create beautiful tile installations for over 8 years.</p>
+                            <p class="mt-2">👆 <strong>Please use the form panel above to enter your project details</strong> - I'll provide expert guidance based on your structured data rather than asking endless questions.</p>
+                            <p class="text-xs text-gray-500 mt-2">Using professional AOS methodology with hybrid form/LLM interface for 4/4 performance</p>
                         </div>
                     </div>
                 </div>

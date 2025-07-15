@@ -1,0 +1,99 @@
+{
+  "conversation_id": "unknown_20250715_145446",
+  "timestamp": "2025-07-15T14:54:46.355762",
+  "customer_phone": "unknown",
+  "customer_name": "Unknown",
+  "agent_mode": "customer",
+  "connection_score": {
+    "stage": "connection",
+    "score": 6,
+    "max_score": 10,
+    "evidence": [
+      "Found: moved focus to prospect",
+      "Found: moved focus to prospect"
+    ],
+    "improvement_notes": "Good performance in connection. Focus on consistency."
+  },
+  "problem_awareness_score": {
+    "stage": "problem_awareness",
+    "score": 0,
+    "max_score": 10,
+    "evidence": [],
+    "improvement_notes": "Poor performance in problem_awareness. Requires significant focus and practice."
+  },
+  "consequence_discovery_score": {
+    "stage": "consequence_discovery",
+    "score": 8,
+    "max_score": 10,
+    "evidence": [
+      "Found: identified costs of delay",
+      "Found: identified costs of delay"
+    ],
+    "improvement_notes": "Excellent performance in consequence_discovery. Continue current approach."
+  },
+  "solution_awareness_score": {
+    "stage": "solution_awareness",
+    "score": 10,
+    "max_score": 10,
+    "evidence": [
+      "Found: defined perfect solution",
+      "Found: clarified requirements",
+      "Found: understood preferences",
+      "Found: identified decision factors"
+    ],
+    "improvement_notes": "Excellent performance in solution_awareness. Continue current approach."
+  },
+  "qualifying_questions_score": {
+    "stage": "qualifying_questions",
+    "score": 3,
+    "max_score": 10,
+    "evidence": [
+      "Found: identified decision maker"
+    ],
+    "improvement_notes": "Poor performance in qualifying_questions. Requires significant focus and practice."
+  },
+  "objection_handling_score": {
+    "stage": "objection_handling",
+    "score": 6,
+    "max_score": 10,
+    "evidence": [
+      "Found: got prospect to self-persuade",
+      "Found: got prospect to self-persuade"
+    ],
+    "improvement_notes": "Good performance in objection_handling. Focus on consistency."
+  },
+  "commitment_stage_score": {
+    "stage": "commitment_stage",
+    "score": 6,
+    "max_score": 10,
+    "evidence": [
+      "Found: set specific date/time",
+      "Found: set specific date/time"
+    ],
+    "improvement_notes": "Good performance in commitment_stage. Focus on consistency."
+  },
+  "overall_score": 55.714285714285715,
+  "conversation_length": 5,
+  "questions_asked": 0,
+  "objections_encountered": 0,
+  "objections_resolved": 0,
+  "strengths": [
+    "Strong consequence_discovery execution (80.0%)",
+    "Strong solution_awareness execution (100.0%)"
+  ],
+  "weaknesses": [
+    "Weak problem_awareness execution (0.0%)",
+    "Weak qualifying_questions execution (30.0%)"
+  ],
+  "improvement_suggestions": [
+    "Focus on improving problem_awareness techniques",
+    "Focus on improving qualifying_questions techniques",
+    "Ask more questions to engage prospects",
+    "Use more emotional language (feel vs think)",
+    "Include more consequence questions for urgency"
+  ],
+  "next_conversation_focus": [
+    "problem_awareness",
+    "qualifying_questions"
+  ]
+}

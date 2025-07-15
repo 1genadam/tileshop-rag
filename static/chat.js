@@ -8,8 +8,8 @@ let messageCount = 0;
 async function sendMessage() {
     console.log('Send function called (AOS enhanced)');
     const input = document.getElementById('chat-input');
-    const phoneInput = document.getElementById('customer-phone');
-    const nameInput = document.getElementById('customer-name');
+    const phoneInput = document.getElementById('phone-number');
+    const nameInput = document.getElementById('customer-name-form');
     const message = input.value.trim();
     
     if (!message) {
