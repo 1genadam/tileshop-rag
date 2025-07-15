@@ -580,6 +580,26 @@ document.addEventListener('DOMContentLoaded', function() {
     // Initialize the dynamic form system
     initializeFormSystem();
     
+    // Add event listener directly to form panel buttons as backup
+    const formPanelButtons = document.querySelectorAll('button[onclick*="toggleFormPanel"]');
+    console.log('🔍 Found form panel buttons:', formPanelButtons.length);
+    
+    formPanelButtons.forEach((button, index) => {
+        console.log(`🔘 Setting up button ${index}:`, button);
+        button.addEventListener('click', function(e) {
+            e.preventDefault();
+            console.log('🔘 Button clicked via event listener');
+            window.toggleFormPanel();
+        });
+    });
+    
+    // Test if the function is available
+    if (typeof window.toggleFormPanel === 'function') {
+        console.log('✅ toggleFormPanel function is available globally');
+    } else {
+        console.error('❌ toggleFormPanel function is NOT available globally');
+    }
+    
     console.log('✅ External JavaScript initialization complete!');
 });
 
