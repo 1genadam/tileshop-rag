@@ -598,24 +598,63 @@ let projectData = {
 
 // Toggle form panel (ensure it's globally available)
 window.toggleFormPanel = function toggleFormPanel() {
-    console.log('toggleFormPanel called');
+    console.log('🔧 toggleFormPanel called');
     const panel = document.getElementById('form-panel');
     const toggle = document.getElementById('form-toggle');
     
-    console.log('Panel element:', panel);
-    console.log('Toggle element:', toggle);
+    console.log('🔍 Panel element:', panel);
+    console.log('🔍 Toggle element:', toggle);
+    
+    if (!panel) {
+        console.error('❌ Form panel element not found!');
+        return;
+    }
+    
+    console.log('📋 Panel classes before:', panel.classList.toString());
     
     if (panel.classList.contains('open')) {
         panel.classList.remove('open');
-        toggle.innerHTML = '<i class="fas fa-clipboard-list"></i>';
-        console.log('Form panel closed');
+        if (toggle) toggle.innerHTML = '<i class="fas fa-clipboard-list"></i>';
+        console.log('✅ Form panel closed');
     } else {
         panel.classList.add('open');
-        toggle.innerHTML = '<i class="fas fa-times"></i>';
-        console.log('Form panel opened');
+        if (toggle) toggle.innerHTML = '<i class="fas fa-times"></i>';
+        console.log('✅ Form panel opened');
         // Trigger form opened event for chat integration
         notifyFormOpened();
     }
+    
+    console.log('📋 Panel classes after:', panel.classList.toString());
+};
+
+// Test function to debug form panel
+window.testFormPanel = function() {
+    console.log('🧪 Testing form panel...');
+    const panel = document.getElementById('form-panel');
+    if (!panel) {
+        console.error('❌ Form panel not found!');
+        return;
+    }
+    
+    console.log('📋 Panel current style:', {
+        display: getComputedStyle(panel).display,
+        transform: getComputedStyle(panel).transform,
+        bottom: getComputedStyle(panel).bottom,
+        position: getComputedStyle(panel).position,
+        zIndex: getComputedStyle(panel).zIndex
+    });
+    
+    // Force add the class
+    panel.classList.add('open');
+    console.log('✅ Forced open class added');
+    
+    setTimeout(() => {
+        console.log('📋 Panel style after open:', {
+            display: getComputedStyle(panel).display,
+            transform: getComputedStyle(panel).transform,
+            bottom: getComputedStyle(panel).bottom
+        });
+    }, 100);
 };
 
 // Notify chat system that form was opened
