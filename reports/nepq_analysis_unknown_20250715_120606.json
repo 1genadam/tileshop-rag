@@ -1,0 +1,92 @@
+{
+  "conversation_id": "unknown_20250715_120606",
+  "timestamp": "2025-07-15T12:06:06.919121",
+  "customer_phone": "unknown",
+  "customer_name": "Looking",
+  "agent_mode": "customer",
+  "connection_score": {
+    "stage": "connection",
+    "score": 0,
+    "max_score": 10,
+    "evidence": [],
+    "improvement_notes": "Poor performance in connection. Requires significant focus and practice."
+  },
+  "problem_awareness_score": {
+    "stage": "problem_awareness",
+    "score": 0,
+    "max_score": 10,
+    "evidence": [],
+    "improvement_notes": "Poor performance in problem_awareness. Requires significant focus and practice."
+  },
+  "consequence_discovery_score": {
+    "stage": "consequence_discovery",
+    "score": 0,
+    "max_score": 10,
+    "evidence": [],
+    "improvement_notes": "Poor performance in consequence_discovery. Requires significant focus and practice."
+  },
+  "solution_awareness_score": {
+    "stage": "solution_awareness",
+    "score": 0,
+    "max_score": 10,
+    "evidence": [],
+    "improvement_notes": "Poor performance in solution_awareness. Requires significant focus and practice."
+  },
+  "qualifying_questions_score": {
+    "stage": "qualifying_questions",
+    "score": 0,
+    "max_score": 10,
+    "evidence": [],
+    "improvement_notes": "Poor performance in qualifying_questions. Requires significant focus and practice."
+  },
+  "objection_handling_score": {
+    "stage": "objection_handling",
+    "score": 0,
+    "max_score": 10,
+    "evidence": [],
+    "improvement_notes": "Poor performance in objection_handling. Requires significant focus and practice."
+  },
+  "commitment_stage_score": {
+    "stage": "commitment_stage",
+    "score": 0,
+    "max_score": 10,
+    "evidence": [],
+    "improvement_notes": "Poor performance in commitment_stage. Requires significant focus and practice."
+  },
+  "overall_score": 0.0,
+  "conversation_length": 1,
+  "questions_asked": 0,
+  "objections_encountered": 0,
+  "objections_resolved": 0,
+  "strengths": [],
+  "weaknesses": [
+    "Weak connection execution (0.0%)",
+    "Weak problem_awareness execution (0.0%)",
+    "Weak consequence_discovery execution (0.0%)",
+    "Weak solution_awareness execution (0.0%)",
+    "Weak qualifying_questions execution (0.0%)",
+    "Weak objection_handling execution (0.0%)",
+    "Weak commitment_stage execution (0.0%)"
+  ],
+  "improvement_suggestions": [
+    "Focus on improving connection techniques",
+    "Focus on improving problem_awareness techniques",
+    "Focus on improving consequence_discovery techniques",
+    "Focus on improving solution_awareness techniques",
+    "Focus on improving qualifying_questions techniques",
+    "Focus on improving objection_handling techniques",
+    "Focus on improving commitment_stage techniques",
+    "Ask more questions to engage prospects",
+    "Use more emotional language (feel vs think)",
+    "Include more consequence questions for urgency"
+  ],
+  "next_conversation_focus": [
+    "connection",
+    "problem_awareness",
+    "consequence_discovery",
+    "solution_awareness",
+    "qualifying_questions",
+    "objection_handling",
+    "commitment_stage"
+  ]
+}

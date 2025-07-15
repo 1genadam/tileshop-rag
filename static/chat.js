@@ -33,7 +33,7 @@ async function sendMessage() {
             first_name: nameInput ? nameInput.value.trim() : ''
         };
         
-        const response = await fetch('/api/chat/simple', {
+        const response = await fetch('/api/chat', {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify(requestData)
@@ -48,9 +48,15 @@ async function sendMessage() {
             console.log('Adding assistant message:', data.response);
             addMessage(data.response, 'assistant');
             
-            // Show tool usage information (optional debug info)
+            // Handle tool calls
             if (data.tool_calls && data.tool_calls.length > 0) {
                 console.log('Tools used:', data.tool_calls.map(tc => tc.tool));
+                
+                // Handle search_products tool call
+                const searchResult = data.tool_calls.find(tc => tc.tool === 'search_products');
+                if (searchResult && searchResult.result && searchResult.result.products) {
+                    displaySearchResults(searchResult.result.products);
+                }
                 
                 // Show AOS phase if available from tools
                 const aosResult = data.tool_calls.find(tc => tc.tool === 'get_aos_questions');
@@ -275,6 +281,58 @@ function refreshData() {
     location.reload(); // Refresh without confirmation popup
 }
 
+// Display search results
+function displaySearchResults(products) {
+    console.log('Displaying search results:', products);
+    const container = document.getElementById('chat-messages');
+    if (!container) return;
+    
+    if (!products || products.length === 0) {
+        return;
+    }
+    
+    const resultsDiv = document.createElement('div');
+    resultsDiv.className = 'flex justify-start mb-4';
+    
+    let resultsHTML = `
+        <div class="message-bubble assistant">
+            <div class="search-results">
+                <h4 class="font-semibold text-gray-800 mb-3">🔍 Search Results</h4>
+                <div class="grid gap-3">
+    `;
+    
+    products.forEach(product => {
+        const imageUrl = product.primary_image || '/static/placeholder-tile.jpg';
+        const price = product.price_per_sqft ? `$${product.price_per_sqft}/sq ft` : 'Price available in store';
+        
+        resultsHTML += `
+            <div class="product-card bg-white border rounded-lg p-3 hover:shadow-md transition-shadow">
+                <div class="flex gap-3">
+                    <img src="${imageUrl}" alt="${product.title}" class="w-16 h-16 object-cover rounded" onerror="this.src='/static/placeholder-tile.jpg'">
+                    <div class="flex-1">
+                        <h5 class="font-medium text-sm text-gray-800">${product.title}</h5>
+                        <p class="text-xs text-gray-600 mt-1">SKU: ${product.sku}</p>
+                        <p class="text-sm font-semibold text-blue-600 mt-1">${price}</p>
+                        ${product.size_shape ? `<p class="text-xs text-gray-500">Size: ${product.size_shape}</p>` : ''}
+                        ${product.color ? `<p class="text-xs text-gray-500">Color: ${product.color}</p>` : ''}
+                    </div>
+                </div>
+            </div>
+        `;
+    });
+    
+    resultsHTML += `
+                </div>
+            </div>
+            <p class="message-timestamp">${new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}</p>
+        </div>
+    `;
+    
+    resultsDiv.innerHTML = resultsHTML;
+    container.appendChild(resultsDiv);
+    container.scrollTop = container.scrollHeight;
+}
+
 // Add message to chat
 function addMessage(text, type) {
     console.log('addMessage called with:', text, type);
@@ -496,6 +554,9 @@ document.addEventListener('DOMContentLoaded', function() {
     // Test that container exists
     const testContainer = document.getElementById('chat-messages');
     console.log('Chat messages container found:', !!testContainer);
+    
+    // Initialize form system
+    initializeFormSystem();
     if (testContainer) {
         console.log('Container element:', testContainer);
     }
