@@ -133,6 +133,34 @@ This index provides a comprehensive overview of all documentation files in the `
 | **[DATABASE_SCHEMA_ENHANCEMENTS.md](DATABASE_SCHEMA_ENHANCEMENTS.md)** | Database architecture improvements | Schema optimizations, performance enhancements, data integrity |
 | **[DUPLICATE_FIELD_CLEANUP.md](DUPLICATE_FIELD_CLEANUP.md)** | Technical Specifications duplicate field removal | Database cleanup, frontend filtering, field display name improvements |
 
+### **🤖 AI TOOL INTEGRATION**
+
+### **Claude Computer Use Integration** (July 15, 2025)
+| Component | Port | Purpose | Access Method |
+|-----------|------|---------|---------------|
+| **Claude Computer Use - Web Interface** | **8070** | Primary web interface for Claude Computer Use visual desktop control | http://localhost:8070 |
+| **Claude Computer Use - Streamlit** | **8501** | Direct Streamlit interface for Claude Computer Use chat-only mode | http://localhost:8501 |
+| **Claude Computer Use - VNC** | **5900** | VNC access for Claude Computer Use desktop (requires VNC client) | VNC client → localhost:5900 |
+| **Claude Computer Use - noVNC** | **6080** | Web-based VNC interface for Claude Computer Use | http://localhost:6080 |
+
+### **🚨 PORT CONFLICT PREVENTION**
+**Reserved Ports for AI Tools:**
+- **8070**: Claude Computer Use (web interface)
+- **8501**: Claude Computer Use (Streamlit)
+- **5900**: Claude Computer Use (VNC)
+- **6080**: Claude Computer Use (noVNC)
+
+**Project Ports Currently in Use:**
+- **8080**: TileShop Dashboard (main interface)
+- **8081**: Customer Chat Interface
+- **8082**: Salesperson Chat Interface  
+- **8083**: Contractor Chat Interface
+
+**Available Ports for Future Services:**
+- **8090-8099**: Available for new services
+- **8070**: **RESERVED** - Claude Computer Use
+- **8084-8089**: Available for additional chat interfaces
+
 ---
 
 ## 🛠️ **SYSTEM MANAGEMENT & SUPPORT**

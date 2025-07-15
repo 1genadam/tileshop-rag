@@ -798,7 +798,11 @@ Remember: You're both a tile expert AND a sales professional. Use NEPQ methodolo
                     "input_schema": {
                         "type": "object",
                         "properties": {
-                            "conversation_history": {"type": "array", "description": "Full conversation history to analyze for frustration patterns"}
+                            "conversation_history": {
+                                "type": "array", 
+                                "description": "Full conversation history to analyze for frustration patterns",
+                                "items": {"type": "object"}
+                            }
                         },
                         "required": ["conversation_history"]
                     }
