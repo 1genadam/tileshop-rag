@@ -535,23 +535,43 @@
                 </div>
                 
                 <!-- Project Selection -->
-                <div class="form-section">
+                <div class="form-section" id="project-selection-section" style="display: none;">
                     <h3>🏠 Project Selection</h3>
-                    <div class="project-options">
-                        <label>
-                            <input type="radio" name="project" value="new" checked>
-                            <span>New Project</span>
-                        </label>
-                        <label style="display: none;" id="continue-project-option">
-                            <input type="radio" name="project" value="continue">
-                            <span>Continue Project:</span>
-                            <select id="existing-projects" style="margin-left: 0.5rem;">
-                                <option>Select existing project...</option>
-                            </select>
-                        </label>
+                    <div class="mb-3">
+                        <label class="block text-sm font-medium text-gray-700 mb-1">Select Project</label>
+                        <select id="project-select" class="w-full p-3 border border-gray-300 rounded-lg" onchange="handleProjectSelection()">
+                            <option value="">Choose a project...</option>
+                            <option value="new">+ Create New Project</option>
+                        </select>
                     </div>
-                    <input type="text" id="project-name" placeholder="Project Name" class="w-full p-3 border border-gray-300 rounded-lg mb-2">
-                    <input type="text" id="project-address" placeholder="Address" class="w-full p-3 border border-gray-300 rounded-lg">
+                    
+                    <!-- New Project Fields -->
+                    <div id="new-project-fields" style="display: none;">
+                        <input type="text" id="project-name" placeholder="Project Name (e.g., Master Bathroom Renovation)" class="w-full p-3 border border-gray-300 rounded-lg mb-2">
+                        
+                        <!-- Project Address Selection -->
+                        <div class="mb-3">
+                            <label class="block text-sm font-medium text-gray-700 mb-1">Project Address</label>
+                            <select id="address-select" class="w-full p-3 border border-gray-300 rounded-lg mb-2" onchange="handleAddressSelection()">
+                                <option value="">Choose address...</option>
+                                <option value="account-address">Use Account Address</option>
+                                <option value="new-address">+ Add New Address</option>
+                            </select>
+                        </div>
+                        
+                        <!-- New Address Field -->
+                        <div id="new-address-field" style="display: none;">
+                            <input type="text" id="project-address" placeholder="Project Address" class="w-full p-3 border border-gray-300 rounded-lg mb-2">
+                        </div>
+                        
+                        <!-- Selected Address Display -->
+                        <div id="selected-address-display" style="display: none;">
+                            <div class="bg-blue-50 p-3 rounded-lg border border-blue-200">
+                                <div class="text-sm font-medium text-blue-800">Selected Address:</div>
+                                <div id="selected-address-text" class="text-blue-700"></div>
+                            </div>
+                        </div>
+                    </div>
                 </div>
                 
                 <!-- Current Selection -->

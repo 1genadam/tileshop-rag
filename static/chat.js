@@ -740,14 +740,15 @@ async function lookupCustomer() {
             // Store customer data
             projectData.customer = data.customer;
             
-            // Show existing projects if any
+            // Show project selection section
+            document.getElementById('project-selection-section').style.display = 'block';
+            
+            // Populate existing projects dropdown
+            const projectSelect = document.getElementById('project-select');
+            projectSelect.innerHTML = '<option value="">Choose a project...</option>';
+            projectSelect.innerHTML += '<option value="new">+ Create New Project</option>';
+            
             if (data.projects && data.projects.length > 0) {
-                const continueOption = document.getElementById('continue-project-option');
-                const projectSelect = document.getElementById('existing-projects');
-                
-                continueOption.style.display = 'block';
-                projectSelect.innerHTML = '<option value="">Select existing project...</option>';
-                
                 data.projects.forEach(project => {
                     const option = document.createElement('option');
                     option.value = project.id;
@@ -797,11 +798,19 @@ function enterDifferentNumber() {
     document.getElementById('customer-info-fields').style.display = 'none';
     document.getElementById('create-account-btn').style.display = 'none';
     
+    // Hide project selection section
+    document.getElementById('project-selection-section').style.display = 'none';
+    
     // Clear customer data
     document.getElementById('customer-name').value = '';
     document.getElementById('customer-email').value = '';
     document.getElementById('customer-address').value = '';
-    document.getElementById('continue-project-option').style.display = 'none';
+    
+    // Clear project data
+    document.getElementById('project-name').value = '';
+    document.getElementById('project-address').value = '';
+    document.getElementById('project-select').value = '';
+    document.getElementById('new-project-fields').style.display = 'none';
     
     projectData.customer = {};
 }
@@ -814,8 +823,94 @@ function showCreateAccountFields() {
     // Hide create account button
     document.getElementById('create-account-btn').style.display = 'none';
     
+    // Show project selection section for new customer
+    document.getElementById('project-selection-section').style.display = 'block';
+    
+    // Set up project dropdown for new customer (only new project option)
+    const projectSelect = document.getElementById('project-select');
+    projectSelect.innerHTML = '<option value="">Choose a project...</option>';
+    projectSelect.innerHTML += '<option value="new">+ Create New Project</option>';
+    
     // Focus on name field
     document.getElementById('customer-name').focus();
+}
+
+// Handle project selection
+function handleProjectSelection() {
+    const projectSelect = document.getElementById('project-select');
+    const newProjectFields = document.getElementById('new-project-fields');
+    
+    if (projectSelect.value === 'new') {
+        // Show new project fields
+        newProjectFields.style.display = 'block';
+        
+        // Set up address dropdown with account address if available
+        setupAddressDropdown();
+        
+        // Focus on project name
+        document.getElementById('project-name').focus();
+    } else if (projectSelect.value === '') {
+        // Hide new project fields
+        newProjectFields.style.display = 'none';
+    } else {
+        // Existing project selected - load project data
+        loadExistingProject(projectSelect.value);
+        newProjectFields.style.display = 'none';
+    }
+}
+
+// Set up address dropdown
+function setupAddressDropdown() {
+    const addressSelect = document.getElementById('address-select');
+    const customerAddress = document.getElementById('customer-address').value;
+    
+    addressSelect.innerHTML = '<option value="">Choose address...</option>';
+    
+    if (customerAddress) {
+        addressSelect.innerHTML += '<option value="account-address">Use Account Address</option>';
+    }
+    
+    addressSelect.innerHTML += '<option value="new-address">+ Add New Address</option>';
+}
+
+// Handle address selection
+function handleAddressSelection() {
+    const addressSelect = document.getElementById('address-select');
+    const newAddressField = document.getElementById('new-address-field');
+    const selectedAddressDisplay = document.getElementById('selected-address-display');
+    const selectedAddressText = document.getElementById('selected-address-text');
+    const projectAddressInput = document.getElementById('project-address');
+    
+    if (addressSelect.value === 'account-address') {
+        // Use account address
+        const accountAddress = document.getElementById('customer-address').value;
+        projectAddressInput.value = accountAddress;
+        
+        // Show selected address display
+        selectedAddressText.textContent = accountAddress;
+        selectedAddressDisplay.style.display = 'block';
+        newAddressField.style.display = 'none';
+        
+    } else if (addressSelect.value === 'new-address') {
+        // Show new address field
+        newAddressField.style.display = 'block';
+        selectedAddressDisplay.style.display = 'none';
+        projectAddressInput.value = '';
+        projectAddressInput.focus();
+        
+    } else {
+        // No selection
+        newAddressField.style.display = 'none';
+        selectedAddressDisplay.style.display = 'none';
+        projectAddressInput.value = '';
+    }
+}
+
+// Load existing project data
+function loadExistingProject(projectId) {
+    // This would load project data from the backend
+    console.log('Loading project:', projectId);
+    // TODO: Implement project loading from backend
 }
 
 // Update current selection
