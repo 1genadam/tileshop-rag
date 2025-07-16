@@ -864,14 +864,14 @@ function handleProjectSelection() {
     } else if (projectSelect.value === '') {
         // Hide new project fields
         newProjectFields.style.display = 'none';
-        document.getElementById('add-room-btn').style.display = 'none';
+        document.getElementById('add-room-section').style.display = 'none';
     } else {
         // Existing project selected - load project data
         loadExistingProject(projectSelect.value);
         newProjectFields.style.display = 'none';
         
-        // Show add room button and mark project card as completed
-        document.getElementById('add-room-btn').style.display = 'block';
+        // Show add room section and mark project card as completed
+        document.getElementById('add-room-section').style.display = 'block';
         markCardCompleted('project-selection-card');
     }
 }
@@ -948,8 +948,8 @@ function checkProjectReadiness() {
     const projectAddress = document.getElementById('project-address').value;
     
     if (projectName && projectAddress) {
-        // Project is ready - show add room button and mark as completed
-        document.getElementById('add-room-btn').style.display = 'block';
+        // Project is ready - show add room section and mark as completed
+        document.getElementById('add-room-section').style.display = 'block';
         markCardCompleted('project-selection-card');
     }
 }
@@ -1001,8 +1001,33 @@ let roomCounter = 0;
 let rooms = [];
 
 function addNewRoom() {
-    const roomName = prompt('Enter room name (e.g., Master Bath, Kitchen, etc.):');
-    if (!roomName) return;
+    // Legacy function - now just shows the input field
+    showAddRoomInput();
+}
+
+function showAddRoomInput() {
+    const addRoomBtn = document.getElementById('add-room-btn');
+    const addRoomInputField = document.getElementById('add-room-input-field');
+    const roomNameInput = document.getElementById('room-name-input');
+    
+    // Hide the button and show the input field
+    addRoomBtn.style.display = 'none';
+    addRoomInputField.style.display = 'block';
+    
+    // Focus on the input field
+    roomNameInput.focus();
+    roomNameInput.value = '';
+}
+
+function addNewRoomFromInput() {
+    const roomNameInput = document.getElementById('room-name-input');
+    const roomName = roomNameInput.value.trim();
+    
+    if (!roomName) {
+        alert('Please enter a room name');
+        roomNameInput.focus();
+        return;
+    }
     
     roomCounter++;
     const roomId = 'room-' + roomCounter;
@@ -1015,6 +1040,30 @@ function addNewRoom() {
     
     rooms.push(room);
     renderRoomCard(room);
+    
+    // Hide the input field and show the button again
+    cancelAddRoom();
+}
+
+function cancelAddRoom() {
+    const addRoomBtn = document.getElementById('add-room-btn');
+    const addRoomInputField = document.getElementById('add-room-input-field');
+    const roomNameInput = document.getElementById('room-name-input');
+    
+    // Show the button and hide the input field
+    addRoomBtn.style.display = 'block';
+    addRoomInputField.style.display = 'none';
+    
+    // Clear the input
+    roomNameInput.value = '';
+}
+
+function handleRoomNameKeyPress(event) {
+    if (event.key === 'Enter') {
+        addNewRoomFromInput();
+    } else if (event.key === 'Escape') {
+        cancelAddRoom();
+    }
     
     // Auto-save
     autoSaveProject();

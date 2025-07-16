@@ -702,11 +702,25 @@
                     <!-- Room cards will be dynamically added here -->
                 </div>
                 
-                <!-- Add Room Button -->
-                <div style="text-align: center; margin-top: 1rem;">
-                    <button onclick="addNewRoom()" class="w-full py-3 px-4 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors" style="display: none;" id="add-room-btn">
+                <!-- Add Room Section -->
+                <div style="text-align: center; margin-top: 1rem; display: none;" id="add-room-section">
+                    <!-- Add Room Button -->
+                    <button onclick="showAddRoomInput()" class="w-full py-3 px-4 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors" id="add-room-btn">
                         <i class="fas fa-plus mr-2"></i>Add New Room
                     </button>
+                    
+                    <!-- Add Room Input Field -->
+                    <div id="add-room-input-field" style="display: none; margin-top: 1rem;">
+                        <input type="text" id="room-name-input" placeholder="Enter room name (e.g., Master Bath, Kitchen, etc.)" class="w-full p-3 border border-gray-300 rounded-lg mb-2" onkeypress="handleRoomNameKeyPress(event)">
+                        <div class="flex gap-2">
+                            <button onclick="addNewRoomFromInput()" class="flex-1 py-2 px-4 bg-green-600 text-white rounded-lg hover:bg-green-700 transition-colors">
+                                <i class="fas fa-check mr-2"></i>Add Room
+                            </button>
+                            <button onclick="cancelAddRoom()" class="flex-1 py-2 px-4 bg-gray-400 text-white rounded-lg hover:bg-gray-500 transition-colors">
+                                <i class="fas fa-times mr-2"></i>Cancel
+                            </button>
+                        </div>
+                    </div>
                 </div>
                 
                 <!-- Auto-save Status -->
