@@ -93,6 +93,117 @@
         
         .form-section h3 {
             color: #1f2937;
+        }
+        
+        /* Collapsible Card System */
+        .collapsible-card {
+            background: white;
+            border: 1px solid #e5e7eb;
+            border-radius: 0.5rem;
+            margin-bottom: 1rem;
+            overflow: hidden;
+            transition: all 0.3s ease;
+        }
+        
+        .collapsible-card.completed {
+            border-color: #10b981;
+            background: #f0fdf4;
+        }
+        
+        .card-header {
+            padding: 1rem;
+            background: #f9fafb;
+            border-bottom: 1px solid #e5e7eb;
+            cursor: pointer;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            transition: background-color 0.2s ease;
+        }
+        
+        .card-header:hover {
+            background: #f3f4f6;
+        }
+        
+        .card-header.completed {
+            background: #ecfdf5;
+            border-bottom-color: #10b981;
+        }
+        
+        .card-title {
+            font-size: 1.1rem;
+            font-weight: 600;
+            color: #374151;
+            flex-grow: 1;
+        }
+        
+        .card-status {
+            font-size: 0.875rem;
+            color: #6b7280;
+            margin-right: 0.5rem;
+        }
+        
+        .card-status.completed {
+            color: #10b981;
+        }
+        
+        .card-toggle {
+            font-size: 1.2rem;
+            color: #6b7280;
+            transition: transform 0.2s ease;
+        }
+        
+        .card-toggle.collapsed {
+            transform: rotate(-90deg);
+        }
+        
+        .card-content {
+            padding: 1rem;
+            display: block;
+        }
+        
+        .card-content.collapsed {
+            display: none;
+        }
+        
+        /* Room Card Specific Styling */
+        .room-card {
+            background: #fefefe;
+            border: 1px solid #d1d5db;
+        }
+        
+        .room-card .card-header {
+            background: #f8fafc;
+        }
+        
+        .surface-item {
+            background: #f9fafb;
+            border: 1px solid #e5e7eb;
+            border-radius: 0.375rem;
+            padding: 0.75rem;
+            margin-bottom: 0.5rem;
+        }
+        
+        .surface-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 0.5rem;
+        }
+        
+        .surface-dimensions {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 0.5rem;
+            margin-bottom: 0.5rem;
+        }
+        
+        .surface-dimensions input {
+            padding: 0.5rem;
+            border: 1px solid #d1d5db;
+            border-radius: 0.25rem;
+            font-size: 0.875rem;
+        }
             font-size: 1.125rem;
             font-weight: 600;
             margin-bottom: 1rem;
@@ -507,138 +618,95 @@
                 </button>
             </div>
             <div class="form-panel-content">
-                <!-- Phone Number Section -->
-                <div class="form-section">
-                    <h3>📱 Customer Information</h3>
-                    <div class="phone-input">
-                        <input type="tel" id="customer-phone" placeholder="Phone Number" maxlength="14">
-                        <button onclick="lookupCustomer()">
-                            <i class="fas fa-search"></i> Search
-                        </button>
+                <!-- Customer Information Card -->
+                <div class="collapsible-card" id="customer-info-card">
+                    <div class="card-header" onclick="toggleCard('customer-info-card')">
+                        <div class="card-title">📱 Customer Information</div>
+                        <div class="card-status" id="customer-status">Required</div>
+                        <div class="card-toggle" id="customer-toggle">▼</div>
                     </div>
-                    <div id="phone-status" class="phone-status" style="display: none;">
-                        <span id="phone-status-text"></span>
-                        <button id="different-number-btn" onclick="enterDifferentNumber()" style="display: none; margin-left: 1rem; padding: 0.25rem 0.75rem; background: transparent; border: 1px solid #6b7280; border-radius: 0.25rem; cursor: pointer;">
-                            Enter Different Number
-                        </button>
-                        <button id="create-account-btn" onclick="showCreateAccountFields()" style="display: none; margin-left: 1rem; padding: 0.25rem 0.75rem; background: #10b981; color: white; border: 1px solid #10b981; border-radius: 0.25rem; cursor: pointer;">
-                            Create Account
-                        </button>
-                    </div>
-                    
-                    <!-- Customer Information Fields - Hidden by default -->
-                    <div id="customer-info-fields" style="display: none;">
-                        <input type="text" id="customer-name" placeholder="Customer Name" class="w-full p-3 border border-gray-300 rounded-lg mb-2">
-                        <input type="email" id="customer-email" placeholder="Email Address" class="w-full p-3 border border-gray-300 rounded-lg mb-2">
-                        <input type="text" id="customer-address" placeholder="Address" class="w-full p-3 border border-gray-300 rounded-lg">
+                    <div class="card-content" id="customer-content">
+                        <div class="phone-input">
+                            <input type="tel" id="customer-phone" placeholder="Phone Number" maxlength="14">
+                            <button onclick="lookupCustomer()">
+                                <i class="fas fa-search"></i> Search
+                            </button>
+                        </div>
+                        <div id="phone-status" class="phone-status" style="display: none;">
+                            <span id="phone-status-text"></span>
+                            <button id="different-number-btn" onclick="enterDifferentNumber()" style="display: none; margin-left: 1rem; padding: 0.25rem 0.75rem; background: transparent; border: 1px solid #6b7280; border-radius: 0.25rem; cursor: pointer;">
+                                Enter Different Number
+                            </button>
+                            <button id="create-account-btn" onclick="showCreateAccountFields()" style="display: none; margin-left: 1rem; padding: 0.25rem 0.75rem; background: #10b981; color: white; border: 1px solid #10b981; border-radius: 0.25rem; cursor: pointer;">
+                                Create Account
+                            </button>
+                        </div>
+                        
+                        <!-- Customer Information Fields - Hidden by default -->
+                        <div id="customer-info-fields" style="display: none;">
+                            <input type="text" id="customer-name" placeholder="Customer Name" class="w-full p-3 border border-gray-300 rounded-lg mb-2">
+                            <input type="email" id="customer-email" placeholder="Email Address" class="w-full p-3 border border-gray-300 rounded-lg mb-2">
+                            <input type="text" id="customer-address" placeholder="Address" class="w-full p-3 border border-gray-300 rounded-lg">
+                        </div>
                     </div>
                 </div>
                 
-                <!-- Project Selection -->
-                <div class="form-section" id="project-selection-section" style="display: none;">
-                    <h3>🏠 Project Selection</h3>
-                    <div class="mb-3">
-                        <label class="block text-sm font-medium text-gray-700 mb-1">Select Project</label>
-                        <select id="project-select" class="w-full p-3 border border-gray-300 rounded-lg" onchange="handleProjectSelection()">
-                            <option value="">Choose a project...</option>
-                            <option value="new">+ Create New Project</option>
-                        </select>
+                <!-- Project Selection Card -->
+                <div class="collapsible-card" id="project-selection-card" style="display: none;">
+                    <div class="card-header" onclick="toggleCard('project-selection-card')">
+                        <div class="card-title">🏠 Project Selection</div>
+                        <div class="card-status" id="project-status">Required</div>
+                        <div class="card-toggle" id="project-toggle">▼</div>
                     </div>
-                    
-                    <!-- New Project Fields -->
-                    <div id="new-project-fields" style="display: none;">
-                        <input type="text" id="project-name" placeholder="Project Name (e.g., Master Bathroom Renovation)" class="w-full p-3 border border-gray-300 rounded-lg mb-2">
-                        
-                        <!-- Project Address Selection -->
+                    <div class="card-content" id="project-content">
                         <div class="mb-3">
-                            <label class="block text-sm font-medium text-gray-700 mb-1">Project Address</label>
-                            <select id="address-select" class="w-full p-3 border border-gray-300 rounded-lg mb-2" onchange="handleAddressSelection()">
-                                <option value="">Choose address...</option>
-                                <option value="account-address">Use Account Address</option>
-                                <option value="new-address">+ Add New Address</option>
+                            <label class="block text-sm font-medium text-gray-700 mb-1">Select Project</label>
+                            <select id="project-select" class="w-full p-3 border border-gray-300 rounded-lg" onchange="handleProjectSelection()">
+                                <option value="">Choose a project...</option>
+                                <option value="new">+ Create New Project</option>
                             </select>
                         </div>
                         
-                        <!-- New Address Field -->
-                        <div id="new-address-field" style="display: none;">
-                            <input type="text" id="project-address" placeholder="Project Address" class="w-full p-3 border border-gray-300 rounded-lg mb-2">
-                        </div>
-                        
-                        <!-- Selected Address Display -->
-                        <div id="selected-address-display" style="display: none;">
-                            <div class="bg-blue-50 p-3 rounded-lg border border-blue-200">
-                                <div class="text-sm font-medium text-blue-800">Selected Address:</div>
-                                <div id="selected-address-text" class="text-blue-700"></div>
+                        <!-- New Project Fields -->
+                        <div id="new-project-fields" style="display: none;">
+                            <input type="text" id="project-name" placeholder="Project Name (e.g., Master Bathroom Renovation)" class="w-full p-3 border border-gray-300 rounded-lg mb-2" onchange="checkProjectReadiness()">
+                            
+                            <!-- Project Address Selection -->
+                            <div class="mb-3">
+                                <label class="block text-sm font-medium text-gray-700 mb-1">Project Address</label>
+                                <select id="address-select" class="w-full p-3 border border-gray-300 rounded-lg mb-2" onchange="handleAddressSelection()">
+                                    <option value="">Choose address...</option>
+                                    <option value="account-address">Use Account Address</option>
+                                    <option value="new-address">+ Add New Address</option>
+                                </select>
+                            </div>
+                            
+                            <!-- New Address Field -->
+                            <div id="new-address-field" style="display: none;">
+                                <input type="text" id="project-address" placeholder="Project Address" class="w-full p-3 border border-gray-300 rounded-lg mb-2" onchange="checkProjectReadiness()">
+                            </div>
+                            
+                            <!-- Selected Address Display -->
+                            <div id="selected-address-display" style="display: none;">
+                                <div class="bg-blue-50 p-3 rounded-lg border border-blue-200">
+                                    <div class="text-sm font-medium text-blue-800">Selected Address:</div>
+                                    <div id="selected-address-text" class="text-blue-700"></div>
+                                </div>
                             </div>
                         </div>
                     </div>
                 </div>
                 
-                <!-- Current Selection -->
-                <div class="form-section">
-                    <h3>🔨 Current Selection</h3>
-                    <div class="selection-controls">
-                        <select id="area-select" onchange="updateCurrentSelection()">
-                            <option value="">Select Area...</option>
-                            <option value="bathroom-1">Bathroom 1</option>
-                            <option value="bathroom-2">Bathroom 2</option>
-                            <option value="bathroom-3">Bathroom 3</option>
-                            <option value="kitchen">Kitchen</option>
-                            <option value="living-room">Living Room</option>
-                            <option value="patio">Patio</option>
-                            <option value="entry">Entry</option>
-                            <option value="basement">Basement</option>
-                            <option value="halls">Halls</option>
-                        </select>
-                        <select id="surface-select" onchange="updateCurrentSelection()">
-                            <option value="">Select Surface...</option>
-                            <option value="wall">Wall</option>
-                            <option value="floor">Floor</option>
-                            <option value="ceiling">Ceiling</option>
-                            <option value="half-wall">1/2 Wall</option>
-                            <option value="wainscoting">Wainscoting</option>
-                            <option value="shower-floor">Shower Floor</option>
-                            <option value="main-floor">Main Floor</option>
-                            <option value="bathtub-surround">Bathtub Surround</option>
-                            <option value="niche-interior">Niche Interior</option>
-                            <option value="niche-trim">Niche Trim</option>
-                            <option value="wall-framing-trim">Wall Framing Trim</option>
-                            <option value="curb">Curb</option>
-                            <option value="threshold">Threshold</option>
-                            <option value="floor-molding">Floor Molding</option>
-                        </select>
-                    </div>
-                    <div class="dimensions">
-                        <input type="number" id="surface-length" placeholder="Length (ft)" step="0.1" onchange="calculateSurface()">
-                        <input type="number" id="surface-width" placeholder="Width (ft)" step="0.1" onchange="calculateSurface()">
-                        <input type="number" id="surface-height" placeholder="Height (ft)" step="0.1" onchange="calculateSurface()">
-                    </div>
-                    <div class="calculated-display" id="calculated-amount">
-                        <span id="calculated-value">0</span> <span id="calculated-unit">sq ft</span>
-                    </div>
-                    <div class="tile-selection">
-                        <span id="selected-tile-display">No Tile Selected</span>
-                        <button onclick="changeTile()" class="bg-blue-500 text-white px-3 py-1 rounded text-sm">
-                            <i class="fas fa-sync"></i> Change
-                        </button>
-                    </div>
-                    <div class="materials-summary" id="materials-summary">
-                        <div class="grout-info">
-                            <strong>Grout:</strong> <span id="grout-recommendation">Select tile first</span>
-                        </div>
-                        <div class="cost-summary">
-                            <strong>Total Cost:</strong> <span id="total-cost">$0.00</span>
-                        </div>
-                    </div>
-                    <button class="add-surface-btn" onclick="addSurface()">
-                        <i class="fas fa-plus"></i> Add Another Surface
-                    </button>
+                <!-- Rooms Container -->
+                <div id="rooms-container">
+                    <!-- Room cards will be dynamically added here -->
                 </div>
                 
-                <!-- Saved Surfaces -->
-                <div class="form-section" id="saved-surfaces-section" style="display: none;">
-                    <h3>📦 Saved Surfaces</h3>
-                    <div id="saved-surfaces-list"></div>
+                <!-- Add Room Button -->
+                <div style="text-align: center; margin-top: 1rem;">
+                    <button onclick="addNewRoom()" class="w-full py-3 px-4 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors" style="display: none;" id="add-room-btn">
+                        <i class="fas fa-plus mr-2"></i>Add New Room
+                    </button>
                 </div>
                 
                 <!-- Auto-save Status -->

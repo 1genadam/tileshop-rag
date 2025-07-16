@@ -740,8 +740,8 @@ async function lookupCustomer() {
             // Store customer data
             projectData.customer = data.customer;
             
-            // Show project selection section
-            document.getElementById('project-selection-section').style.display = 'block';
+            // Show project selection card
+            document.getElementById('project-selection-card').style.display = 'block';
             
             // Populate existing projects dropdown
             const projectSelect = document.getElementById('project-select');
@@ -759,6 +759,9 @@ async function lookupCustomer() {
             
             // Auto-save customer data
             autoSaveProject();
+            
+            // Mark customer card as completed
+            markCardCompleted('customer-info-card');
             
         } else {
             // Customer not found
@@ -798,8 +801,8 @@ function enterDifferentNumber() {
     document.getElementById('customer-info-fields').style.display = 'none';
     document.getElementById('create-account-btn').style.display = 'none';
     
-    // Hide project selection section
-    document.getElementById('project-selection-section').style.display = 'none';
+    // Hide project selection card
+    document.getElementById('project-selection-card').style.display = 'none';
     
     // Clear customer data
     document.getElementById('customer-name').value = '';
@@ -823,8 +826,8 @@ function showCreateAccountFields() {
     // Hide create account button
     document.getElementById('create-account-btn').style.display = 'none';
     
-    // Show project selection section for new customer
-    document.getElementById('project-selection-section').style.display = 'block';
+    // Show project selection card for new customer
+    document.getElementById('project-selection-card').style.display = 'block';
     
     // Set up project dropdown for new customer (only new project option)
     const projectSelect = document.getElementById('project-select');
@@ -833,6 +836,9 @@ function showCreateAccountFields() {
     
     // Focus on name field
     document.getElementById('customer-name').focus();
+    
+    // Mark customer card as completed once fields are shown
+    markCardCompleted('customer-info-card');
 }
 
 // Handle project selection
@@ -852,10 +858,15 @@ function handleProjectSelection() {
     } else if (projectSelect.value === '') {
         // Hide new project fields
         newProjectFields.style.display = 'none';
+        document.getElementById('add-room-btn').style.display = 'none';
     } else {
         // Existing project selected - load project data
         loadExistingProject(projectSelect.value);
         newProjectFields.style.display = 'none';
+        
+        // Show add room button and mark project card as completed
+        document.getElementById('add-room-btn').style.display = 'block';
+        markCardCompleted('project-selection-card');
     }
 }
 
@@ -891,6 +902,9 @@ function handleAddressSelection() {
         selectedAddressDisplay.style.display = 'block';
         newAddressField.style.display = 'none';
         
+        // Check if project is ready
+        checkProjectReadiness();
+        
     } else if (addressSelect.value === 'new-address') {
         // Show new address field
         newAddressField.style.display = 'block';
@@ -906,11 +920,234 @@ function handleAddressSelection() {
     }
 }
 
+// Check if project is ready to enable room creation
+function checkProjectReadiness() {
+    const projectName = document.getElementById('project-name').value;
+    const projectAddress = document.getElementById('project-address').value;
+    
+    if (projectName && projectAddress) {
+        // Project is ready - show add room button and mark as completed
+        document.getElementById('add-room-btn').style.display = 'block';
+        markCardCompleted('project-selection-card');
+    }
+}
+
 // Load existing project data
 function loadExistingProject(projectId) {
     // This would load project data from the backend
     console.log('Loading project:', projectId);
     // TODO: Implement project loading from backend
+}
+
+// Collapsible Card System Functions
+function toggleCard(cardId) {
+    const card = document.getElementById(cardId);
+    const content = card.querySelector('.card-content');
+    const toggle = card.querySelector('.card-toggle');
+    
+    if (content.classList.contains('collapsed')) {
+        content.classList.remove('collapsed');
+        toggle.classList.remove('collapsed');
+        toggle.textContent = '▼';
+    } else {
+        content.classList.add('collapsed');
+        toggle.classList.add('collapsed');
+        toggle.textContent = '▶';
+    }
+}
+
+function markCardCompleted(cardId) {
+    const card = document.getElementById(cardId);
+    const header = card.querySelector('.card-header');
+    const status = card.querySelector('.card-status');
+    
+    card.classList.add('completed');
+    header.classList.add('completed');
+    status.classList.add('completed');
+    status.textContent = 'Completed';
+    
+    // Auto-collapse completed cards
+    const content = card.querySelector('.card-content');
+    const toggle = card.querySelector('.card-toggle');
+    content.classList.add('collapsed');
+    toggle.classList.add('collapsed');
+    toggle.textContent = '▶';
+}
+
+// Room Management Functions
+let roomCounter = 0;
+let rooms = [];
+
+function addNewRoom() {
+    const roomName = prompt('Enter room name (e.g., Master Bath, Kitchen, etc.):');
+    if (!roomName) return;
+    
+    roomCounter++;
+    const roomId = 'room-' + roomCounter;
+    
+    const room = {
+        id: roomId,
+        name: roomName,
+        surfaces: []
+    };
+    
+    rooms.push(room);
+    renderRoomCard(room);
+    
+    // Auto-save
+    autoSaveProject();
+}
+
+function renderRoomCard(room) {
+    const roomsContainer = document.getElementById('rooms-container');
+    
+    const roomCard = document.createElement('div');
+    roomCard.className = 'collapsible-card room-card';
+    roomCard.id = room.id;
+    
+    roomCard.innerHTML = `
+        <div class="card-header" onclick="toggleCard('${room.id}')">
+            <div class="card-title">🏠 ${room.name}</div>
+            <div class="card-status" id="${room.id}-status">0 surfaces</div>
+            <div class="card-toggle">▼</div>
+        </div>
+        <div class="card-content" id="${room.id}-content">
+            <div class="surfaces-container" id="${room.id}-surfaces">
+                <!-- Surfaces will be added here -->
+            </div>
+            <div style="text-align: center; margin-top: 1rem;">
+                <button onclick="addSurfaceToRoom('${room.id}')" class="w-full py-2 px-4 bg-green-600 text-white rounded hover:bg-green-700 transition-colors">
+                    <i class="fas fa-plus mr-2"></i>Add Surface
+                </button>
+            </div>
+        </div>
+    `;
+    
+    roomsContainer.appendChild(roomCard);
+}
+
+function addSurfaceToRoom(roomId) {
+    const surfaceType = prompt('Enter surface type (e.g., Floor, Wall, Backsplash, etc.):');
+    if (!surfaceType) return;
+    
+    const room = rooms.find(r => r.id === roomId);
+    if (!room) return;
+    
+    const surfaceId = roomId + '-surface-' + (room.surfaces.length + 1);
+    
+    const surface = {
+        id: surfaceId,
+        type: surfaceType,
+        height: 0,
+        width: 0,
+        sqft: 0,
+        selectedTile: null,
+        cost: 0
+    };
+    
+    room.surfaces.push(surface);
+    renderSurfaceItem(roomId, surface);
+    updateRoomStatus(roomId);
+    
+    // Auto-save
+    autoSaveProject();
+}
+
+function renderSurfaceItem(roomId, surface) {
+    const surfacesContainer = document.getElementById(roomId + '-surfaces');
+    
+    const surfaceItem = document.createElement('div');
+    surfaceItem.className = 'surface-item';
+    surfaceItem.id = surface.id;
+    
+    surfaceItem.innerHTML = `
+        <div class="surface-header">
+            <strong>${surface.type}</strong>
+            <button onclick="removeSurfaceFromRoom('${roomId}', '${surface.id}')" class="text-red-600 hover:text-red-800">
+                <i class="fas fa-trash"></i>
+            </button>
+        </div>
+        <div class="surface-dimensions">
+            <input type="number" placeholder="Height (ft)" step="0.1" 
+                   value="${surface.height || ''}" 
+                   onchange="updateSurfaceDimensions('${roomId}', '${surface.id}', 'height', this.value)">
+            <input type="number" placeholder="Width (ft)" step="0.1" 
+                   value="${surface.width || ''}" 
+                   onchange="updateSurfaceDimensions('${roomId}', '${surface.id}', 'width', this.value)">
+        </div>
+        <div class="surface-info">
+            <span>Area: <strong id="${surface.id}-area">${surface.sqft || 0} sq ft</strong></span>
+            <span>Cost: <strong id="${surface.id}-cost">$${surface.cost || 0}</strong></span>
+        </div>
+        <div class="surface-actions">
+            <button onclick="selectTileForSurface('${surface.id}')" class="bg-blue-600 text-white px-3 py-1 rounded text-sm hover:bg-blue-700">
+                <i class="fas fa-th mr-1"></i>Select Tile
+            </button>
+        </div>
+    `;
+    
+    surfacesContainer.appendChild(surfaceItem);
+}
+
+function updateSurfaceDimensions(roomId, surfaceId, dimension, value) {
+    const room = rooms.find(r => r.id === roomId);
+    if (!room) return;
+    
+    const surface = room.surfaces.find(s => s.id === surfaceId);
+    if (!surface) return;
+    
+    surface[dimension] = parseFloat(value) || 0;
+    surface.sqft = surface.height * surface.width;
+    
+    // Update display
+    document.getElementById(surfaceId + '-area').textContent = surface.sqft.toFixed(1) + ' sq ft';
+    
+    // Recalculate cost
+    calculateSurfaceCost(surface);
+    
+    // Update room status
+    updateRoomStatus(roomId);
+    
+    // Auto-save
+    autoSaveProject();
+}
+
+function calculateSurfaceCost(surface) {
+    if (surface.selectedTile && surface.sqft > 0) {
+        // Add 10% waste factor
+        const totalSqft = surface.sqft * 1.1;
+        surface.cost = totalSqft * (surface.selectedTile.price || 5.99);
+    } else {
+        surface.cost = 0;
+    }
+    
+    document.getElementById(surface.id + '-cost').textContent = '$' + surface.cost.toFixed(2);
+}
+
+function removeSurfaceFromRoom(roomId, surfaceId) {
+    const room = rooms.find(r => r.id === roomId);
+    if (!room) return;
+    
+    room.surfaces = room.surfaces.filter(s => s.id !== surfaceId);
+    document.getElementById(surfaceId).remove();
+    updateRoomStatus(roomId);
+    
+    // Auto-save
+    autoSaveProject();
+}
+
+function updateRoomStatus(roomId) {
+    const room = rooms.find(r => r.id === roomId);
+    if (!room) return;
+    
+    const statusElement = document.getElementById(roomId + '-status');
+    statusElement.textContent = room.surfaces.length + ' surface' + (room.surfaces.length !== 1 ? 's' : '');
+}
+
+function selectTileForSurface(surfaceId) {
+    // This would integrate with the tile selection system
+    console.log('Selecting tile for surface:', surfaceId);
+    // TODO: Implement tile selection integration
 }
 
 // Update current selection
