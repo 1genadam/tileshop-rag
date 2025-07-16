@@ -881,10 +881,15 @@ function setupAddressDropdown() {
     const addressSelect = document.getElementById('address-select');
     const customerAddress = document.getElementById('customer-address').value;
     
+    console.log('🏠 Setting up address dropdown, customer address:', customerAddress);
+    
     addressSelect.innerHTML = '<option value="">Choose address...</option>';
     
     if (customerAddress && customerAddress.trim() !== '') {
+        console.log('✅ Account address available, adding to dropdown');
         addressSelect.innerHTML += '<option value="account-address">Use Account Address (' + customerAddress + ')</option>';
+    } else {
+        console.log('❌ No account address available');
     }
     
     addressSelect.innerHTML += '<option value="new-address">+ Add New Address</option>';
@@ -898,9 +903,20 @@ function handleAddressSelection() {
     const selectedAddressText = document.getElementById('selected-address-text');
     const projectAddressInput = document.getElementById('project-address');
     
+    console.log('🏠 Address selection changed to:', addressSelect.value);
+    
     if (addressSelect.value === 'account-address') {
         // Use account address
         const accountAddress = document.getElementById('customer-address').value;
+        console.log('🏠 Using account address:', accountAddress);
+        
+        if (!accountAddress) {
+            console.log('❌ No account address available, resetting dropdown');
+            addressSelect.value = '';
+            alert('Please enter your address in the Customer Information section first.');
+            return;
+        }
+        
         projectAddressInput.value = accountAddress;
         
         // Show selected address display
