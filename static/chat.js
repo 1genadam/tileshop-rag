@@ -728,9 +728,14 @@ async function lookupCustomer() {
             statusText.textContent = `✅ Found: ${data.customer.name}`;
             differentBtn.style.display = 'inline-block';
             
-            // Populate customer data
+            // Show customer info fields and populate data
+            document.getElementById('customer-info-fields').style.display = 'block';
             document.getElementById('customer-name').value = data.customer.name || '';
             document.getElementById('customer-email').value = data.customer.email || '';
+            document.getElementById('customer-address').value = data.customer.address || '';
+            
+            // Hide create account button since customer exists
+            document.getElementById('create-account-btn').style.display = 'none';
             
             // Store customer data
             projectData.customer = data.customer;
@@ -757,15 +762,19 @@ async function lookupCustomer() {
         } else {
             // Customer not found
             statusDiv.className = 'phone-status not-found';
-            statusText.textContent = '❌ Not found - New customer setup';
+            statusText.textContent = '❌ Not found';
             differentBtn.style.display = 'inline-block';
+            
+            // Show create account button instead of automatically showing fields
+            document.getElementById('create-account-btn').style.display = 'inline-block';
+            
+            // Hide customer info fields until create account is clicked
+            document.getElementById('customer-info-fields').style.display = 'none';
             
             // Clear fields for new customer
             document.getElementById('customer-name').value = '';
             document.getElementById('customer-email').value = '';
-            
-            // Focus on name field
-            document.getElementById('customer-name').focus();
+            document.getElementById('customer-address').value = '';
         }
         
     } catch (error) {
@@ -784,12 +793,29 @@ function enterDifferentNumber() {
     phoneInput.focus();
     statusDiv.style.display = 'none';
     
+    // Hide customer info fields and create account button
+    document.getElementById('customer-info-fields').style.display = 'none';
+    document.getElementById('create-account-btn').style.display = 'none';
+    
     // Clear customer data
     document.getElementById('customer-name').value = '';
     document.getElementById('customer-email').value = '';
+    document.getElementById('customer-address').value = '';
     document.getElementById('continue-project-option').style.display = 'none';
     
     projectData.customer = {};
+}
+
+// Show create account fields
+function showCreateAccountFields() {
+    // Show customer info fields
+    document.getElementById('customer-info-fields').style.display = 'block';
+    
+    // Hide create account button
+    document.getElementById('create-account-btn').style.display = 'none';
+    
+    // Focus on name field
+    document.getElementById('customer-name').focus();
 }
 
 // Update current selection

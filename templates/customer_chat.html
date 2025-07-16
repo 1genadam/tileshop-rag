@@ -521,9 +521,17 @@
                         <button id="different-number-btn" onclick="enterDifferentNumber()" style="display: none; margin-left: 1rem; padding: 0.25rem 0.75rem; background: transparent; border: 1px solid #6b7280; border-radius: 0.25rem; cursor: pointer;">
                             Enter Different Number
                         </button>
+                        <button id="create-account-btn" onclick="showCreateAccountFields()" style="display: none; margin-left: 1rem; padding: 0.25rem 0.75rem; background: #10b981; color: white; border: 1px solid #10b981; border-radius: 0.25rem; cursor: pointer;">
+                            Create Account
+                        </button>
                     </div>
-                    <input type="text" id="customer-name" placeholder="Customer Name" class="w-full p-3 border border-gray-300 rounded-lg mb-2">
-                    <input type="email" id="customer-email" placeholder="Email Address" class="w-full p-3 border border-gray-300 rounded-lg">
+                    
+                    <!-- Customer Information Fields - Hidden by default -->
+                    <div id="customer-info-fields" style="display: none;">
+                        <input type="text" id="customer-name" placeholder="Customer Name" class="w-full p-3 border border-gray-300 rounded-lg mb-2">
+                        <input type="email" id="customer-email" placeholder="Email Address" class="w-full p-3 border border-gray-300 rounded-lg mb-2">
+                        <input type="text" id="customer-address" placeholder="Address" class="w-full p-3 border border-gray-300 rounded-lg">
+                    </div>
                 </div>
                 
                 <!-- Project Selection -->
