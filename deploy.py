@@ -39,8 +39,8 @@ def deploy_to_fly():
         sys.exit(1)
     
     # Check if we're in the right directory
-    if not os.path.exists("reboot_dashboard.py"):
-        print("❌ Error: reboot_dashboard.py not found. Please run from the project directory.")
+    if not os.path.exists("dashboard_app.py"):
+        print("❌ Error: dashboard_app.py not found. Please run from the project directory.")
         sys.exit(1)
     
     # Check if Docker is running

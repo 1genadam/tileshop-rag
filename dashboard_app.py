@@ -237,8 +237,8 @@ def dashboard():
 
 @app.route('/chat')
 def chat():
-    """RAG chat interface"""
-    return render_template('chat.html')
+    """Customer chat interface with professional AOS methodology"""
+    return render_template('customer_chat.html')
 
 @app.route('/api/system/health')
 def health_check():
@@ -1149,6 +1149,32 @@ def unified_chat_api():
         logger.error(f"Error in unified chat: {e}")
         return jsonify({'success': False, 'error': str(e)})
 
+
+@app.route('/api/chat', methods=['POST'])
+def customer_chat_api():
+    """Customer-focused chat endpoint with AOS methodology"""
+    try:
+        from modules.simple_tile_agent import SimpleTileAgent
+        
+        data = request.get_json()
+        query = data.get('query', '')
+        conversation_history = data.get('conversation_history', [])
+        phone_number = data.get('phone_number', '')
+        
+        if not query:
+            return jsonify({'success': False, 'error': 'Query is required'})
+        
+        # Initialize simple tile agent
+        agent = SimpleTileAgent(db_manager, rag_manager)
+        
+        # Let the agent handle the conversation naturally
+        result = agent.chat(query, conversation_history, phone_number)
+        
+        return jsonify(result)
+        
+    except Exception as e:
+        logger.error(f"Error in customer chat: {e}")
+        return jsonify({'success': False, 'error': str(e)})
 
 @app.route('/api/chat/simple', methods=['POST'])
 def simple_chat_api():
