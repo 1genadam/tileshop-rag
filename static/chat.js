@@ -757,6 +757,9 @@ async function lookupCustomer() {
                 });
             }
             
+            // Pre-setup address dropdown since we have customer address now
+            setupAddressDropdown();
+            
             // Auto-save customer data
             autoSaveProject();
             
@@ -834,6 +837,9 @@ function showCreateAccountFields() {
     projectSelect.innerHTML = '<option value="">Choose a project...</option>';
     projectSelect.innerHTML += '<option value="new">+ Create New Project</option>';
     
+    // Pre-setup address dropdown (will only show "Add New Address" for new customers)
+    setupAddressDropdown();
+    
     // Focus on name field
     document.getElementById('customer-name').focus();
     
@@ -877,8 +883,8 @@ function setupAddressDropdown() {
     
     addressSelect.innerHTML = '<option value="">Choose address...</option>';
     
-    if (customerAddress) {
-        addressSelect.innerHTML += '<option value="account-address">Use Account Address</option>';
+    if (customerAddress && customerAddress.trim() !== '') {
+        addressSelect.innerHTML += '<option value="account-address">Use Account Address (' + customerAddress + ')</option>';
     }
     
     addressSelect.innerHTML += '<option value="new-address">+ Add New Address</option>';
