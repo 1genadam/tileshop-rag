@@ -584,11 +584,25 @@ document.addEventListener('DOMContentLoaded', function() {
     const formPanelButtons = document.querySelectorAll('button[onclick*="toggleFormPanel"]');
     console.log('🔍 Found form panel buttons:', formPanelButtons.length);
     
-    formPanelButtons.forEach((button, index) => {
-        console.log(`🔘 Setting up button ${index}:`, button);
+    // Also try to find the specific "Open Form Panel" button
+    const openFormPanelButton = document.querySelector('button:contains("Open Form Panel")');
+    console.log('🔍 Found Open Form Panel button:', openFormPanelButton);
+    
+    // Try a more specific selector for the blue button
+    const blueFormButton = document.querySelector('button.bg-blue-600');
+    console.log('🔍 Found blue form button:', blueFormButton);
+    
+    // Setup event listeners for all found buttons
+    const allButtons = [...formPanelButtons];
+    if (blueFormButton && !allButtons.includes(blueFormButton)) {
+        allButtons.push(blueFormButton);
+    }
+    
+    allButtons.forEach((button, index) => {
+        console.log(`🔘 Setting up button ${index}:`, button.textContent?.trim());
         button.addEventListener('click', function(e) {
             e.preventDefault();
-            console.log('🔘 Button clicked via event listener');
+            console.log('🔘 Button clicked via event listener:', this.textContent?.trim());
             window.toggleFormPanel();
         });
     });
