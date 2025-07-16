@@ -1069,6 +1069,67 @@ function handleRoomNameKeyPress(event) {
     autoSaveProject();
 }
 
+// Room name editing functions
+function editRoomName(roomId) {
+    const nameDisplay = document.getElementById(roomId + '-name-display');
+    const nameInput = document.getElementById(roomId + '-name-input');
+    
+    // Hide display, show input
+    nameDisplay.style.display = 'none';
+    nameInput.style.display = 'inline-block';
+    nameInput.focus();
+    nameInput.select();
+}
+
+function handleRoomNameEditKeyPress(event, roomId) {
+    if (event.key === 'Enter') {
+        saveRoomName(roomId);
+    } else if (event.key === 'Escape') {
+        cancelRoomNameEdit(roomId);
+    }
+}
+
+function saveRoomName(roomId) {
+    const nameInput = document.getElementById(roomId + '-name-input');
+    const nameDisplay = document.getElementById(roomId + '-name-display');
+    const newName = nameInput.value.trim();
+    
+    if (!newName) {
+        alert('Room name cannot be empty');
+        nameInput.focus();
+        return;
+    }
+    
+    // Update the room object
+    const room = rooms.find(r => r.id === roomId);
+    if (room) {
+        room.name = newName;
+        nameDisplay.textContent = newName;
+        nameInput.value = newName;
+    }
+    
+    // Hide input, show display
+    nameInput.style.display = 'none';
+    nameDisplay.style.display = 'inline';
+    
+    // Auto-save
+    autoSaveProject();
+}
+
+function cancelRoomNameEdit(roomId) {
+    const nameInput = document.getElementById(roomId + '-name-input');
+    const nameDisplay = document.getElementById(roomId + '-name-display');
+    const room = rooms.find(r => r.id === roomId);
+    
+    if (room) {
+        nameInput.value = room.name; // Reset to original value
+    }
+    
+    // Hide input, show display
+    nameInput.style.display = 'none';
+    nameDisplay.style.display = 'inline';
+}
+
 function renderRoomCard(room) {
     const roomsContainer = document.getElementById('rooms-container');
     
@@ -1078,7 +1139,10 @@ function renderRoomCard(room) {
     
     roomCard.innerHTML = `
         <div class="card-header" onclick="toggleCard('${room.id}')">
-            <div class="card-title">🏠 ${room.name}</div>
+            <div class="card-title">
+                🏠 <span class="room-name-display" id="${room.id}-name-display" onclick="event.stopPropagation(); editRoomName('${room.id}')" style="cursor: pointer; border-bottom: 1px dotted #666;">${room.name}</span>
+                <input type="text" id="${room.id}-name-input" class="room-name-input" style="display: none; margin-left: 0.5rem; padding: 2px 8px; border: 1px solid #ccc; border-radius: 4px; font-size: 14px;" onkeypress="handleRoomNameEditKeyPress(event, '${room.id}')" onblur="cancelRoomNameEdit('${room.id}')" value="${room.name}">
+            </div>
             <div class="card-status" id="${room.id}-status">0 surfaces</div>
             <div class="card-toggle">▼</div>
         </div>
@@ -1087,9 +1151,23 @@ function renderRoomCard(room) {
                 <!-- Surfaces will be added here -->
             </div>
             <div style="text-align: center; margin-top: 1rem;">
-                <button onclick="addSurfaceToRoom('${room.id}')" class="w-full py-2 px-4 bg-green-600 text-white rounded hover:bg-green-700 transition-colors">
+                <!-- Add Surface Button -->
+                <button onclick="showAddSurfaceInput('${room.id}')" class="w-full py-2 px-4 bg-green-600 text-white rounded hover:bg-green-700 transition-colors" id="${room.id}-add-surface-btn">
                     <i class="fas fa-plus mr-2"></i>Add Surface
                 </button>
+                
+                <!-- Add Surface Input Field -->
+                <div id="${room.id}-add-surface-input" style="display: none; margin-top: 1rem;">
+                    <input type="text" id="${room.id}-surface-input" placeholder="Enter surface type (e.g., Floor, Wall, Backsplash, etc.)" class="w-full p-3 border border-gray-300 rounded-lg mb-2" onkeypress="handleSurfaceNameKeyPress(event, '${room.id}')">
+                    <div class="flex gap-2">
+                        <button onclick="addSurfaceFromInput('${room.id}')" class="flex-1 py-2 px-4 bg-green-600 text-white rounded-lg hover:bg-green-700 transition-colors">
+                            <i class="fas fa-check mr-2"></i>Add Surface
+                        </button>
+                        <button onclick="cancelAddSurface('${room.id}')" class="flex-1 py-2 px-4 bg-gray-400 text-white rounded-lg hover:bg-gray-500 transition-colors">
+                            <i class="fas fa-times mr-2"></i>Cancel
+                        </button>
+                    </div>
+                </div>
             </div>
         </div>
     `;
@@ -1098,8 +1176,33 @@ function renderRoomCard(room) {
 }
 
 function addSurfaceToRoom(roomId) {
-    const surfaceType = prompt('Enter surface type (e.g., Floor, Wall, Backsplash, etc.):');
-    if (!surfaceType) return;
+    // Legacy function - now just shows the input field
+    showAddSurfaceInput(roomId);
+}
+
+function showAddSurfaceInput(roomId) {
+    const addSurfaceBtn = document.getElementById(roomId + '-add-surface-btn');
+    const addSurfaceInput = document.getElementById(roomId + '-add-surface-input');
+    const surfaceInput = document.getElementById(roomId + '-surface-input');
+    
+    // Hide the button and show the input field
+    addSurfaceBtn.style.display = 'none';
+    addSurfaceInput.style.display = 'block';
+    
+    // Focus on the input field
+    surfaceInput.focus();
+    surfaceInput.value = '';
+}
+
+function addSurfaceFromInput(roomId) {
+    const surfaceInput = document.getElementById(roomId + '-surface-input');
+    const surfaceType = surfaceInput.value.trim();
+    
+    if (!surfaceType) {
+        alert('Please enter a surface type');
+        surfaceInput.focus();
+        return;
+    }
     
     const room = rooms.find(r => r.id === roomId);
     if (!room) return;
@@ -1120,8 +1223,32 @@ function addSurfaceToRoom(roomId) {
     renderSurfaceItem(roomId, surface);
     updateRoomStatus(roomId);
     
+    // Hide the input field and show the button again
+    cancelAddSurface(roomId);
+    
     // Auto-save
     autoSaveProject();
+}
+
+function cancelAddSurface(roomId) {
+    const addSurfaceBtn = document.getElementById(roomId + '-add-surface-btn');
+    const addSurfaceInput = document.getElementById(roomId + '-add-surface-input');
+    const surfaceInput = document.getElementById(roomId + '-surface-input');
+    
+    // Show the button and hide the input field
+    addSurfaceBtn.style.display = 'block';
+    addSurfaceInput.style.display = 'none';
+    
+    // Clear the input
+    surfaceInput.value = '';
+}
+
+function handleSurfaceNameKeyPress(event, roomId) {
+    if (event.key === 'Enter') {
+        addSurfaceFromInput(roomId);
+    } else if (event.key === 'Escape') {
+        cancelAddSurface(roomId);
+    }
 }
 
 function renderSurfaceItem(roomId, surface) {
