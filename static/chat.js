@@ -1,6 +1,7 @@
 // Fixed Chat functionality - working version
 console.log('🚀 SCRIPT LOADED: External JavaScript loaded (fixed version)');
 console.log('🔧 SCRIPT TEST: This should appear in console immediately');
+console.log('🚀 DEPLOYMENT: Triggering production deployment with form panel fixes');
 
 // Global variables
 let messageCount = 0;
