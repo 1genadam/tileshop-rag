@@ -143,15 +143,17 @@ Customer: "I have this tile, can you help me find similar ones?"
 ### Project Structure
 ```
 tileshop_rag_prod/
-├── modules/                    # Core system modules
-│   ├── simple_tile_agent.py   # AI chat agent with AOS methodology
-│   ├── clip_tile_vision.py    # CLIP visual recognition system
-│   ├── nepq_scoring_system.py # Performance analytics
-│   └── store_inventory.py     # Store location management
-├── templates/                  # Web UI templates
-├── knowledge_base/            # AI training data and references
-├── readme/                    # Comprehensive documentation
-└── reports/                   # Analytics and performance reports
+├── modules/                           # Core system modules
+│   ├── simple_tile_agent.py         # AI chat agent with AOS methodology
+│   ├── clip_tile_vision.py          # CLIP visual recognition system
+│   ├── nepq_scoring_system.py       # Performance analytics
+│   └── store_inventory.py           # Store location management
+├── templates/                         # Web UI templates
+├── knowledge_base/                   # AI training data and references
+├── readme/                           # Comprehensive documentation
+├── reports/                          # Analytics and performance reports
+├── create_session_preferences_schema.sql  # Session preferences database schema
+└── create_customer_schema.sql       # Customer project database schema
 ```
 
 ### API Endpoints
@@ -160,6 +162,7 @@ tileshop_rag_prod/
 - `POST /api/chat` - Customer consultation with AOS methodology
 - `GET /api/conversations/history/<phone>` - Conversation history
 - `GET /api/nepq/analysis/<id>` - NEPQ performance analysis
+- `POST /api/session/preferences` - Save comprehensive tile preferences by session
 
 **Visual Recognition:**
 - `POST /api/vision/analyze-tile` - CLIP tile similarity matching

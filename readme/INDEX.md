@@ -134,6 +134,12 @@ This index provides a comprehensive overview of all documentation files in the `
 | **[DATABASE_SCHEMA_ENHANCEMENTS.md](DATABASE_SCHEMA_ENHANCEMENTS.md)** | Database architecture improvements | Schema optimizations, performance enhancements, data integrity |
 | **[DUPLICATE_FIELD_CLEANUP.md](DUPLICATE_FIELD_CLEANUP.md)** | Technical Specifications duplicate field removal | Database cleanup, frontend filtering, field display name improvements |
 
+### **✅ NEW: Session Management & Preferences**
+| File | Purpose | Key Content |
+|------|---------|-------------|
+| **[../create_session_preferences_schema.sql](../create_session_preferences_schema.sql)** | Comprehensive session preference tracking schema | PostgreSQL schema for session preferences and tile presentations, maps to product catalog specifications |
+| **[../create_customer_schema.sql](../create_customer_schema.sql)** | Customer project database schema | Complete customer and project data structure for AOS conversations |
+
 ### **🤖 AI TOOL INTEGRATION**
 
 ### **🔄 NEW: CCU Feedback Loop System** (July 16, 2025)
@@ -488,4 +494,22 @@ This index provides a comprehensive overview of all documentation files in the `
 
 ---
 
-**Total documentation files: 56** (Updated: July 16, 2025)
+## 🗂️ **NEW DATABASE SCHEMA FILES** (July 23, 2025)
+
+### **Enhanced Customer Data Management**
+| File | Purpose | Business Impact |
+|------|---------|----------------|
+| **`create_session_preferences_schema.sql`** | Comprehensive session preference tracking with 27+ tile specification fields | Enables sophisticated tile recommendations aligned with PostgreSQL product schema |
+| **`create_customer_schema.sql`** | Complete customer project database structure | Supports AOS methodology with structured data capture across all conversation phases |
+
+### **🎯 Session Preferences Capabilities**
+- **27+ Preference Fields**: Brands, materials, colors, sizes, finishes, slip ratings, technical specs, budget ranges
+- **PostgreSQL Alignment**: Maps directly to product catalog schema for accurate matching
+- **Conversation Context**: Captures preferences from natural conversation analysis
+- **Auto-Save Functionality**: Real-time preference storage during chat sessions
+- **Tile Presentation Tracking**: Records what tiles were shown to customers for future reference
+
+---
+
+**Total documentation files: 56** (Updated: July 23, 2025)
+**Total schema files: 2** (Session preferences + Customer project schemas)
