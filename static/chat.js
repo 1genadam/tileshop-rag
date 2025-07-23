@@ -32,10 +32,23 @@ async function sendMessage() {
     
     // Send to AOS API
     try {
+        // Generate a session ID if not exists
+        if (!projectData.sessionId) {
+            projectData.sessionId = 'session-' + Date.now() + '-' + Math.random().toString(36).substr(2, 9);
+        }
+        
         const requestData = {
             query: message,
             phone_number: phoneInput ? phoneInput.value.trim() : '',
-            first_name: nameInput ? nameInput.value.trim() : ''
+            first_name: nameInput ? nameInput.value.trim() : '',
+            session_id: projectData.sessionId,
+            project_data: {
+                customer: projectData.customer || {},
+                project: projectData.project || {},
+                rooms: rooms || [],
+                current_surface: projectData.currentSurface || {},
+                saved_surfaces: projectData.surfaces || []
+            }
         };
         
         const response = await fetch('/api/chat', {
@@ -1368,9 +1381,92 @@ function updateRoomStatus(roomId) {
 }
 
 function selectTileForSurface(surfaceId) {
-    // This would integrate with the tile selection system
     console.log('Selecting tile for surface:', surfaceId);
-    // TODO: Implement tile selection integration
+    
+    // Get the surface info
+    const surface = findSurfaceById(surfaceId);
+    if (!surface) {
+        console.error('Surface not found:', surfaceId);
+        return;
+    }
+    
+    // Create a chat message asking for tile selection help
+    const message = `I need help selecting tiles for my ${surface.type.toLowerCase()} surface (${surface.sqft || 0} sq ft). Can you show me some options?`;
+    
+    // Add the message to chat and send it
+    const chatInput = document.getElementById('chat-input');
+    if (chatInput) {
+        chatInput.value = message;
+        sendMessage();
+    } else {
+        // Fallback: add message directly
+        addMessage(message, 'user');
+        
+        // Send the message via API
+        sendTileSelectionRequest(surface);
+    }
+}
+
+// Helper function to find surface by ID
+function findSurfaceById(surfaceId) {
+    for (const room of rooms) {
+        const surface = room.surfaces.find(s => s.id === surfaceId);
+        if (surface) {
+            return surface;
+        }
+    }
+    return null;
+}
+
+// Send tile selection request directly to chat API
+async function sendTileSelectionRequest(surface) {
+    try {
+        const requestData = {
+            query: `I need help selecting tiles for my ${surface.type.toLowerCase()} surface (${surface.sqft || 0} sq ft). Can you show me some options?`,
+            phone_number: document.getElementById('customer-phone')?.value.trim() || '',
+            first_name: document.getElementById('customer-name')?.value.trim() || '',
+            surface_context: {
+                type: surface.type,
+                area: surface.sqft,
+                room: findRoomBySurfaceId(surface.id)?.name || 'room'
+            }
+        };
+        
+        const response = await fetch('/api/chat', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify(requestData)
+        });
+        
+        const data = await response.json();
+        
+        if (data.success) {
+            addMessage(data.response, 'assistant');
+            
+            // Handle any tool calls for product search
+            if (data.tool_calls && data.tool_calls.length > 0) {
+                const searchResult = data.tool_calls.find(tc => tc.tool === 'search_products');
+                if (searchResult && searchResult.result && searchResult.result.products) {
+                    displaySearchResults(searchResult.result.products);
+                }
+            }
+        } else {
+            addMessage('Error: ' + (data.error || 'Could not get tile recommendations'), 'error');
+        }
+    } catch (error) {
+        console.error('Error requesting tile selection:', error);
+        addMessage('Connection error: Could not get tile recommendations', 'error');
+    }
+}
+
+// Helper function to find room containing a surface
+function findRoomBySurfaceId(surfaceId) {
+    for (const room of rooms) {
+        if (room.surfaces.find(s => s.id === surfaceId)) {
+            return room;
+        }
+    }
+    return null;
 }
 
 // Update current selection

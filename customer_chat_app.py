@@ -105,8 +105,10 @@ def customer_chat_api():
         data = request.get_json()
         query = data.get('query', '')
         conversation_history = data.get('conversation_history', [])
-        customer_phone = data.get('customer_phone', '')
-        customer_name = data.get('customer_name', '')
+        customer_phone = data.get('customer_phone', '') or data.get('phone_number', '')
+        customer_name = data.get('customer_name', '') or data.get('first_name', '')
+        session_id = data.get('session_id', '')
+        project_data = data.get('project_data', {})
         
         if not query.strip():
             return jsonify({'success': False, 'error': 'Query cannot be empty'})
@@ -114,9 +116,16 @@ def customer_chat_api():
         # Initialize Simple Tile Agent with AOS methodology
         agent = SimpleTileAgent(db_manager, rag_manager)
         
+        # Add project context to the query if available
+        enhanced_query = query
+        if project_data and any(project_data.values()):
+            project_summary = create_project_summary(project_data, session_id)
+            if project_summary:
+                enhanced_query = f"{query}\n\n[FORM DATA CONTEXT: {project_summary}]"
+        
         # Process with AOS methodology
         result = agent.process_customer_query(
-            query, 
+            enhanced_query, 
             conversation_history,
             customer_phone=customer_phone,
             customer_name=customer_name
@@ -854,6 +863,81 @@ def save_ar_visualization():
     except Exception as e:
         logger.error(f"Error saving AR visualization: {e}")
         return jsonify({'success': False, 'error': str(e)})
+
+def create_project_summary(project_data, session_id):
+    """Create a concise project summary from form data for LLM context"""
+    try:
+        summary_parts = []
+        
+        # Session reference
+        if session_id:
+            summary_parts.append(f"Session: {session_id}")
+        
+        # Customer info
+        customer = project_data.get('customer', {})
+        if customer.get('name') or customer.get('phone'):
+            customer_info = []
+            if customer.get('name'):
+                customer_info.append(f"Name: {customer['name']}")
+            if customer.get('phone'):
+                customer_info.append(f"Phone: {customer['phone']}")
+            summary_parts.append(f"Customer: {', '.join(customer_info)}")
+        
+        # Project info
+        project = project_data.get('project', {})
+        if project.get('name') or project.get('address'):
+            project_info = []
+            if project.get('name'):
+                project_info.append(f"Project: {project['name']}")
+            if project.get('address'):
+                project_info.append(f"Address: {project['address']}")
+            summary_parts.append(', '.join(project_info))
+        
+        # Rooms and surfaces
+        rooms = project_data.get('rooms', [])
+        if rooms:
+            rooms_info = []
+            for room in rooms:
+                room_name = room.get('name', 'Unknown Room')
+                surfaces = room.get('surfaces', [])
+                if surfaces:
+                    surface_details = []
+                    for surface in surfaces:
+                        surface_type = surface.get('type', 'surface')
+                        height = surface.get('height', 0)
+                        width = surface.get('width', 0)
+                        sqft = surface.get('sqft', height * width)
+                        if sqft > 0:
+                            surface_details.append(f"{surface_type} ({sqft} sq ft)")
+                        else:
+                            surface_details.append(surface_type)
+                    rooms_info.append(f"{room_name}: {', '.join(surface_details)}")
+                else:
+                    rooms_info.append(f"{room_name}: no surfaces defined")
+            
+            if rooms_info:
+                summary_parts.append(f"Rooms: {'; '.join(rooms_info)}")
+        
+        # Current/saved surfaces (if no rooms)
+        if not rooms:
+            saved_surfaces = project_data.get('saved_surfaces', [])
+            if saved_surfaces:
+                surface_info = []
+                for surface in saved_surfaces:
+                    area = surface.get('area', 'room')
+                    surface_type = surface.get('surface', 'surface')
+                    calculated = surface.get('calculated', 0)
+                    if calculated > 0:
+                        surface_info.append(f"{area} {surface_type} ({calculated} sq ft)")
+                    else:
+                        surface_info.append(f"{area} {surface_type}")
+                summary_parts.append(f"Surfaces: {', '.join(surface_info)}")
+        
+        return ' | '.join(summary_parts) if summary_parts else None
+        
+    except Exception as e:
+        logger.error(f"Error creating project summary: {e}")
+        return None
 
 def generate_structured_acknowledgment(action, project_data):
     """Generate LLM acknowledgment of structured data updates"""
