@@ -2008,10 +2008,17 @@
         });
 
         async function sendMessage() {
+            console.log('🏠 HTML sendMessage called from template');
             const input = document.getElementById('chat-input');
             const message = input.value.trim();
             
-            if (!message) return;
+            console.log('📝 HTML Message content:', message);
+            console.log('📝 HTML Message length:', message.length);
+            
+            if (!message) {
+                console.log('⚠️ HTML No message entered, returning early');
+                return;
+            }
 
             const customerName = document.getElementById('customer-name').value.trim();
             const customerPhone = document.getElementById('customer-phone').value.trim();

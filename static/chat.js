@@ -8,14 +8,17 @@ let messageCount = 0;
 
 // Send message function with AOS integration
 async function sendMessage() {
-    console.log('Send function called (AOS enhanced)');
+    console.log('🚀 EXTERNAL sendMessage called from chat.js');
     const input = document.getElementById('chat-input');
     const phoneInput = document.getElementById('customer-phone');
     const nameInput = document.getElementById('customer-name');
     const message = input.value.trim();
     
+    console.log('📝 Message content:', message);
+    console.log('📝 Message length:', message.length);
+    
     if (!message) {
-        alert('Please enter a message');
+        console.log('⚠️ No message entered, ignoring send request');
         return;
     }
     
@@ -1024,7 +1027,7 @@ function addNewRoomFromInput() {
     const roomName = roomNameInput.value.trim();
     
     if (!roomName) {
-        alert('Please enter a room name');
+        console.log('Room name is empty, focusing input');
         roomNameInput.focus();
         return;
     }
@@ -1095,7 +1098,7 @@ function saveRoomName(roomId) {
     const newName = nameInput.value.trim();
     
     if (!newName) {
-        alert('Room name cannot be empty');
+        console.log('Room name cannot be empty, focusing input');
         nameInput.focus();
         return;
     }
@@ -1199,7 +1202,7 @@ function addSurfaceFromInput(roomId) {
     const surfaceType = surfaceInput.value.trim();
     
     if (!surfaceType) {
-        alert('Please enter a surface type');
+        console.log('Surface type is empty, focusing input');
         surfaceInput.focus();
         return;
     }
