@@ -441,11 +441,81 @@ function addMessage(text, type) {
 function extractPreferencesFromMessage(text) {
     const lowerText = text.toLowerCase();
     
-    // Common colors
-    const colors = ['blue', 'taupe', 'white', 'black', 'gray', 'grey', 'beige', 'brown', 'green', 'red', 'cream', 'ivory', 'charcoal', 'navy', 'teal', 'sage', 'stone', 'sand', 'marble', 'slate'];
+    // Comprehensive tile specification extraction based on PostgreSQL schema
     
-    // Common styles/materials
-    const styles = ['marble', 'ceramic', 'porcelain', 'stone', 'wood', 'subway', 'mosaic', 'hexagon', 'herringbone', 'plank', 'large format', 'natural', 'polished', 'matte', 'glossy', 'textured'];
+    // Colors (expanded)
+    const colors = [
+        'blue', 'taupe', 'white', 'black', 'gray', 'grey', 'beige', 'brown', 
+        'green', 'red', 'cream', 'ivory', 'charcoal', 'navy', 'teal', 'sage', 
+        'stone', 'sand', 'marble', 'slate', 'tan', 'gold', 'silver', 'copper',
+        'bronze', 'rust', 'terracotta', 'burgundy', 'purple', 'pink', 'yellow',
+        'orange', 'aqua', 'turquoise', 'mint', 'coral', 'peach'
+    ];
+    
+    // Materials (from product schema)
+    const materials = [
+        'ceramic', 'porcelain', 'marble', 'travertine', 'limestone', 'granite', 
+        'slate', 'quartzite', 'onyx', 'glass', 'metal', 'wood', 'stone', 
+        'natural stone', 'engineered stone', 'composite', 'vinyl', 'laminate'
+    ];
+    
+    // Finishes (from product specifications)
+    const finishes = [
+        'matte', 'glossy', 'polished', 'honed', 'textured', 'brushed', 
+        'tumbled', 'antiqued', 'distressed', 'smooth', 'rough', 'embossed',
+        'satin', 'semi-gloss', 'natural', 'unglazed', 'glazed'
+    ];
+    
+    // Sizes and dimensions
+    const sizes = [
+        '12x24', '6x6', '12x12', '18x18', '24x24', '36x36', '24x48', 
+        '6x12', '3x6', '4x8', '8x8', '16x16', '20x20', '12x36', 
+        'large format', 'small format', 'subway', 'penny round', 'hexagon',
+        'mosaic', 'plank', 'linear', 'strip'
+    ];
+    
+    // Styles and patterns
+    const styles = [
+        'modern', 'contemporary', 'traditional', 'farmhouse', 'industrial', 
+        'rustic', 'mediterranean', 'scandinavian', 'mid-century', 'art deco',
+        'subway', 'herringbone', 'chevron', 'basket weave', 'brick pattern',
+        'diagonal', 'straight lay', 'offset', 'pinwheel', 'versailles'
+    ];
+    
+    // Brands (common tile brands)
+    const brands = [
+        'daltile', 'american olean', 'marazzi', 'mohawk', 'shaw', 'crossville', 
+        'florida tile', 'emser', 'interceramic', 'atlas concorde', 'ragno',
+        'florim', 'porcelanosa', 'casa dolce casa', 'refin', 'coem'
+    ];
+    
+    // Surface types
+    const surfaces = [
+        'floor', 'wall', 'backsplash', 'shower', 'bathroom', 'kitchen', 
+        'countertop', 'fireplace', 'accent wall', 'wainscoting', 'ceiling',
+        'outdoor', 'pool', 'patio', 'entryway', 'laundry'
+    ];
+    
+    // Technical specifications
+    const technicalSpecs = {
+        'slip resistant': 'slip_resistance',
+        'frost resistant': 'frost_resistance', 
+        'stain resistant': 'stain_resistance',
+        'water resistant': 'water_resistance',
+        'chemical resistant': 'chemical_resistance',
+        'rectified': 'edge_type',
+        'pressed edge': 'edge_type',
+        'through body': 'construction',
+        'full body': 'construction'
+    };
+    
+    // Initialize preference categories if not exists
+    if (!conversationPreferences.brands) conversationPreferences.brands = [];
+    if (!conversationPreferences.materials) conversationPreferences.materials = [];
+    if (!conversationPreferences.finishes) conversationPreferences.finishes = [];
+    if (!conversationPreferences.sizes) conversationPreferences.sizes = [];
+    if (!conversationPreferences.surfaces) conversationPreferences.surfaces = [];
+    if (!conversationPreferences.technical) conversationPreferences.technical = [];
     
     // Extract colors
     colors.forEach(color => {
@@ -455,11 +525,59 @@ function extractPreferencesFromMessage(text) {
         }
     });
     
-    // Extract styles/materials
+    // Extract materials
+    materials.forEach(material => {
+        if (lowerText.includes(material) && !conversationPreferences.materials.includes(material)) {
+            conversationPreferences.materials.push(material);
+            console.log('🏗️ Extracted material preference:', material);
+        }
+    });
+    
+    // Extract finishes
+    finishes.forEach(finish => {
+        if (lowerText.includes(finish) && !conversationPreferences.finishes.includes(finish)) {
+            conversationPreferences.finishes.push(finish);
+            console.log('✨ Extracted finish preference:', finish);
+        }
+    });
+    
+    // Extract sizes
+    sizes.forEach(size => {
+        if (lowerText.includes(size) && !conversationPreferences.sizes.includes(size)) {
+            conversationPreferences.sizes.push(size);
+            console.log('📏 Extracted size preference:', size);
+        }
+    });
+    
+    // Extract styles/patterns
     styles.forEach(style => {
         if (lowerText.includes(style) && !conversationPreferences.styles.includes(style)) {
             conversationPreferences.styles.push(style);
-            console.log('✨ Extracted style preference:', style);
+            console.log('🎭 Extracted style preference:', style);
+        }
+    });
+    
+    // Extract brands
+    brands.forEach(brand => {
+        if (lowerText.includes(brand) && !conversationPreferences.brands.includes(brand)) {
+            conversationPreferences.brands.push(brand);
+            console.log('🏢 Extracted brand preference:', brand);
+        }
+    });
+    
+    // Extract surfaces
+    surfaces.forEach(surface => {
+        if (lowerText.includes(surface) && !conversationPreferences.surfaces.includes(surface)) {
+            conversationPreferences.surfaces.push(surface);
+            console.log('🏠 Extracted surface preference:', surface);
+        }
+    });
+    
+    // Extract technical specifications
+    Object.keys(technicalSpecs).forEach(spec => {
+        if (lowerText.includes(spec) && !conversationPreferences.technical.includes(spec)) {
+            conversationPreferences.technical.push(spec);
+            console.log('⚙️ Extracted technical preference:', spec);
         }
     });
     
@@ -477,7 +595,38 @@ function extractPreferencesFromMessage(text) {
     // Update project data with preferences
     projectData.preferences = conversationPreferences;
     
-    console.log('📝 Current preferences:', conversationPreferences);
+    // Auto-save preferences to session storage
+    autoSaveSessionPreferences();
+    
+    console.log('📝 Comprehensive preferences:', conversationPreferences);
+}
+
+// Auto-save session preferences to backend
+async function autoSaveSessionPreferences() {
+    if (!projectData.sessionId) return;
+    
+    try {
+        const requestData = {
+            session_id: projectData.sessionId,
+            customer_phone: document.getElementById('customer-phone')?.value.trim() || '',
+            preferences: conversationPreferences
+        };
+        
+        const response = await fetch('/api/session/preferences', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify(requestData)
+        });
+        
+        const data = await response.json();
+        if (data.success) {
+            console.log('💾 Session preferences auto-saved:', data.preferences_count, 'items');
+        } else {
+            console.warn('⚠️ Failed to save session preferences:', data.error);
+        }
+    } catch (error) {
+        console.error('❌ Error auto-saving session preferences:', error);
+    }
 }
 
 // Convert markdown to HTML
@@ -1455,23 +1604,39 @@ function selectTileForSurface(surfaceId) {
         return;
     }
     
-    // Create a contextual chat message with preferences
+    // Create a comprehensive contextual chat message with detailed preferences
     let message = `I need help selecting tiles for my ${surface.type.toLowerCase()} surface (${surface.sqft || 0} sq ft).`;
     
-    // Add conversation preferences if available
+    // Build comprehensive preference context
     const preferences = [];
-    if (conversationPreferences.colors.length > 0) {
+    
+    if (conversationPreferences.colors && conversationPreferences.colors.length > 0) {
         preferences.push(`colors: ${conversationPreferences.colors.join(', ')}`);
     }
-    if (conversationPreferences.styles.length > 0) {
+    if (conversationPreferences.materials && conversationPreferences.materials.length > 0) {
+        preferences.push(`materials: ${conversationPreferences.materials.join(', ')}`);
+    }
+    if (conversationPreferences.finishes && conversationPreferences.finishes.length > 0) {
+        preferences.push(`finishes: ${conversationPreferences.finishes.join(', ')}`);
+    }
+    if (conversationPreferences.sizes && conversationPreferences.sizes.length > 0) {
+        preferences.push(`sizes: ${conversationPreferences.sizes.join(', ')}`);
+    }
+    if (conversationPreferences.styles && conversationPreferences.styles.length > 0) {
         preferences.push(`styles: ${conversationPreferences.styles.join(', ')}`);
+    }
+    if (conversationPreferences.brands && conversationPreferences.brands.length > 0) {
+        preferences.push(`brands: ${conversationPreferences.brands.join(', ')}`);
+    }
+    if (conversationPreferences.technical && conversationPreferences.technical.length > 0) {
+        preferences.push(`features: ${conversationPreferences.technical.join(', ')}`);
     }
     
     if (preferences.length > 0) {
-        message += ` Based on our conversation, I'm interested in ${preferences.join(' and ')}.`;
+        message += ` Based on our conversation, I'm interested in ${preferences.join(', ')}.`;
     }
     
-    message += ` Can you show me some options?`;
+    message += ` Can you show me some options that match these preferences?`;
     
     // Add the message to chat and send it
     const chatInput = document.getElementById('chat-input');
@@ -1501,22 +1666,39 @@ function findSurfaceById(surfaceId) {
 // Send tile selection request directly to chat API
 async function sendTileSelectionRequest(surface) {
     try {
-        // Build contextual message with preferences
+        // Build comprehensive contextual message with detailed preferences
         let query = `I need help selecting tiles for my ${surface.type.toLowerCase()} surface (${surface.sqft || 0} sq ft).`;
         
+        // Build comprehensive preference context
         const preferences = [];
-        if (conversationPreferences.colors.length > 0) {
+        
+        if (conversationPreferences.colors && conversationPreferences.colors.length > 0) {
             preferences.push(`colors: ${conversationPreferences.colors.join(', ')}`);
         }
-        if (conversationPreferences.styles.length > 0) {
+        if (conversationPreferences.materials && conversationPreferences.materials.length > 0) {
+            preferences.push(`materials: ${conversationPreferences.materials.join(', ')}`);
+        }
+        if (conversationPreferences.finishes && conversationPreferences.finishes.length > 0) {
+            preferences.push(`finishes: ${conversationPreferences.finishes.join(', ')}`);
+        }
+        if (conversationPreferences.sizes && conversationPreferences.sizes.length > 0) {
+            preferences.push(`sizes: ${conversationPreferences.sizes.join(', ')}`);
+        }
+        if (conversationPreferences.styles && conversationPreferences.styles.length > 0) {
             preferences.push(`styles: ${conversationPreferences.styles.join(', ')}`);
+        }
+        if (conversationPreferences.brands && conversationPreferences.brands.length > 0) {
+            preferences.push(`brands: ${conversationPreferences.brands.join(', ')}`);
+        }
+        if (conversationPreferences.technical && conversationPreferences.technical.length > 0) {
+            preferences.push(`features: ${conversationPreferences.technical.join(', ')}`);
         }
         
         if (preferences.length > 0) {
-            query += ` Based on our conversation, I'm interested in ${preferences.join(' and ')}.`;
+            query += ` Based on our conversation, I'm interested in ${preferences.join(', ')}.`;
         }
         
-        query += ` Can you show me some options?`;
+        query += ` Can you show me some options that match these preferences?`;
         
         const requestData = {
             query: query,

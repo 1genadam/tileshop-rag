@@ -864,6 +864,82 @@ def save_ar_visualization():
         logger.error(f"Error saving AR visualization: {e}")
         return jsonify({'success': False, 'error': str(e)})
 
+@app.route('/api/session/preferences', methods=['POST'])
+def save_session_preferences():
+    """Save comprehensive session preferences to database for future tile matching"""
+    try:
+        data = request.get_json()
+        session_id = data.get('session_id', '')
+        preferences = data.get('preferences', {})
+        customer_phone = data.get('customer_phone', '')
+        
+        logger.info(f"Saving session preferences for {session_id}")
+        
+        # For now, store in memory/file until PostgreSQL setup
+        # TODO: Implement PostgreSQL storage using create_session_preferences_schema.sql
+        
+        # Create preferences summary for immediate use
+        pref_summary = {
+            'session_id': session_id,
+            'customer_phone': customer_phone,
+            'colors': preferences.get('colors', []),
+            'materials': preferences.get('materials', []),
+            'finishes': preferences.get('finishes', []),
+            'sizes': preferences.get('sizes', []),
+            'styles': preferences.get('styles', []),
+            'brands': preferences.get('brands', []),
+            'surfaces': preferences.get('surfaces', []),
+            'technical': preferences.get('technical', []),
+            'updated_at': datetime.now().isoformat()
+        }
+        
+        # Store in a simple file for now (replace with PostgreSQL later)
+        import json
+        import os
+        prefs_dir = 'session_preferences'
+        os.makedirs(prefs_dir, exist_ok=True)
+        
+        with open(f'{prefs_dir}/{session_id}.json', 'w') as f:
+            json.dump(pref_summary, f, indent=2)
+        
+        logger.info(f"Session preferences saved: {len(preferences)} categories")
+        
+        return jsonify({
+            'success': True,
+            'message': 'Session preferences saved successfully',
+            'preferences_count': sum(len(v) if isinstance(v, list) else 1 for v in preferences.values() if v)
+        })
+        
+    except Exception as e:
+        logger.error(f"Error saving session preferences: {e}")
+        return jsonify({'success': False, 'error': str(e)})
+
+@app.route('/api/session/preferences/<session_id>', methods=['GET'])
+def get_session_preferences(session_id):
+    """Retrieve session preferences for tile matching"""
+    try:
+        import json
+        prefs_file = f'session_preferences/{session_id}.json'
+        
+        if os.path.exists(prefs_file):
+            with open(prefs_file, 'r') as f:
+                preferences = json.load(f)
+            
+            return jsonify({
+                'success': True,
+                'preferences': preferences
+            })
+        else:
+            return jsonify({
+                'success': True,
+                'preferences': None,
+                'message': 'No preferences found for session'
+            })
+            
+    except Exception as e:
+        logger.error(f"Error retrieving session preferences: {e}")
+        return jsonify({'success': False, 'error': str(e)})
+
 def create_project_summary(project_data, session_id):
     """Create a concise project summary from form data for LLM context"""
     try:
@@ -933,14 +1009,24 @@ def create_project_summary(project_data, session_id):
                         surface_info.append(f"{area} {surface_type}")
                 summary_parts.append(f"Surfaces: {', '.join(surface_info)}")
         
-        # Conversation preferences
+        # Comprehensive conversation preferences
         preferences = project_data.get('preferences', {})
         if preferences:
             pref_parts = []
             if preferences.get('colors'):
                 pref_parts.append(f"Colors: {', '.join(preferences['colors'])}")
+            if preferences.get('materials'):
+                pref_parts.append(f"Materials: {', '.join(preferences['materials'])}")
+            if preferences.get('finishes'):
+                pref_parts.append(f"Finishes: {', '.join(preferences['finishes'])}")
+            if preferences.get('sizes'):
+                pref_parts.append(f"Sizes: {', '.join(preferences['sizes'])}")
             if preferences.get('styles'):
                 pref_parts.append(f"Styles: {', '.join(preferences['styles'])}")
+            if preferences.get('brands'):
+                pref_parts.append(f"Brands: {', '.join(preferences['brands'])}")
+            if preferences.get('technical'):
+                pref_parts.append(f"Features: {', '.join(preferences['technical'])}")
             if pref_parts:
                 summary_parts.append(f"Preferences: {'; '.join(pref_parts)}")
         
