@@ -5,6 +5,13 @@ console.log('🚀 DEPLOYMENT: Triggering production deployment with form panel f
 
 // Global variables
 let messageCount = 0;
+let conversationHistory = [];
+let conversationPreferences = {
+    colors: [],
+    styles: [],
+    materials: [],
+    mentions: []
+};
 
 // Send message function with AOS integration
 async function sendMessage() {
@@ -42,12 +49,14 @@ async function sendMessage() {
             phone_number: phoneInput ? phoneInput.value.trim() : '',
             first_name: nameInput ? nameInput.value.trim() : '',
             session_id: projectData.sessionId,
+            conversation_history: conversationHistory,
             project_data: {
                 customer: projectData.customer || {},
                 project: projectData.project || {},
                 rooms: rooms || [],
                 current_surface: projectData.currentSurface || {},
-                saved_surfaces: projectData.surfaces || []
+                saved_surfaces: projectData.surfaces || [],
+                preferences: conversationPreferences
             }
         };
         
@@ -377,6 +386,19 @@ function addMessage(text, type) {
         return;
     }
     
+    // Track conversation history
+    const messageEntry = {
+        role: type === 'user' ? 'user' : 'assistant',
+        content: text,
+        timestamp: new Date().toISOString()
+    };
+    conversationHistory.push(messageEntry);
+    
+    // Extract preferences from user messages
+    if (type === 'user') {
+        extractPreferencesFromMessage(text);
+    }
+    
     const div = document.createElement('div');
     div.className = 'flex';
     
@@ -413,6 +435,49 @@ function addMessage(text, type) {
     }
     
     console.log('Message added successfully, total messages:', messageCount);
+}
+
+// Extract preferences from user messages
+function extractPreferencesFromMessage(text) {
+    const lowerText = text.toLowerCase();
+    
+    // Common colors
+    const colors = ['blue', 'taupe', 'white', 'black', 'gray', 'grey', 'beige', 'brown', 'green', 'red', 'cream', 'ivory', 'charcoal', 'navy', 'teal', 'sage', 'stone', 'sand', 'marble', 'slate'];
+    
+    // Common styles/materials
+    const styles = ['marble', 'ceramic', 'porcelain', 'stone', 'wood', 'subway', 'mosaic', 'hexagon', 'herringbone', 'plank', 'large format', 'natural', 'polished', 'matte', 'glossy', 'textured'];
+    
+    // Extract colors
+    colors.forEach(color => {
+        if (lowerText.includes(color) && !conversationPreferences.colors.includes(color)) {
+            conversationPreferences.colors.push(color);
+            console.log('🎨 Extracted color preference:', color);
+        }
+    });
+    
+    // Extract styles/materials
+    styles.forEach(style => {
+        if (lowerText.includes(style) && !conversationPreferences.styles.includes(style)) {
+            conversationPreferences.styles.push(style);
+            console.log('✨ Extracted style preference:', style);
+        }
+    });
+    
+    // Store key mentions for context
+    conversationPreferences.mentions.push({
+        text: text,
+        timestamp: new Date().toISOString()
+    });
+    
+    // Keep only last 10 mentions to avoid memory bloat
+    if (conversationPreferences.mentions.length > 10) {
+        conversationPreferences.mentions = conversationPreferences.mentions.slice(-10);
+    }
+    
+    // Update project data with preferences
+    projectData.preferences = conversationPreferences;
+    
+    console.log('📝 Current preferences:', conversationPreferences);
 }
 
 // Convert markdown to HTML
@@ -1390,8 +1455,23 @@ function selectTileForSurface(surfaceId) {
         return;
     }
     
-    // Create a chat message asking for tile selection help
-    const message = `I need help selecting tiles for my ${surface.type.toLowerCase()} surface (${surface.sqft || 0} sq ft). Can you show me some options?`;
+    // Create a contextual chat message with preferences
+    let message = `I need help selecting tiles for my ${surface.type.toLowerCase()} surface (${surface.sqft || 0} sq ft).`;
+    
+    // Add conversation preferences if available
+    const preferences = [];
+    if (conversationPreferences.colors.length > 0) {
+        preferences.push(`colors: ${conversationPreferences.colors.join(', ')}`);
+    }
+    if (conversationPreferences.styles.length > 0) {
+        preferences.push(`styles: ${conversationPreferences.styles.join(', ')}`);
+    }
+    
+    if (preferences.length > 0) {
+        message += ` Based on our conversation, I'm interested in ${preferences.join(' and ')}.`;
+    }
+    
+    message += ` Can you show me some options?`;
     
     // Add the message to chat and send it
     const chatInput = document.getElementById('chat-input');
@@ -1421,15 +1501,34 @@ function findSurfaceById(surfaceId) {
 // Send tile selection request directly to chat API
 async function sendTileSelectionRequest(surface) {
     try {
+        // Build contextual message with preferences
+        let query = `I need help selecting tiles for my ${surface.type.toLowerCase()} surface (${surface.sqft || 0} sq ft).`;
+        
+        const preferences = [];
+        if (conversationPreferences.colors.length > 0) {
+            preferences.push(`colors: ${conversationPreferences.colors.join(', ')}`);
+        }
+        if (conversationPreferences.styles.length > 0) {
+            preferences.push(`styles: ${conversationPreferences.styles.join(', ')}`);
+        }
+        
+        if (preferences.length > 0) {
+            query += ` Based on our conversation, I'm interested in ${preferences.join(' and ')}.`;
+        }
+        
+        query += ` Can you show me some options?`;
+        
         const requestData = {
-            query: `I need help selecting tiles for my ${surface.type.toLowerCase()} surface (${surface.sqft || 0} sq ft). Can you show me some options?`,
+            query: query,
             phone_number: document.getElementById('customer-phone')?.value.trim() || '',
             first_name: document.getElementById('customer-name')?.value.trim() || '',
+            conversation_history: conversationHistory,
             surface_context: {
                 type: surface.type,
                 area: surface.sqft,
                 room: findRoomBySurfaceId(surface.id)?.name || 'room'
-            }
+            },
+            preferences: conversationPreferences
         };
         
         const response = await fetch('/api/chat', {

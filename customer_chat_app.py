@@ -933,6 +933,17 @@ def create_project_summary(project_data, session_id):
                         surface_info.append(f"{area} {surface_type}")
                 summary_parts.append(f"Surfaces: {', '.join(surface_info)}")
         
+        # Conversation preferences
+        preferences = project_data.get('preferences', {})
+        if preferences:
+            pref_parts = []
+            if preferences.get('colors'):
+                pref_parts.append(f"Colors: {', '.join(preferences['colors'])}")
+            if preferences.get('styles'):
+                pref_parts.append(f"Styles: {', '.join(preferences['styles'])}")
+            if pref_parts:
+                summary_parts.append(f"Preferences: {'; '.join(pref_parts)}")
+        
         return ' | '.join(summary_parts) if summary_parts else None
         
     except Exception as e:
