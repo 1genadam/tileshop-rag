@@ -1254,12 +1254,34 @@ function handleSurfaceNameKeyPress(event, roomId) {
     }
 }
 
+// Get appropriate dimension labels based on surface type
+function getDimensionLabelsForSurface(surfaceType) {
+    const type = surfaceType.toLowerCase();
+    
+    // Floor and ceiling surfaces use Length and Width
+    if (type.includes('floor') || type.includes('ceiling')) {
+        return { first: 'Length', second: 'Width' };
+    }
+    
+    // Wall surfaces use Height and Width
+    if (type.includes('wall') || type.includes('backsplash') || type.includes('wainscot')) {
+        return { first: 'Height', second: 'Width' };
+    }
+    
+    // Default to Length and Width for other horizontal surfaces
+    // (like countertops, vanity tops, etc.)
+    return { first: 'Length', second: 'Width' };
+}
+
 function renderSurfaceItem(roomId, surface) {
     const surfacesContainer = document.getElementById(roomId + '-surfaces');
     
     const surfaceItem = document.createElement('div');
     surfaceItem.className = 'surface-item';
     surfaceItem.id = surface.id;
+    
+    // Determine dimension labels based on surface type
+    const dimensionLabels = getDimensionLabelsForSurface(surface.type);
     
     surfaceItem.innerHTML = `
         <div class="surface-header">
@@ -1269,10 +1291,10 @@ function renderSurfaceItem(roomId, surface) {
             </button>
         </div>
         <div class="surface-dimensions">
-            <input type="number" placeholder="Height (ft)" step="0.1" 
+            <input type="number" placeholder="${dimensionLabels.first} (ft)" step="0.1" 
                    value="${surface.height || ''}" 
                    onchange="updateSurfaceDimensions('${roomId}', '${surface.id}', 'height', this.value)">
-            <input type="number" placeholder="Width (ft)" step="0.1" 
+            <input type="number" placeholder="${dimensionLabels.second} (ft)" step="0.1" 
                    value="${surface.width || ''}" 
                    onchange="updateSurfaceDimensions('${roomId}', '${surface.id}', 'width', this.value)">
         </div>
